@@ -1,0 +1,2152 @@
+# CMSM
+
+> Common markup state machine.
+
+Together, the parsing rules described below define what is referred to as a
+Common Markup parser.
+
+> This document is currently in progress.
+> Some parts are still in progress:
+>
+> *   Phrasing
+> *   List items
+> *   Stack of continuation (`>` and `␠␠` for blockquote and list items)
+> *   Extensions
+> *   How to turn tokens into t:content
+> *   Character references in fenced code metadata
+> *   How to group escape and entity/character references
+>
+> It is developed jointly with a reference parser:
+> [`micromark`](https://github.com/micromark/micromark).
+>
+> Contributions are welcome.
+
+## Table of contents
+
+## Background
+
+The common markup parser parses a markup language that is commonly referenced to
+as *Markdown*.
+
+The first definition of this format gave several examples of how it worked,
+showing input Markdown and output HTML, and came with a reference implementation
+(known as Markdown.pl).
+When new implementations followed, they mostly followed the first definition,
+but deviated from the first implementation, thus *Markdown* a family of formats.
+
+Some years later, an attempt was made to standardize the differences between the
+Markdown implementations, by specifying how most edge cases should be handled,
+through more input and output examples.
+This attempt is known as CommonMark, and many implementations follow it.
+
+This document defines an even more formal format, based on CommonMark, by
+documenting how to parse it, instead of documenting how to use it through input
+and output examples.
+This format is:
+
+*   **strict**, as it defines a state machine, which leaves significantly less
+    room for interpretation
+*   **agnostic** of HTML, as it does not show examples of output, which lets
+    the format be used in new ways
+*   **streaming**, as it is agnostic to HTML, which requires a whole stream to
+    be buffered because references can resolve to following definitions
+*   **complete**, as it defines different types of tokens and how they are
+    grouped, which allows the format to be represented as a concrete syntax tree
+
+The origin story of Markdown is similar to that of HTML, which at a time was
+also a family of formats.
+Through incredible efforts of the WHATWG, a Living Standard was created on how
+to parse the format, through defining a state machine.
+
+## Overview
+
+The common markup parser parses a file line by line.
+Each line is made up of tokens, such as whitespace, markers, sequences, and
+content, which are queued.
+Depending on the character, certain side effects occur, such as that a new token
+is created, or one state is switched to another.
+At certain points, which could be at the end of a line, it is known what to do
+with parts of the queue, which has more effects: the tokens can be changed, such
+as because it is known that a punctuation marker should be treated as content,
+or that groups are closed or new ones opened.
+
+At the end of a line, it is typically known what to do with that line.
+One exception is g:content, which spans an arbitrary number of lines, and can
+result in zero or more definitions, and optionally either a paragraph or a
+Setext heading.
+
+## Preprocessing the input stream
+
+The [input stream](#) consists of the characters pushed into it, typically
+coming over the network or from the local file system.
+
+The [input character](#) is the first character in the [input stream][] that has
+not yet been consumed.
+Initially, the input character is the first character in the input.
+
+Any occurrences of c:HT in the [input stream][] is represented by that character
+and 0-3 [c:VS][] characters.
+
+## Characters
+
+A character is a Unicode code point and is represented as a four digit
+hexadecimal number, typically prefixed with `U+` (**\[UNICODE]**).
+
+### Conceptual characters
+
+A [c:VS](#) character is a conceptual character representing an expanded column
+size of a c:HT.
+
+An [c:EOF](#) character is a conceptual character representing the end of the
+[input stream][].
+
+c:VS and c:EOF are not real characters in the stream, but rather a character
+increase the size of a character, or the lack of any further characters.
+
+### Tabs
+
+Tabs (c:HT) are typically not expanded into spaces, but do behave as if they
+were replaced by spaces with a tab stop of 4 characters.
+These character increments are represented by a [c:VS] characters.
+
+Say we’d have the following markup (where `␉` represent a tab):
+
+```markdown
+>␉␉a
+```
+
+This is represented in the input stream by the characters: c:>, c:HT, c:VS,
+c:VS, c:HT, c:VS, c:VS, c:VS, and c:a.
+
+When transforming from markup to an output format, tab characters that are not
+part of syntax, should be present in the output format.
+When the tab itself (and zero or more c:VS characters) are part of syntax, but
+some c:VS characters are not, the remaining c:VS characters should be present in
+the output format as c:SP characters.
+
+### Character groups
+
+An [ASCII digit](#) is a character in the range c:0 to c:9, inclusive.
+
+An [ASCII upper alpha](#) is a character in the range c:A to c:Z, inclusive.
+
+An [ASCII lower alpha](#) is a character in the range c:a to c:z, inclusive.
+
+An [ASCII alpha](#) is an [ASCII upper alpha][] or [ASCII lower alpha][].
+
+An [ASCII alphanumeric](#) is an [ASCII digit][] or [ASCII alpha][].
+
+An [ASCII punctuation](#) is a character in the ranges c:! to c:/, c:: to c:@,
+c:[ to c:`, or c:{ to c:~, inclusive.
+
+An [ASCII control](#) is a character in the range c:NUL to c:US, inclusive, or
+c:DEL.
+
+To [ASCII-lowercase](#) a character, is to increase it by 0x20 if it is in the
+range c:A to c:Z, inclusive.
+
+A [Unicode whitespace](#) is a character in the Unicode `Zs` (Separator, Space)
+category, or c:HT, c:LF, c:FF, or c:CR (**\[UNICODE]**).
+
+A [Unicode punctuation](#) is a character in the Unicode `Pc` (Punctuation,
+Connector), `Pd` (Punctuation, Dash), `Pe` (Punctuation, Close), `Pf`
+(Punctuation, Final quote), `Pi` (Punctuation, Initial quote), `Po`
+(Punctuation, Other), or `Ps` (Punctuation, Open) categories, or an [ASCII
+punctuation][] (**\[UNICODE]**).
+
+> ❗️ Todo:
+> *   [ASCII control][] is used by unquoted destinations.
+> *   [Unicode whitespace][] and [Unicode punctuation][] are used by emphasis
+>     and importance
+
+## State
+
+Initially, the [stack of open groups](#) is empty.
+The stack grows downwards; the topmost group on the stack is the first one
+opened, and the bottommost group of the stack is the last still open group.
+
+The [current group](#) is the bottommost group in this [stack of open groups][].
+
+The [queue](#) is a list of tokens.
+The [current token](#) is the last token in the [queue][].
+
+Certain states also use a [return state](#) to return to the state it was
+invoked from.
+
+> ❗️ Todo: The queue can only contain tokens, this is annoying for escapes (a
+> marker and a content), as it makes sense to group them (same for entities or
+> character references when they are done).
+> We can either process the queue when emitting, or somehow support groups and
+> flattening of groups?
+
+## Actions
+
+### Consuming
+
+To consume the [input character][] affects the [current token][].
+Due to the nature of the state machine, it is not possible to consume if there
+is no current token.
+To consume the input character, first run the following steps based on the
+token’s type:
+
+*   ↪ **t:marker**
+
+    Set the marker to the [input character][]
+*   ↪ **t:sequence**
+
+    Increment the size of the token.
+    If the token has no marker, set the marker to the [input character][]
+*   ↪ **t:whitespace**
+
+    Increment the size of the token.
+    Add the current [input character][] to the token’s list of characters
+*   ↪ **Anything else**
+
+    Do nothing
+
+### Queueing
+
+To queue a token is to add it to the [queue][].
+
+Queueing tokens may have side effects, based on the type of the token, and given
+labelled parameters:
+
+*   ↪ **t:whitespace**
+
+    Set the token’s size and used size to zero (0).
+    Set the token’s list of characters to an empty list.
+    If a used size is given, set the token’s used size to the given value
+*   ↪ **t:sequence**
+
+    Set the token’s size to zero (0)
+*   ↪ **t:content**
+
+    Set the token’s prefix to the empty string.
+    If characters are given, let `seen` be `false`, and perform the following
+    steps for each character:
+
+    *   ↪ **c:HT**
+
+        Append the character to the prefix, let `seen` be `true`
+    *   ↪ **c:SP**
+
+        Append the character to the prefix
+    *   ↪ **[c:VS]**
+
+        If `seen` is `true`, do nothing.
+
+        Otherwise, append a c:SP character to the prefix
+*   ↪ **Anything else**
+
+    Do nothing
+
+### Emitting
+
+To emit a token is to add it to the [current group][].
+A token may be emitted directly, but typically the tokens the [queue][] are
+emitted.
+After emitting, the queue is cleared.
+Emitting tokens may have side effects, based on their types:
+
+*   ↪ **t:end-of-file**
+
+    Close all groups in the [stack of open groups][], starting at the
+    bottommost group (the [current group][]), moving up until the topmost group
+    is closed
+*   ↪ **Anything else**
+
+    Do nothing
+
+### Opening
+
+To open a group is to add it to the [current group][] and the [stack of open
+groups][].
+Opening groups may have side effects, based on their type:
+
+*   ↪ **g:blank-line**
+
+    If the [current group][] is a g:content, close it.
+
+    Otherwise, if the current group is an g:html, and its kind is `6` or `7`,
+    close it.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **g:atx-heading**\
+    ↪ **g:fenced-code**\
+    ↪ **g:html**\
+    ↪ **g:thematic-break**
+
+    If the [current group][] is a g:content, close it.
+
+    Otherwise, if the [current group][] is a g:indented-code, close it.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **Anything else**
+
+    Do nothing
+
+### Closing
+
+To close a group is to continue on in its parent group and to pop it off the
+[stack of open groups][].
+Closing groups may have side effects, based on their type:
+
+*   ↪ **g:content**
+
+    > ❗️ Todo: Process content
+*   ↪ **g:atx-heading-content**
+
+    > ❗️ Todo: Process content
+
+## Tokenization
+
+Implementations must act as if they use the following state machine to tokenize
+common markup.
+The state machine must start in the s:initial.
+Most states consume a single character, which may have various side-effects, and
+either switch the state machine to a new state to reconsume the
+[input character][], or switch it to a new state to consume the next character,
+or stays in the same state to consume the next character.
+
+The exact behavior of certain states depends on state, such as the [stack of
+open groups][] and the [queue][].
+
+### Initial state
+
+*   ↪ **[c:EOF][]**
+
+    Queue a t:end-of-file and emit
+*   ↪ **c:LF**\
+    ↪ **c:CR**
+
+    Open a g:blank-line, close, and reconsume in the s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Queue a t:whitespace, consume, and switch to the s:initial-whitespace
+*   ↪ **Anything else**
+
+    Reconsume in the s:in-line
+
+### Initial whitespace state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    Open a g:blank-line, emit, close, and reconsume in the s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**\
+    ↪ **[c:VS][]**
+
+    Consume
+*   ↪ **Anything else**
+
+    Reconsume in the s:in-line
+
+### Line ending state
+
+*   ↪ **[c:EOF][]**
+
+    Queue a t:end-of-file and emit
+*   ↪ **c:LF**
+
+    Queue a t:line-ending, consume, emit, and switch to the s:initial
+*   ↪ **c:CR**
+
+    Queue a t:line-ending, consume, and switch to the s:carriage-return
+*   ↪ **Anything else**
+
+    > ❗️ Note: Impossible!
+
+    Reconsume in the s:initial
+
+### Carriage return state
+
+*   ↪ **c:LF**
+
+    Consume, emit, and switch to the s:initial
+*   ↪ **Anything else**
+
+    Emit and reconsume in the s:initial
+
+### Escape state
+
+*   ↪ **[ASCII punctuation][]**
+
+    Queue a t:escape, consume, and switch to the [return state][]
+*   ↪ **Anything else**
+
+    Change the [current token][] into a t:content, and reconsume in the
+    [return state][]
+
+### In line state
+
+If the [stack of continuation][] matches all open groups:
+
+*   And if the [current group][] is an g:html, queue a t:content with the unused
+    characters of the previous t:whitespace if there is one, and reconsume in
+    the s:html-block-continuation-line
+*   And otherwise, if the [current group][] is a g:fenced-code, and either the
+    [current token][] is not a t:whitespace, or it is a t:whitespace and its
+    unused size is less than four (4), and the [input character][] is the
+    [current group][]’s marker, queue a t:sequence, consume, and switch to the
+    s:fenced-code-close-sequence
+*   And otherwise, if the [current group][] is a g:fenced-code, queue a
+    t:content with the unused characters of the previous t:whitespace if there
+    is one, consume, and switch to the s:fenced-code-continuation-line.
+
+Otherwise, if the [current group][] is not a g:content, the previous token is a
+t:whitespace, and its unused size is greater than or equal to four (4), add four
+to the previous token’s used size, queue a t:content with the unused characters
+of the previous t:whitespace, consume, and switch to the s:indented-code-line.
+
+Otherwise, perform the following steps based on the [input character][]:
+
+*   ↪ **c:#**
+
+    Queue a t:sequence, consume, and switch to the
+    s:atx-heading-opening-sequence
+*   ↪ **c:***
+
+    Queue a t:marker, consume, and switch to the s:asterisk-line-asterisk-after
+*   ↪ **c:+**
+
+    > ❗️ Todo: Could be a list item or content
+*   ↪ **c:-**
+
+    > ❗️ Todo: Could be a list item, thematic break, setext underline secondary,
+    > or content
+*   ↪ **[ASCII digit][]**
+
+    > ❗️ Todo: Could be a list item or content
+*   ↪ **c:<**
+
+    Queue a t:content with the unused characters of the previous t:whitespace if
+    there is one, consume, and switch to the s:html-block-open
+*   ↪ **c:=**
+
+    If the [current group][] is a g:content, queue a t:sequence, consume, and
+    switch to the s:setext-heading-underline-equals-to-sequence.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:>**
+
+    Open a g:blockquote, consume, emit, and switch to the s:initial
+*   ↪ **c:_**
+
+    > ❗️ Todo: Could be a thematic break or content
+*   ↪ **c:`**
+
+    Queue a t:sequence, consume, and switch to the
+    s:fenced-code-grave-accent-opening-fence
+*   ↪ **c:~**
+
+    Queue a t:sequence, consume, and switch to the
+    s:fenced-code-tilde-opening-fence
+*   ↪ **Anything else**
+
+    Otherwise, queue a t:content with the unused characters of the previous
+    t:whitespace if there is one, consume, and switch to the
+    s:content-continuation
+
+### ATX heading opening sequence state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    Open an g:atx-heading, open an g:atx-heading-fence, emit, close twice, and
+    reconsume in the s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Queue a t:whitespace, consume, and switch to the
+    s:atx-heading-opening-sequence-after
+*   ↪ **c:#**
+
+    If the current token’s size is less than six (6), consume.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **Anything else**
+
+    Change the [current token][] into a t:content, consume, and switch to the
+    s:content-continuation
+
+### ATX heading opening sequence after state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    Open an g:atx-heading, open an g:atx-heading-fence, emit, close twice, and
+    reconsume in the s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**\
+    ↪ **[c:VS][]**
+
+    Consume
+*   ↪ **c:#**
+
+    Open an g:atx-heading, open an g:atx-heading-fence, emit, close, queue a
+    t:sequence, consume, and switch to the s:atx-heading-number-sign-sequence
+*   ↪ **Anything else**
+
+    Open an g:atx-heading, open an g:atx-heading-fence, emit, close, queue a
+    t:content, consume, and switch to the s:atx-heading-content
+
+### ATX heading content state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    [Process as an ATX heading][] and reconsume in the s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Queue a t:whitespace, consume, and switch to the s:atx-heading-whitespace
+*   ↪ **Anything else**
+
+    Consume
+
+### ATX heading whitespace state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    [Process as an ATX heading][] and reconsume in the s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**\
+    ↪ **[c:VS][]**
+
+    Consume
+*   ↪ **c:#**
+
+    Queue a t:sequence, consume, and switch to the
+    s:atx-heading-number-sign-sequence
+*   ↪ **Anything else**
+
+    Queue a t:content, consume, and switch to the s:atx-heading-content
+
+### ATX heading number sign sequence state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    [Process as an ATX heading][] and reconsume in the s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Queue a t:whitespace, consume, and switch to the s:atx-heading-whitespace
+*   ↪ **c:#**
+
+    Consume
+*   ↪ **Anything else**
+
+    Queue a t:content, consume, and switch to the s:atx-heading-content
+
+### Asterisk line asterisk after state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    [Process as an Asterisk line][] and reconsume in the s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Queue a t:whitespace, consume, and switch to the s:asterisk-line-whitespace
+*   ↪ **c:***
+
+    Queue a t:marker and consume
+*   ↪ **Anything else**
+
+    > ❗️ Todo: handle the input character, reconsume somewhere.
+
+    [Process as an Asterisk line opening][].
+
+### Asterisk line whitespace state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    [Process as an Asterisk line][] and reconsume in the s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**\
+    ↪ **[c:VS][]**
+
+    Consume
+*   ↪ **c:***
+
+    Queue a t:marker, consume, and switch to the s:asterisk-line-asterisk-after
+*   ↪ **Anything else**
+
+    > ❗️ Todo: handle the input character, reconsume somewhere.
+
+    [Process as an Asterisk line opening][].
+
+### HTML block open state
+
+*   ↪ **c:!**
+
+    Consume and switch to the s:html-block-open-markup-declaration
+*   ↪ **c:/**
+
+    > ❗️ Bug: this allows tag names to start with `-` and numbers, we need a
+    > state between these two.
+    >
+    > ❗️ Todo: Define shared space: `endTag`
+
+    Let `endTag` be `true`, consume, and switch to the
+    s:html-block-open-tag-name-inside
+*   ↪ **c:?**
+
+    > ❗️ Todo: Define shared space: `kind`
+
+    Let `kind` be `3`, open an g:html, consume, and switch to the
+    s:html-block-continuation-declaration-before
+*   ↪ **[ASCII alpha][]**
+
+    > ❗️ Todo: Define shared space: `tagName`
+
+    Append the [ASCII-lowercase][]d character to `tagName`, consume, and switch
+    to the s:html-block-open-tag-name-inside
+*   ↪ **Anything else**
+
+    This is not an HTML block.
+    Reconsume in the s:content-continuation
+
+### HTML block open markup declaration state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-block-open-comment-inside
+*   ↪ **[ASCII upper alpha][]**
+
+    > ❗️ Todo: Define shared space: `kind`
+
+    Let `kind` be `4`, open an g:html, consume, and switch to the
+    s:html-block-continuation-line
+*   ↪ **c:[**
+
+    Consume and switch to the s:html-block-open-character-data-inside
+*   ↪ **Anything else**
+
+    This is not an HTML block.
+    Reconsume in the s:content-continuation
+
+### HTML block open comment inside state
+
+*   ↪ **c:-**
+
+    > ❗️ Todo: Define shared space: `kind`
+
+    Let `kind` be `2`, open an g:html, consume, and switch to the
+    s:html-block-continuation-declaration-before
+*   ↪ **Anything else**
+
+    This is not an HTML block.
+    Reconsume in the s:content-continuation
+
+### HTML block open character data inside state
+
+If the next few characters are:
+
+*   ↪ **`[CDATA[` (the five upper letters “CDATA” with a c:[ before and
+    after)**
+
+    > ❗️ Todo: Define shared space: `kind`
+
+    Let `kind` be `5`, open an g:html, consume, and switch to the
+    s:html-block-continuation-line
+*   ↪ **Anything else**
+
+    This is not an HTML block.
+    Reconsume in the s:content-continuation
+
+### HTML block open tag name inside state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    > ❗️ Todo: Define shared space: `tagName`, `endTag`, `kind`
+
+    If `tagName` is a [raw tag][] and `endTag` is not `true`, let `kind` be `1`,
+    open an g:html, and reconsume in the s:html-block-continuation-line.
+
+    Otherwise, if `tagName` is a [simple tag][], let `kind` be `6`, open an
+    g:html, and reconsume in the s:html-block-continuation-line.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:-**\
+    ↪ **[ASCII alphanumeric][]**
+
+    > ❗️ Todo: Define shared space: `tagName`
+
+    Append the [ASCII-lowercase][]d character to `tagName` and consume
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    > ❗️ Todo: Define shared space: `tagName`, `endTag`, `kind`
+
+    If `tagName` is a [raw tag][] and `endTag` is not `true`, let `kind` be `1`,
+    open an g:html, consume, and switch to the
+    s:html-block-continuation-line.
+
+    Otherwise, if `tagName` is not a [raw tag][], and the [current group][] is
+    not a g:content, consume, and switch to the
+    s:html-block-open-complete-attribute-before.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:/**
+
+    > ❗️ Todo: Define shared space: `tagName`, `endTag`
+
+    If `tagName` is a [simple tag][], consume, and switch to the
+    s:html-block-open-simple-self-closing-tag.
+
+    Otherwise, if `tagName` is not a [simple tag][], `endTag` is not `true`, and
+    the [current group][] is not a g:content, consume, and switch to the
+    s:html-block-open-complete-self-closing-tag.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:>**
+
+    > ❗️ Todo: Define shared space: `tagName`, `endTag`, `kind`
+
+    If `tagName` is a [raw tag][] and `endTag` is not `true`, let `kind` be `1`,
+    open an g:html, consume, and switch to the
+    s:html-block-continuation-line.
+
+    Otherwise, if `tagName` is a [simple tag][], let `kind` be `6`, open an
+    g:html, and reconsume in the s:html-block-continuation-line.
+
+    Otherwise, if `tagName` is not a [raw tag][], and the [current group][] is
+    not a g:content, consume, and switch to the
+    s:html-block-open-complete-tag-after.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **Anything else**
+
+    This is not an HTML block.
+    Reconsume in the s:content-continuation
+
+### HTML block open simple self closing tag state
+
+*   ↪ **c:>**
+
+    > ❗️ Todo: Define shared space: `kind`
+
+    Let `kind` be `6`, open an g:html, consume, and switch to the
+    s:html-block-continuation-line
+*   ↪ **Anything else**
+
+    This is not an HTML block.
+    Reconsume in the s:content-continuation
+
+### HTML block open complete attribute before state
+
+*   ↪ **c:HT**\
+    ↪ **c:SP**\
+    ↪ **[c:VS][]**
+
+    Consume
+*   ↪ **c:/**
+
+    > ❗️ Todo: Define shared space: `endTag`
+
+    If `endTag` is not `true`, consume, and switch to the
+    s:html-block-open-complete-self-closing-tag.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c::**\
+    ↪ **[ASCII alpha][]**\
+    ↪ **c:_**
+
+    > ❗️ Todo: Define shared space: `endTag`
+
+    If `endTag` is not `true`, consume, and switch to the
+    s:html-block-open-complete-attribute-name.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:>**
+
+    > ❗️ Todo: Define shared space: `kind`
+
+    Let `kind` be `7`, open an g:html, consume, and switch to the
+    s:html-block-continuation-line
+*   ↪ **Anything else**
+
+    This is not an HTML block.
+    Reconsume in the s:content-continuation
+
+### HTML block open complete attribute name state
+
+*   ↪ **c:-**\
+    ↪ **c:.**\
+    ↪ **c::**\
+    ↪ **[ASCII alphanumeric][]**\
+    ↪ **c:_**
+
+    Consume
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-block-open-complete-attribute-name-after
+
+### HTML block open complete attribute name after state
+
+*   ↪ **c:HT**\
+    ↪ **c:SP**\
+    ↪ **[c:VS][]**
+
+    Consume
+*   ↪ **c:/**
+
+    > ❗️ Todo: Define shared space: `endTag`
+
+    If `endTag` is not `true`, consume, and switch to the
+    s:html-block-open-complete-self-closing-tag.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:=**
+
+    Consume and switch to the s:html-block-open-complete-attribute-value-before
+*   ↪ **c:>**
+
+    Consume and switch to the s:html-block-open-complete-tag-after
+*   ↪ **Anything else**
+
+    This is not an HTML block.
+    Reconsume in the s:content-continuation
+
+### HTML block open complete attribute value before state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**\
+    ↪ **c:<**\
+    ↪ **c:=**\
+    ↪ **c:>**\
+    ↪ **c:`**
+
+    This is not an HTML block.
+    Reconsume in the s:content-continuation
+*   ↪ **c:HT**\
+    ↪ **c:SP**\
+    ↪ **[c:VS][]**
+
+    Consume
+*   ↪ **c:"**
+
+    Consume and switch to the
+    s:html-block-open-complete-double-quoted-attribute-value
+*   ↪ **c:'**
+
+    Consume and switch to the
+    s:html-block-open-complete-single-quoted-attribute-value
+*   ↪ **Anything else**
+
+    Consume and switch to the
+    s:html-block-open-complete-unquoted-attribute-value
+
+### HTML block open complete double quoted attribute value state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    This is not an HTML block.
+    Reconsume in the s:content-continuation
+*   ↪ **c:"**
+
+    Consume and switch to the s:html-block-open-complete-attribute-before
+*   ↪ **Anything else**
+
+    Consume
+
+### HTML block open complete single quoted attribute value state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    This is not an HTML block.
+    Reconsume in the s:content-continuation
+*   ↪ **c:'**
+
+    Consume and switch to the s:html-block-open-complete-attribute-before
+*   ↪ **Anything else**
+
+    Consume
+
+### HTML block open complete unquoted attribute value state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:HT**\
+    ↪ **c:LF**\
+    ↪ **c:CR**\
+    ↪ **c:SP**\
+    ↪ **c:"**\
+    ↪ **c:'**\
+    ↪ **c:<**\
+    ↪ **c:=**\
+    ↪ **c:>**\
+    ↪ **c:`**
+
+    Reconsume in the s:html-block-open-complete-attribute-name-after
+*   ↪ **Anything else**
+
+    Consume
+
+### HTML block open complete self closing tag state
+
+*   ↪ **c:>**
+
+    Consume and switch to the s:html-block-open-complete-tag-after
+*   ↪ **Anything else**
+
+    This is not an HTML block.
+    Reconsume in the s:content-continuation
+
+### HTML block open complete tag after state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:HT**\
+    ↪ **c:LF**\
+    ↪ **c:CR**\
+    ↪ **c:SP**
+
+    > ❗️ Todo: Define shared space: `kind`
+
+    Let `kind` be `7`, open an g:html, and reconsume in the
+*   ↪ **Anything else**
+
+    This is not an HTML block.
+    Reconsume in the s:content-continuation
+
+### HTML block continuation line state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    Open an g:html-line, emit, close, and reconsume in the s:line-ending
+*   ↪ **c:-**
+
+    > ❗️ Todo: Define shared space: `kind`
+
+    If `kind` is `7`, consume, and switch to the
+    s:html-block-continuation-comment-inside.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:<**
+
+    > ❗️ Todo: Define shared space: `kind`
+
+    If `kind` is `1`, consume, and switch to the
+    s:html-block-continuation-close-tag.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:>**
+
+    > ❗️ Todo: Define shared space: `kind`
+
+    If `kind` is `4`, consume, and switch to the
+    s:html-block-close-line.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:?**
+
+    > ❗️ Todo: Define shared space: `kind`
+
+    If `kind` is `3`, consume, and switch to the
+    s:html-block-continuation-declaration-before.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:]**
+
+    > ❗️ Todo: Define shared space: `kind`
+
+    If `kind` is `5`, consume, and switch to the
+    s:html-block-continuation-character-data-inside.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **Anything else**
+
+    Consume
+
+### HTML block continuation close tag state
+
+*   ↪ **c:/**
+
+    Consume and switch to the s:html-block-continuation-close-tag-name-inside
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-block-continuation-line
+
+### HTML block continuation close tag name inside state
+
+*   ↪ **[ASCII alpha][]**
+
+    > ❗️ Todo: Define shared space: `tagName`
+
+    Append the [ASCII-lowercase][]d character to `tagName` and consume
+*   ↪ **c:>**
+
+    > ❗️ Todo: Define shared space: `tagName`
+
+    If `tagName` is a [raw tag][], consume, and switch to the
+    s:html-block-close-line.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-block-continuation-line
+
+### HTML block continuation comment inside state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-block-continuation-declaration-before
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-block-continuation-line
+
+### HTML block continuation character data inside state
+
+*   ↪ **c:]**
+
+    Consume and switch to the s:html-block-continuation-declaration-before
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-block-continuation-line
+
+### HTML block continuation declaration before state
+
+*   ↪ **c:>**
+
+    Consume and switch to the s:html-block-close-line
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-block-continuation-line
+
+### HTML block close line state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    Open an g:html-line, emit, close twice, and reconsume in the s:line-ending
+*   ↪ **Anything else**
+
+    Consume
+
+### Setext heading underline equals to sequence state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    [Process as a Setext primary heading][] and reconsume in the s:line-ending
+*   ↪ **c:=**
+
+    Consume
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Queue a t:whitespace, consume, and switch to the
+    s:setext-heading-underline-equals-to-after
+*   ↪ **Anything else**
+
+    Turn the [current token][] into a t:content, consume, and switch to the
+    s:content-continuation
+
+### Setext heading underline equals to after state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    [Process as a Setext primary heading][] and reconsume in the s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**\
+    ↪ **[c:VS][]**
+
+    Consume
+*   ↪ **Anything else**
+
+    Turn the previous and  [current token][] into a t:content, consume, and
+    switch to the s:content-continuation
+
+### Fenced code grave accent opening fence state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    If the [current token][]’s size is greater than or equal to three (3),
+    Open a g:fenced-code, [process as a Fenced code fence][] and reconsume in
+    the s:line-ending
+
+    Otherwise, this is not fenced code.
+    Turn the [current token][] into a t:content and reconsume in the
+    s:content-continuation
+*   ↪ **c:`**
+
+    Consume
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    If the [current token][]’s size is greater than or equal to three (3), queue
+    a t:whitespace, consume, and switch to the
+    s:fenced-code-grave-accent-opening-fence-whitespace
+
+    Otherwise, this is not fenced code.
+    Turn the [current token][] into a t:content and reconsume in the
+    s:content-continuation
+*   ↪ **Anything else**
+
+    If the [current token][]’s size is greater than or equal to three (3), queue
+    a t:content, consume, and switch to the
+    s:fenced-code-grave-accent-opening-fence-metadata
+
+    Otherwise, this is not fenced code.
+    Turn the queue, except for the first token if it is a t:whitespace, into a
+    t:content and reconsume in the s:content-continuation
+
+### Fenced code grave accent opening fence whitespace state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    Open a g:fenced-code, [process as a Fenced code fence][] and reconsume in
+    the s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**\
+    ↪ **[c:VS]**
+
+    Consume
+*   ↪ **c:`**
+
+    This is not fenced code.
+    Turn the queue, except for the first token if it is a t:whitespace, into a
+    t:content and reconsume in the s:content-continuation
+*   ↪ **Anything else**
+
+    Queue a t:content, consume, and switch to the
+    s:fenced-code-grave-accent-opening-fence-metadata
+
+### Fenced code grave accent opening fence metadata state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    Open a g:fenced-code, [process as a Fenced code fence][] and reconsume in
+    the s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Queue a t:whitespace, consume, and switch to the
+    s:fenced-code-grave-accent-opening-fence-whitespace
+*   ↪ **c:`**
+
+    This is not fenced code.
+    Turn the queue, except for the first token if it is a t:whitespace, into a
+    t:content and reconsume in the s:content-continuation
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Queue a t:marker, consume, set the [return state][] to
+    s:fenced-code-grave-accent-opening-fence-escape-after, and switch to the
+    s:escape
+*   ↪ **Anything else**
+
+    Consume
+
+### Fenced code grave accent opening fence escape after state
+
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Queue a t:whitespace, consume, and switch to the
+    s:fenced-code-grave-accent-opening-fence-whitespace
+*   ↪ **Anything else**
+
+    Reconsume in the s:fenced-code-grave-accent-opening-fence-whitespace
+
+### Fenced code tilde opening fence state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    If the [current token][]’s size is greater than or equal to three (3), open
+    a g:fenced-code, [process as a Fenced code fence][] and reconsume in the
+    s:line-ending
+
+    Otherwise, this is not fenced code.
+    Turn the [current token][] into a t:content and reconsume in the
+    s:content-continuation
+*   ↪ **c:~**
+
+    Consume
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    If the [current token][]’s size is greater than or equal to three (3), queue
+    a t:whitespace, consume, and switch to the
+    s:fenced-code-tilde-opening-fence-whitespace
+
+    Otherwise, this is not fenced code.
+    Turn the [current token][] into a t:content and reconsume in the
+    s:content-continuation
+*   ↪ **Anything else**
+
+    If the [current token][]’s size is greater than or equal to three (3), queue
+    a t:content, consume, and switch to the
+    s:fenced-code-tilde-opening-fence-metadata
+
+    Otherwise, this is not fenced code.
+    Turn the [current token][] into a t:content and reconsume in the
+    s:content-continuation
+
+### Fenced code tilde opening fence whitespace state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    Open a g:fenced-code, [process as a Fenced code fence][] and reconsume in
+    the s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**\
+    ↪ **[c:VS]**
+
+    Consume
+*   ↪ **Anything else**
+
+    Queue a t:content, consume, and switch to the
+    s:fenced-code-tilde-opening-fence-metadata
+
+### Fenced code tilde opening fence metadata state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    Open a g:fenced-code, [process as a Fenced code fence][] and reconsume in
+    the s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Queue a t:whitespace, consume, and switch to the
+    s:fenced-code-tilde-opening-fence-whitespace
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Queue a t:marker, consume, set the [return state][] to
+    s:fenced-code-tilde-opening-fence-escape-after, and switch to the s:escape
+*   ↪ **Anything else**
+
+    Consume
+
+### Fenced code tilde opening fence escape after state
+
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Queue a t:whitespace, consume, and switch to the
+    s:fenced-code-tilde-opening-fence-whitespace
+*   ↪ **Anything else**
+
+    Reconsume in the s:fenced-code-tilde-opening-fence-whitespace
+
+### Fenced code continuation line state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    Open a g:fenced-code-line, emit, close, and reconsume in the
+    s:line-ending
+*   ↪ **Anything else**
+
+    Consume
+
+### Fenced code close sequence state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    > ❗️ Todo: Define shared space: `openingSize`
+
+    If the [current token][]’s size is greater than or equal to `openingSize`,
+    open a g:fenced-code, [process as a Fenced code fence][] and reconsume in
+    the s:line-ending
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    > ❗️ Todo: Define shared space: `openingSize`
+
+    If the [current token][]’s size is greater than or equal to `openingSize`,
+    queue a t:whitespace, consume, and switch to the
+    s:fenced-code-close-whitespace.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:`**\
+    ↪ **c:~**
+
+    If the [input character][] is the [current token][]’s marker, consume.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **Anything else**
+
+    Turn the [current token][] into a t:content and reconsume in the
+    s:fenced-code-continuation-line
+
+### Fenced code close whitespace state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    [Process as a Fenced code fence][], close, and reconsume in the
+    s:line-ending
+*   ↪ **c:HT**\
+    ↪ **c:SP**\
+    ↪ **[c:VS][]**
+
+    Consume
+*   ↪ **Anything else**
+
+    Turn the queue, except for the first token if it is a t:whitespace, into a
+    t:content and reconsume in the s:fenced-code-continuation-line
+
+### Indented code line state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    If the current open block is not an g:indented-code, open an
+    g:indented-code.
+
+    Open an g:indented-code-line, emit, close, and reconsume in the
+    s:line-ending
+*   ↪ **Anything else**
+
+    Consume
+
+### Content continuation state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:LF**\
+    ↪ **c:CR**
+
+    If the current open block is not a g:content, open a g:content.
+
+    Open a g:content-line, emit, close, and reconsume in the s:line-ending
+*   ↪ **Anything else**
+
+    Consume
+
+## Tokens
+
+### Whitespace token
+
+A t:whitespace represents inline whitespace that is part of syntax instead
+of content.
+
+```idl
+interface Whitespace <: Token {
+  size: number
+  used: number
+  characters: [Character]
+}
+```
+
+```js
+{
+  type: 'whitespace',
+  characters: [9],
+  size: 3,
+  used: 0
+}
+```
+
+### Line ending token
+
+A t:line-ending represents a line break in the syntax.
+
+```idl
+interface LineEnding <: Token {}
+```
+
+```js
+{type: 'lineEnding'}
+```
+
+### End-of-file token
+
+An t:end-of-file represents the end of the syntax.
+
+```idl
+interface EndOfFile <: Token {}
+```
+
+```js
+{type: 'endOfFile'}
+```
+
+### Marker token
+
+A t:marker represents one punctuation character that is part of syntax instead
+of content.
+
+```idl
+interface Marker <: Token {}
+```
+
+```js
+{type: 'marker'}
+```
+
+
+### Sequence token
+
+A t:sequence represents one or more of the same punctuation characters that are
+part of syntax instead of content.
+
+
+```idl
+interface Sequence <: Token {
+  size: number
+}
+```
+
+```js
+{type: 'sequence', size: 3}
+```
+
+### Content token
+
+A t:content represents content.
+
+```idl
+interface Content <: Token {
+  prefix: string
+}
+```
+
+```js
+{type: 'content', prefix: '  '}
+```
+
+### Escape token
+
+A t:escape represents an escaped character that is content, not syntax.
+
+```idl
+interface Escape <: Token {}
+```
+
+```js
+{type: 'escape'}
+```
+
+## Groups
+
+Groups are named groups of tokens and other blocks.
+
+### Blank line group
+
+A g:blank-line represents an empty line.
+
+```idl
+interface BlankLine <: Group {
+  children: [Whitespace]
+}
+```
+
+### Escape group
+
+A g:escape represents an escaped character or a literal character.
+
+```idl
+interface Escape <: Group {
+  children: [Marker | Escape]
+}
+```
+
+### ATX heading group
+
+An g:atx-heading represents a heading for a section.
+
+```idl
+interface AtxHeading <: Group {
+  children: [ATXHeadingFenceGroup | ATXHeadingContentGroup]
+}
+```
+
+### ATX heading fence group
+
+An g:atx-heading-fence represents a fence of a heading.
+
+```idl
+interface AtxHeadingFence <: Group {
+  children: [Whitespace | Sequence]
+}
+```
+
+### ATX heading content group
+
+An g:atx-heading-content represents the phrasing of a heading.
+
+```idl
+interface AtxHeadingContent <: Group {
+  children: [Phrasing]
+}
+```
+
+### Thematic break group
+
+A g:thematic-break represents a thematic break in a section.
+
+```idl
+interface ThematicBreak <: Group {
+  children: [Sequence | Whitespace]
+}
+```
+
+### HTML group
+
+An g:html represents embedded HTML.
+
+```idl
+interface HTML <: Group {
+  children: [HTMLineGroup | BlankLineGroup | LineEnding]
+}
+```
+
+### HTML line group
+
+An g:html-line represents a line of HTML.
+
+```idl
+interface HTMLLine <: Group {
+  children: [Whitespace | Content]
+}
+```
+
+### Indented code group
+
+An g:indented-code represents preformatted text.
+
+```idl
+interface IndentedCode <: Group {
+  children: [IndentedCodeLineGroup | BlankLineGroup | LineEnding]
+}
+```
+
+### Indented code line group
+
+An g:indented-code-line represents a line of indented code.
+
+```idl
+interface IndentedCodeLine <: Group {
+  children: [Whitespace | Content]
+}
+```
+
+### Blockquote group
+
+A g:blockquote represents paraphrased text.
+
+```idl
+interface Blockquote <: Group {
+  children: [FencedCodeGroup | IndentedCodeGroup | ATXHeadingGroup | SetextHeadingGroup | ThematicBreakGroup | HTMLGroup | ContentGroup | LineEnding]
+}
+```
+
+### Fenced code group
+
+A g:fenced-code represents preformatted text.
+
+```idl
+interface FencedCode <: Group {
+  children: [FencedCodeFenceGroup | FencedCodeLineGroup | BlankLineGroup | LineEnding]
+}
+```
+
+### Fenced code fence group
+
+A g:fenced-code-fence represents a fence of fenced code.
+
+```idl
+interface FencedCodeFence <: Group {
+  children: [Whitespace | Sequence | FencedCodeLanguageGroup | FencedCodeMetadataGroup]
+}
+```
+
+### Fenced code language group
+
+A g:fenced-code-language represents the programming language of fenced code.
+
+```idl
+interface FencedCodeLanguage <: Group {
+  children: [Whitespace | Content | EscapeGroup]
+}
+```
+
+### Fenced code metadata group
+
+A g:fenced-code-metadata represents the metadata about fenced code.
+
+```idl
+interface FencedCodeMetadata <: Group {
+  children: [Whitespace | Content | EscapeGroup]
+}
+```
+
+### Fenced code line group
+
+A g:fenced-code-line represents a line of fenced code.
+
+```idl
+interface FencedCodeLine <: Group {
+  children: [Whitespace | Content]
+}
+```
+
+### Content group
+
+A g:content represents content: definitions, paragraphs, and sometimes heading
+content.
+
+```idl
+interface Content <: Group {
+  children: [ContentLineGroup | LineEnding]
+}
+```
+
+### Content line group
+
+A g:content-line represents a line of content.
+
+```idl
+interface ContentLine <: Group {
+  children: [Whitespace | Content]
+}
+```
+
+### Setext heading group
+
+An g:setext-heading represents a heading for a section.
+
+```idl
+interface SetextHeading <: Group {
+  children: [SetextHeadingContentGroup | SetextHeadingUnderlineGroup | LineEnding]
+}
+```
+
+### Setext heading content group
+
+> ❗️ Todo
+
+### Setext heading underline group
+
+A g:setext-heading-underline represents a fence of a heading.
+
+```idl
+interface SetextHeadingUnderline <: Group {
+  children: [Whitespace | Sequence]
+}
+```
+
+### Definition group
+
+> ❗️ Todo
+
+### Paragraph group
+
+> ❗️ Todo
+
+## Processing
+
+### Process as an ATX heading
+
+To [process as an ATX heading](#) is to perform the following steps:
+
+Let `index` be the number of tokens in the queue.
+
+If the token in the queue before `index` is a t:whitespace, remove `1` from
+`index`.
+
+If the token in the queue before `index` is a t:sequence, remove `1` from
+`index`.
+
+If the token in the queue before `index` is a t:whitespace, remove `1` from
+`index`.
+
+If there are tokens in the queue before `index`, open an g:atx-heading-content,
+emit the tokens in the queue before `index` as a single t:content, and close.
+
+If there is a token at `index` in queue, open an g:atx-heading-fence,
+emit the tokens in the queue from `index`, and close.
+
+Finally, close the [current group][].
+
+> ❗️ Todo: define how to process the phrasing.
+
+### Process as a Setext primary heading
+
+> ❗️ Todo: define how to process content.
+
+To [process as a Setext primary heading](#) is to perform the following steps:
+
+Process the current group (a g:content) with a *setext primary heading* hint.
+If the hint is used, open a g:setext-heading-underline, emit, and close
+twice.
+Otherwise, let `index` be the position of the [current token][] in the queue.
+
+If the [current token][] is a t:whitespace, remove `1` from `index`.
+
+Open a g:content, emit the tokens before `index`, emit the tokens in the queue
+from `index` as a t:content.
+
+### Process as an asterisk line
+
+To [process as an asterisk line](#) is to perform the following steps:
+
+Let `size` be `0` and iterate through each `token` in the queue, and perform the
+following steps for its type:
+
+*   ↪ **t:marker**
+
+    Increment `size` by `1`.
+    If `size` is `3`, this is a thematic break, open a g:thematic-break, emit,
+    close, break from the loop, abort from the state, and reconsume in the
+    s:line-ending
+*   ↪ **Anything else**
+
+    Do nothing
+
+> ❗️ Delay for reference parser: This may be list item markers, list items with
+> code, or content.
+> It’s easier to figure this out with a reference parser that is tested.
+
+### Process as an asterisk line opening
+
+To [process as an asterisk line opening](#) is to perform the following steps:
+
+> ❗️ Delay for reference parser: This may be list item markers, list items with
+> code, or content.
+> It’s easier to figure this out with a reference parser that is tested.
+
+### Process as a Fenced code fence
+
+Let `index` be `0`.
+
+If the token in the queue at `index` is a t:whitespace, add `1` to `index`.
+
+Let `lang` be `index`.
+
+If the token in the queue after `lang` is a t:whitespace, add `1` to `lang`.
+
+Let `meta` be `lang`.
+
+If the token in the queue after `meta` is a t:whitespace, add `1` to `meta`.
+
+Open a g:fenced-code-fence, emit the tokens before `index`.
+
+If there is a token after `lang` in the queue, open a g:fenced-code-language,
+and emit the literal grouped tokens between `lang` and `meta` in the queue, and
+close.
+
+If there is a token after `meta` in the queue, open a g:fenced-code-metadata,
+and emit the literal grouped tokens after `meta` in the queue, and close.
+
+Close.
+
+## WIP
+
+Content, when it is closed, can result in zero or more g:definition’s, and,
+depending on whether it is closed by a construct that could be a Setext heading
+underline, either a g:setext-heading or g:paragraph.
+
+Phrasing is found in g:atx-heading-content, g:setext-heading-content, and
+g:paragraph.
+
+Some constructs, namely g:definition, g:setext-heading-content, and g:paragraph,
+can span multiple lines.
+
+The procedures of parsing content, definitions, and phrasing is similar to
+tokenization, but operates on tokens instead of an input stream.
+
+## References
+
+*   **\[HTML]**:
+    [HTML Standard](https://html.spec.whatwg.org/multipage/).
+    A. van Kesteren, et al.
+    WHATWG.
+*   **\[RFC20]**:
+    [ASCII format for network interchange](https://tools.ietf.org/html/rfc20).
+    V.G. Cerf.
+    October 1969.
+    Internet Standard.
+*   **\[UNICODE]**:
+    [The Unicode Standard](https://www.unicode.org/versions/).
+    Unicode Consortium.
+
+## Appendix
+
+### Raw tags
+
+A [raw tag](#) is one of: `script`, `pre`, and `style`.
+
+### Simple tags
+
+A [simple tag](#) is one of: `address`, `article`, `aside`, `base`, `basefont`,
+`blockquote`, `body`, `caption`, `center`, `col`, `colgroup`, `dd`, `details`,
+`dialog`, `dir`, `div`, `dl`, `dt`, `fieldset`, `figcaption`, `figure`,
+`footer`, `form`, `frame`, `frameset`, `h1`, `h2`, `h3`, `h4`, `h5`, `h6`,
+`head`, `header`, `hr`, `html`, `iframe`, `legend`, `li`, `link`, `main`,
+`menu`, `menuitem`, `nav`, `noframes`, `ol`, `optgroup`, `option`, `p`,
+`param`, `section`, `source`, `summary`, `table`, `tbody`, `td`, `tfoot`, `th`,
+`thead`, `title`, `tr`, `track`, and `ul`.
+
+### Entities
+
+An [entity name](#) is one of: `AEli`, `AElig`, `AM`, `AMP`, `Aacut`, `Aacute`,
+`Abreve`, `Acir`, `Acirc`, `Acy`, `Afr`, `Agrav`, `Agrave`, `Alpha`, `Amacr`,
+`And`, `Aogon`, `Aopf`, `ApplyFunction`, `Arin`, `Aring`, `Ascr`, `Assign`,
+`Atild`, `Atilde`, `Aum`, `Auml`, `Backslash`, `Barv`, `Barwed`, `Bcy`,
+`Because`, `Bernoullis`, `Beta`, `Bfr`, `Bopf`, `Breve`, `Bscr`, `Bumpeq`,
+`CHcy`, `COP`, `COPY`, `Cacute`, `Cap`, `CapitalDifferentialD`, `Cayleys`,
+`Ccaron`, `Ccedi`, `Ccedil`, `Ccirc`, `Cconint`, `Cdot`, `Cedilla`, `CenterDot`,
+`Cfr`, `Chi`, `CircleDot`, `CircleMinus`, `CirclePlus`, `CircleTimes`,
+`ClockwiseContourIntegral`, `CloseCurlyDoubleQuote`, `CloseCurlyQuote`, `Colon`,
+`Colone`, `Congruent`, `Conint`, `ContourIntegral`, `Copf`, `Coproduct`,
+`CounterClockwiseContourIntegral`, `Cross`, `Cscr`, `Cup`, `CupCap`, `DD`,
+`DDotrahd`, `DJcy`, `DScy`, `DZcy`, `Dagger`, `Darr`, `Dashv`, `Dcaron`, `Dcy`,
+`Del`, `Delta`, `Dfr`, `DiacriticalAcute`, `DiacriticalDot`,
+`DiacriticalDoubleAcute`, `DiacriticalGrave`, `DiacriticalTilde`, `Diamond`,
+`DifferentialD`, `Dopf`, `Dot`, `DotDot`, `DotEqual`, `DoubleContourIntegral`,
+`DoubleDot`, `DoubleDownArrow`, `DoubleLeftArrow`, `DoubleLeftRightArrow`,
+`DoubleLeftTee`, `DoubleLongLeftArrow`, `DoubleLongLeftRightArrow`,
+`DoubleLongRightArrow`, `DoubleRightArrow`, `DoubleRightTee`, `DoubleUpArrow`,
+`DoubleUpDownArrow`, `DoubleVerticalBar`, `DownArrow`, `DownArrowBar`,
+`DownArrowUpArrow`, `DownBreve`, `DownLeftRightVector`, `DownLeftTeeVector`,
+`DownLeftVector`, `DownLeftVectorBar`, `DownRightTeeVector`, `DownRightVector`,
+`DownRightVectorBar`, `DownTee`, `DownTeeArrow`, `Downarrow`, `Dscr`, `Dstrok`,
+`ENG`, `ET`, `ETH`, `Eacut`, `Eacute`, `Ecaron`, `Ecir`, `Ecirc`, `Ecy`, `Edot`,
+`Efr`, `Egrav`, `Egrave`, `Element`, `Emacr`, `EmptySmallSquare`,
+`EmptyVerySmallSquare`, `Eogon`, `Eopf`, `Epsilon`, `Equal`, `EqualTilde`,
+`Equilibrium`, `Escr`, `Esim`, `Eta`, `Eum`, `Euml`, `Exists`, `ExponentialE`,
+`Fcy`, `Ffr`, `FilledSmallSquare`, `FilledVerySmallSquare`, `Fopf`, `ForAll`,
+`Fouriertrf`, `Fscr`, `G`, `GJcy`, `GT`, `Gamma`, `Gammad`, `Gbreve`, `Gcedil`,
+`Gcirc`, `Gcy`, `Gdot`, `Gfr`, `Gg`, `Gopf`, `GreaterEqual`, `GreaterEqualLess`,
+`GreaterFullEqual`, `GreaterGreater`, `GreaterLess`, `GreaterSlantEqual`,
+`GreaterTilde`, `Gscr`, `Gt`, `HARDcy`, `Hacek`, `Hat`, `Hcirc`, `Hfr`,
+`HilbertSpace`, `Hopf`, `HorizontalLine`, `Hscr`, `Hstrok`, `HumpDownHump`,
+`HumpEqual`, `IEcy`, `IJlig`, `IOcy`, `Iacut`, `Iacute`, `Icir`, `Icirc`, `Icy`,
+`Idot`, `Ifr`, `Igrav`, `Igrave`, `Im`, `Imacr`, `ImaginaryI`, `Implies`, `Int`,
+`Integral`, `Intersection`, `InvisibleComma`, `InvisibleTimes`, `Iogon`, `Iopf`,
+`Iota`, `Iscr`, `Itilde`, `Iukcy`, `Ium`, `Iuml`, `Jcirc`, `Jcy`, `Jfr`, `Jopf`,
+`Jscr`, `Jsercy`, `Jukcy`, `KHcy`, `KJcy`, `Kappa`, `Kcedil`, `Kcy`, `Kfr`,
+`Kopf`, `Kscr`, `L`, `LJcy`, `LT`, `Lacute`, `Lambda`, `Lang`, `Laplacetrf`,
+`Larr`, `Lcaron`, `Lcedil`, `Lcy`, `LeftAngleBracket`, `LeftArrow`,
+`LeftArrowBar`, `LeftArrowRightArrow`, `LeftCeiling`, `LeftDoubleBracket`,
+`LeftDownTeeVector`, `LeftDownVector`, `LeftDownVectorBar`, `LeftFloor`,
+`LeftRightArrow`, `LeftRightVector`, `LeftTee`, `LeftTeeArrow`, `LeftTeeVector`,
+`LeftTriangle`, `LeftTriangleBar`, `LeftTriangleEqual`, `LeftUpDownVector`,
+`LeftUpTeeVector`, `LeftUpVector`, `LeftUpVectorBar`, `LeftVector`,
+`LeftVectorBar`, `Leftarrow`, `Leftrightarrow`, `LessEqualGreater`,
+`LessFullEqual`, `LessGreater`, `LessLess`, `LessSlantEqual`, `LessTilde`,
+`Lfr`, `Ll`, `Lleftarrow`, `Lmidot`, `LongLeftArrow`, `LongLeftRightArrow`,
+`LongRightArrow`, `Longleftarrow`, `Longleftrightarrow`, `Longrightarrow`,
+`Lopf`, `LowerLeftArrow`, `LowerRightArrow`, `Lscr`, `Lsh`, `Lstrok`, `Lt`,
+`Map`, `Mcy`, `MediumSpace`, `Mellintrf`, `Mfr`, `MinusPlus`, `Mopf`, `Mscr`,
+`Mu`, `NJcy`, `Nacute`, `Ncaron`, `Ncedil`, `Ncy`, `NegativeMediumSpace`,
+`NegativeThickSpace`, `NegativeThinSpace`, `NegativeVeryThinSpace`,
+`NestedGreaterGreater`, `NestedLessLess`, `NewLine`, `Nfr`, `NoBreak`,
+`NonBreakingSpace`, `Nopf`, `Not`, `NotCongruent`, `NotCupCap`,
+`NotDoubleVerticalBar`, `NotElement`, `NotEqual`, `NotEqualTilde`, `NotExists`,
+`NotGreater`, `NotGreaterEqual`, `NotGreaterFullEqual`, `NotGreaterGreater`,
+`NotGreaterLess`, `NotGreaterSlantEqual`, `NotGreaterTilde`, `NotHumpDownHump`,
+`NotHumpEqual`, `NotLeftTriangle`, `NotLeftTriangleBar`, `NotLeftTriangleEqual`,
+`NotLess`, `NotLessEqual`, `NotLessGreater`, `NotLessLess`, `NotLessSlantEqual`,
+`NotLessTilde`, `NotNestedGreaterGreater`, `NotNestedLessLess`, `NotPrecedes`,
+`NotPrecedesEqual`, `NotPrecedesSlantEqual`, `NotReverseElement`,
+`NotRightTriangle`, `NotRightTriangleBar`, `NotRightTriangleEqual`,
+`NotSquareSubset`, `NotSquareSubsetEqual`, `NotSquareSuperset`,
+`NotSquareSupersetEqual`, `NotSubset`, `NotSubsetEqual`, `NotSucceeds`,
+`NotSucceedsEqual`, `NotSucceedsSlantEqual`, `NotSucceedsTilde`, `NotSuperset`,
+`NotSupersetEqual`, `NotTilde`, `NotTildeEqual`, `NotTildeFullEqual`,
+`NotTildeTilde`, `NotVerticalBar`, `Nscr`, `Ntild`, `Ntilde`, `Nu`, `OElig`,
+`Oacut`, `Oacute`, `Ocir`, `Ocirc`, `Ocy`, `Odblac`, `Ofr`, `Ograv`, `Ograve`,
+`Omacr`, `Omega`, `Omicron`, `Oopf`, `OpenCurlyDoubleQuote`, `OpenCurlyQuote`,
+`Or`, `Oscr`, `Oslas`, `Oslash`, `Otild`, `Otilde`, `Otimes`, `Oum`, `Ouml`,
+`OverBar`, `OverBrace`, `OverBracket`, `OverParenthesis`, `PartialD`, `Pcy`,
+`Pfr`, `Phi`, `Pi`, `PlusMinus`, `Poincareplane`, `Popf`, `Pr`, `Precedes`,
+`PrecedesEqual`, `PrecedesSlantEqual`, `PrecedesTilde`, `Prime`, `Product`,
+`Proportion`, `Proportional`, `Pscr`, `Psi`, `QUO`, `QUOT`, `Qfr`, `Qopf`,
+`Qscr`, `RBarr`, `RE`, `REG`, `Racute`, `Rang`, `Rarr`, `Rarrtl`, `Rcaron`,
+`Rcedil`, `Rcy`, `Re`, `ReverseElement`, `ReverseEquilibrium`,
+`ReverseUpEquilibrium`, `Rfr`, `Rho`, `RightAngleBracket`, `RightArrow`,
+`RightArrowBar`, `RightArrowLeftArrow`, `RightCeiling`, `RightDoubleBracket`,
+`RightDownTeeVector`, `RightDownVector`, `RightDownVectorBar`, `RightFloor`,
+`RightTee`, `RightTeeArrow`, `RightTeeVector`, `RightTriangle`,
+`RightTriangleBar`, `RightTriangleEqual`, `RightUpDownVector`,
+`RightUpTeeVector`, `RightUpVector`, `RightUpVectorBar`, `RightVector`,
+`RightVectorBar`, `Rightarrow`, `Ropf`, `RoundImplies`, `Rrightarrow`, `Rscr`,
+`Rsh`, `RuleDelayed`, `SHCHcy`, `SHcy`, `SOFTcy`, `Sacute`, `Sc`, `Scaron`,
+`Scedil`, `Scirc`, `Scy`, `Sfr`, `ShortDownArrow`, `ShortLeftArrow`,
+`ShortRightArrow`, `ShortUpArrow`, `Sigma`, `SmallCircle`, `Sopf`, `Sqrt`,
+`Square`, `SquareIntersection`, `SquareSubset`, `SquareSubsetEqual`,
+`SquareSuperset`, `SquareSupersetEqual`, `SquareUnion`, `Sscr`, `Star`, `Sub`,
+`Subset`, `SubsetEqual`, `Succeeds`, `SucceedsEqual`, `SucceedsSlantEqual`,
+`SucceedsTilde`, `SuchThat`, `Sum`, `Sup`, `Superset`, `SupersetEqual`,
+`Supset`, `THOR`, `THORN`, `TRADE`, `TSHcy`, `TScy`, `Tab`, `Tau`, `Tcaron`,
+`Tcedil`, `Tcy`, `Tfr`, `Therefore`, `Theta`, `ThickSpace`, `ThinSpace`,
+`Tilde`, `TildeEqual`, `TildeFullEqual`, `TildeTilde`, `Topf`, `TripleDot`,
+`Tscr`, `Tstrok`, `Uacut`, `Uacute`, `Uarr`, `Uarrocir`, `Ubrcy`, `Ubreve`,
+`Ucir`, `Ucirc`, `Ucy`, `Udblac`, `Ufr`, `Ugrav`, `Ugrave`, `Umacr`, `UnderBar`,
+`UnderBrace`, `UnderBracket`, `UnderParenthesis`, `Union`, `UnionPlus`, `Uogon`,
+`Uopf`, `UpArrow`, `UpArrowBar`, `UpArrowDownArrow`, `UpDownArrow`,
+`UpEquilibrium`, `UpTee`, `UpTeeArrow`, `Uparrow`, `Updownarrow`,
+`UpperLeftArrow`, `UpperRightArrow`, `Upsi`, `Upsilon`, `Uring`, `Uscr`,
+`Utilde`, `Uum`, `Uuml`, `VDash`, `Vbar`, `Vcy`, `Vdash`, `Vdashl`, `Vee`,
+`Verbar`, `Vert`, `VerticalBar`, `VerticalLine`, `VerticalSeparator`,
+`VerticalTilde`, `VeryThinSpace`, `Vfr`, `Vopf`, `Vscr`, `Vvdash`, `Wcirc`,
+`Wedge`, `Wfr`, `Wopf`, `Wscr`, `Xfr`, `Xi`, `Xopf`, `Xscr`, `YAcy`, `YIcy`,
+`YUcy`, `Yacut`, `Yacute`, `Ycirc`, `Ycy`, `Yfr`, `Yopf`, `Yscr`, `Yuml`,
+`ZHcy`, `Zacute`, `Zcaron`, `Zcy`, `Zdot`, `ZeroWidthSpace`, `Zeta`, `Zfr`,
+`Zopf`, `Zscr`, `aacut`, `aacute`, `abreve`, `ac`, `acE`, `acd`, `acir`,
+`acirc`, `acut`, `acute`, `acy`, `aeli`, `aelig`, `af`, `afr`, `agrav`,
+`agrave`, `alefsym`, `aleph`, `alpha`, `am`, `amacr`, `amalg`, `amp`, `and`,
+`andand`, `andd`, `andslope`, `andv`, `ang`, `ange`, `angle`, `angmsd`,
+`angmsdaa`, `angmsdab`, `angmsdac`, `angmsdad`, `angmsdae`, `angmsdaf`,
+`angmsdag`, `angmsdah`, `angrt`, `angrtvb`, `angrtvbd`, `angsph`, `angst`,
+`angzarr`, `aogon`, `aopf`, `ap`, `apE`, `apacir`, `ape`, `apid`, `apos`,
+`approx`, `approxeq`, `arin`, `aring`, `ascr`, `ast`, `asymp`, `asympeq`,
+`atild`, `atilde`, `aum`, `auml`, `awconint`, `awint`, `bNot`, `backcong`,
+`backepsilon`, `backprime`, `backsim`, `backsimeq`, `barvee`, `barwed`,
+`barwedge`, `bbrk`, `bbrktbrk`, `bcong`, `bcy`, `bdquo`, `becaus`, `because`,
+`bemptyv`, `bepsi`, `bernou`, `beta`, `beth`, `between`, `bfr`, `bigcap`,
+`bigcirc`, `bigcup`, `bigodot`, `bigoplus`, `bigotimes`, `bigsqcup`, `bigstar`,
+`bigtriangledown`, `bigtriangleup`, `biguplus`, `bigvee`, `bigwedge`, `bkarow`,
+`blacklozenge`, `blacksquare`, `blacktriangle`, `blacktriangledown`,
+`blacktriangleleft`, `blacktriangleright`, `blank`, `blk12`, `blk14`, `blk34`,
+`block`, `bne`, `bnequiv`, `bnot`, `bopf`, `bot`, `bottom`, `bowtie`, `boxDL`,
+`boxDR`, `boxDl`, `boxDr`, `boxH`, `boxHD`, `boxHU`, `boxHd`, `boxHu`, `boxUL`,
+`boxUR`, `boxUl`, `boxUr`, `boxV`, `boxVH`, `boxVL`, `boxVR`, `boxVh`, `boxVl`,
+`boxVr`, `boxbox`, `boxdL`, `boxdR`, `boxdl`, `boxdr`, `boxh`, `boxhD`, `boxhU`,
+`boxhd`, `boxhu`, `boxminus`, `boxplus`, `boxtimes`, `boxuL`, `boxuR`, `boxul`,
+`boxur`, `boxv`, `boxvH`, `boxvL`, `boxvR`, `boxvh`, `boxvl`, `boxvr`, `bprime`,
+`breve`, `brvba`, `brvbar`, `bscr`, `bsemi`, `bsim`, `bsime`, `bsol`, `bsolb`,
+`bsolhsub`, `bull`, `bullet`, `bump`, `bumpE`, `bumpe`, `bumpeq`, `cacute`,
+`cap`, `capand`, `capbrcup`, `capcap`, `capcup`, `capdot`, `caps`, `caret`,
+`caron`, `ccaps`, `ccaron`, `ccedi`, `ccedil`, `ccirc`, `ccups`, `ccupssm`,
+`cdot`, `cedi`, `cedil`, `cemptyv`, `cen`, `cent`, `centerdot`, `cfr`, `chcy`,
+`check`, `checkmark`, `chi`, `cir`, `cirE`, `circ`, `circeq`, `circlearrowleft`,
+`circlearrowright`, `circledR`, `circledS`, `circledast`, `circledcirc`,
+`circleddash`, `cire`, `cirfnint`, `cirmid`, `cirscir`, `clubs`, `clubsuit`,
+`colon`, `colone`, `coloneq`, `comma`, `commat`, `comp`, `compfn`, `complement`,
+`complexes`, `cong`, `congdot`, `conint`, `cop`, `copf`, `coprod`, `copy`,
+`copysr`, `crarr`, `cross`, `cscr`, `csub`, `csube`, `csup`, `csupe`, `ctdot`,
+`cudarrl`, `cudarrr`, `cuepr`, `cuesc`, `cularr`, `cularrp`, `cup`, `cupbrcap`,
+`cupcap`, `cupcup`, `cupdot`, `cupor`, `cups`, `curarr`, `curarrm`,
+`curlyeqprec`, `curlyeqsucc`, `curlyvee`, `curlywedge`, `curre`, `curren`,
+`curvearrowleft`, `curvearrowright`, `cuvee`, `cuwed`, `cwconint`, `cwint`,
+`cylcty`, `dArr`, `dHar`, `dagger`, `daleth`, `darr`, `dash`, `dashv`,
+`dbkarow`, `dblac`, `dcaron`, `dcy`, `dd`, `ddagger`, `ddarr`, `ddotseq`, `de`,
+`deg`, `delta`, `demptyv`, `dfisht`, `dfr`, `dharl`, `dharr`, `diam`, `diamond`,
+`diamondsuit`, `diams`, `die`, `digamma`, `disin`, `div`, `divid`, `divide`,
+`divideontimes`, `divonx`, `djcy`, `dlcorn`, `dlcrop`, `dollar`, `dopf`, `dot`,
+`doteq`, `doteqdot`, `dotminus`, `dotplus`, `dotsquare`, `doublebarwedge`,
+`downarrow`, `downdownarrows`, `downharpoonleft`, `downharpoonright`, `drbkarow`,
+`drcorn`, `drcrop`, `dscr`, `dscy`, `dsol`, `dstrok`, `dtdot`, `dtri`, `dtrif`,
+`duarr`, `duhar`, `dwangle`, `dzcy`, `dzigrarr`, `eDDot`, `eDot`, `eacut`,
+`eacute`, `easter`, `ecaron`, `ecir`, `ecir`, `ecirc`, `ecolon`, `ecy`, `edot`,
+`ee`, `efDot`, `efr`, `eg`, `egrav`, `egrave`, `egs`, `egsdot`, `el`,
+`elinters`, `ell`, `els`, `elsdot`, `emacr`, `empty`, `emptyset`, `emptyv`,
+`emsp`, `emsp13`, `emsp14`, `eng`, `ensp`, `eogon`, `eopf`, `epar`, `eparsl`,
+`eplus`, `epsi`, `epsilon`, `epsiv`, `eqcirc`, `eqcolon`, `eqsim`, `eqslantgtr`,
+`eqslantless`, `equals`, `equest`, `equiv`, `equivDD`, `eqvparsl`, `erDot`,
+`erarr`, `escr`, `esdot`, `esim`, `et`, `eta`, `eth`, `eum`, `euml`, `euro`,
+`excl`, `exist`, `expectation`, `exponentiale`, `fallingdotseq`, `fcy`,
+`female`, `ffilig`, `fflig`, `ffllig`, `ffr`, `filig`, `fjlig`, `flat`, `fllig`,
+`fltns`, `fnof`, `fopf`, `forall`, `fork`, `forkv`, `fpartint`, `frac1`,
+`frac1`, `frac12`, `frac13`, `frac14`, `frac15`, `frac16`, `frac18`, `frac23`,
+`frac25`, `frac3`, `frac34`, `frac35`, `frac38`, `frac45`, `frac56`, `frac58`,
+`frac78`, `frasl`, `frown`, `fscr`, `g`, `gE`, `gEl`, `gacute`, `gamma`,
+`gammad`, `gap`, `gbreve`, `gcirc`, `gcy`, `gdot`, `ge`, `gel`, `geq`, `geqq`,
+`geqslant`, `ges`, `gescc`, `gesdot`, `gesdoto`, `gesdotol`, `gesl`, `gesles`,
+`gfr`, `gg`, `ggg`, `gimel`, `gjcy`, `gl`, `glE`, `gla`, `glj`, `gnE`, `gnap`,
+`gnapprox`, `gne`, `gneq`, `gneqq`, `gnsim`, `gopf`, `grave`, `gscr`, `gsim`,
+`gsime`, `gsiml`, `gt`, `gtcc`, `gtcir`, `gtdot`, `gtlPar`, `gtquest`,
+`gtrapprox`, `gtrarr`, `gtrdot`, `gtreqless`, `gtreqqless`, `gtrless`, `gtrsim`,
+`gvertneqq`, `gvnE`, `hArr`, `hairsp`, `half`, `hamilt`, `hardcy`, `harr`,
+`harrcir`, `harrw`, `hbar`, `hcirc`, `hearts`, `heartsuit`, `hellip`, `hercon`,
+`hfr`, `hksearow`, `hkswarow`, `hoarr`, `homtht`, `hookleftarrow`,
+`hookrightarrow`, `hopf`, `horbar`, `hscr`, `hslash`, `hstrok`, `hybull`,
+`hyphen`, `iacut`, `iacute`, `ic`, `icir`, `icirc`, `icy`, `iecy`, `iexc`,
+`iexcl`, `iff`, `ifr`, `igrav`, `igrave`, `ii`, `iiiint`, `iiint`, `iinfin`,
+`iiota`, `ijlig`, `imacr`, `image`, `imagline`, `imagpart`, `imath`, `imof`,
+`imped`, `in`, `incare`, `infin`, `infintie`, `inodot`, `int`, `intcal`,
+`integers`, `intercal`, `intlarhk`, `intprod`, `iocy`, `iogon`, `iopf`, `iota`,
+`iprod`, `iques`, `iquest`, `iscr`, `isin`, `isinE`, `isindot`, `isins`,
+`isinsv`, `isinv`, `it`, `itilde`, `iukcy`, `ium`, `iuml`, `jcirc`, `jcy`,
+`jfr`, `jmath`, `jopf`, `jscr`, `jsercy`, `jukcy`, `kappa`, `kappav`, `kcedil`,
+`kcy`, `kfr`, `kgreen`, `khcy`, `kjcy`, `kopf`, `kscr`, `l`, `lAarr`, `lArr`,
+`lAtail`, `lBarr`, `lE`, `lEg`, `lHar`, `lacute`, `laemptyv`, `lagran`,
+`lambda`, `lang`, `langd`, `langle`, `lap`, `laqu`, `laquo`, `larr`, `larrb`,
+`larrbfs`, `larrfs`, `larrhk`, `larrlp`, `larrpl`, `larrsim`, `larrtl`, `lat`,
+`latail`, `late`, `lates`, `lbarr`, `lbbrk`, `lbrace`, `lbrack`, `lbrke`,
+`lbrksld`, `lbrkslu`, `lcaron`, `lcedil`, `lceil`, `lcub`, `lcy`, `ldca`,
+`ldquo`, `ldquor`, `ldrdhar`, `ldrushar`, `ldsh`, `le`, `leftarrow`,
+`leftarrowtail`, `leftharpoondown`, `leftharpoonup`, `leftleftarrows`,
+`leftrightarrow`, `leftrightarrows`, `leftrightharpoons`, `leftrightsquigarrow`,
+`leftthreetimes`, `leg`, `leq`, `leqq`, `leqslant`, `les`, `lescc`, `lesdot`,
+`lesdoto`, `lesdotor`, `lesg`, `lesges`, `lessapprox`, `lessdot`, `lesseqgtr`,
+`lesseqqgtr`, `lessgtr`, `lesssim`, `lfisht`, `lfloor`, `lfr`, `lg`, `lgE`,
+`lhard`, `lharu`, `lharul`, `lhblk`, `ljcy`, `ll`, `llarr`, `llcorner`,
+`llhard`, `lltri`, `lmidot`, `lmoust`, `lmoustache`, `lnE`, `lnap`, `lnapprox`,
+`lne`, `lneq`, `lneqq`, `lnsim`, `loang`, `loarr`, `lobrk`, `longleftarrow`,
+`longleftrightarrow`, `longmapsto`, `longrightarrow`, `looparrowleft`,
+`looparrowright`, `lopar`, `lopf`, `loplus`, `lotimes`, `lowast`, `lowbar`,
+`loz`, `lozenge`, `lozf`, `lpar`, `lparlt`, `lrarr`, `lrcorner`, `lrhar`,
+`lrhard`, `lrm`, `lrtri`, `lsaquo`, `lscr`, `lsh`, `lsim`, `lsime`, `lsimg`,
+`lsqb`, `lsquo`, `lsquor`, `lstrok`, `lt`, `ltcc`, `ltcir`, `ltdot`, `lthree`,
+`ltimes`, `ltlarr`, `ltquest`, `ltrPar`, `ltri`, `ltrie`, `ltrif`, `lurdshar`,
+`luruhar`, `lvertneqq`, `lvnE`, `mDDot`, `mac`, `macr`, `male`, `malt`,
+`maltese`, `map`, `mapsto`, `mapstodown`, `mapstoleft`, `mapstoup`, `marker`,
+`mcomma`, `mcy`, `mdash`, `measuredangle`, `mfr`, `mho`, `micr`, `micro`,
+`mid`, `midast`, `midcir`, `middo`, `middot`, `minus`, `minusb`, `minusd`,
+`minusdu`, `mlcp`, `mldr`, `mnplus`, `models`, `mopf`, `mp`, `mscr`, `mstpos`,
+`mu`, `multimap`, `mumap`, `nGg`, `nGt`, `nGtv`, `nLeftarrow`,
+`nLeftrightarrow`, `nLl`, `nLt`, `nLtv`, `nRightarrow`, `nVDash`, `nVdash`,
+`nabla`, `nacute`, `nang`, `nap`, `napE`, `napid`, `napos`, `napprox`, `natur`,
+`natural`, `naturals`, `nbs`, `nbsp`, `nbump`, `nbumpe`, `ncap`, `ncaron`,
+`ncedil`, `ncong`, `ncongdot`, `ncup`, `ncy`, `ndash`, `ne`, `neArr`, `nearhk`,
+`nearr`, `nearrow`, `nedot`, `nequiv`, `nesear`, `nesim`, `nexist`, `nexists`,
+`nfr`, `ngE`, `nge`, `ngeq`, `ngeqq`, `ngeqslant`, `nges`, `ngsim`, `ngt`,
+`ngtr`, `nhArr`, `nharr`, `nhpar`, `ni`, `nis`, `nisd`, `niv`, `njcy`, `nlArr`,
+`nlE`, `nlarr`, `nldr`, `nle`, `nleftarrow`, `nleftrightarrow`, `nleq`,
+`nleqq`, `nleqslant`, `nles`, `nless`, `nlsim`, `nlt`, `nltri`, `nltrie`,
+`nmid`, `no`, `nopf`, `not`, `notin`, `notinE`, `notindot`, `notinva`,
+`notinvb`, `notinvc`, `notni`, `notniva`, `notnivb`, `notnivc`, `npar`,
+`nparallel`, `nparsl`, `npart`, `npolint`, `npr`, `nprcue`, `npre`, `nprec`,
+`npreceq`, `nrArr`, `nrarr`, `nrarrc`, `nrarrw`, `nrightarrow`, `nrtri`,
+`nrtrie`, `nsc`, `nsccue`, `nsce`, `nscr`, `nshortmid`, `nshortparallel`,
+`nsim`, `nsime`, `nsimeq`, `nsmid`, `nspar`, `nsqsube`, `nsqsupe`, `nsub`,
+`nsubE`, `nsube`, `nsubset`, `nsubseteq`, `nsubseteqq`, `nsucc`, `nsucceq`,
+`nsup`, `nsupE`, `nsupe`, `nsupset`, `nsupseteq`, `nsupseteqq`, `ntgl`, `ntild`,
+`ntilde`, `ntlg`, `ntriangleleft`, `ntrianglelefteq`, `ntriangleright`,
+`ntrianglerighteq`, `nu`, `num`, `numero`, `numsp`, `nvDash`, `nvHarr`, `nvap`,
+`nvdash`, `nvge`, `nvgt`, `nvinfin`, `nvlArr`, `nvle`, `nvlt`, `nvltrie`,
+`nvrArr`, `nvrtrie`, `nvsim`, `nwArr`, `nwarhk`, `nwarr`, `nwarrow`, `nwnear`,
+`oS`, `oacut`, `oacute`, `oast`, `ocir`, `ocir`, `ocirc`, `ocy`, `odash`,
+`odblac`, `odiv`, `odot`, `odsold`, `oelig`, `ofcir`, `ofr`, `ogon`, `ograv`,
+`ograve`, `ogt`, `ohbar`, `ohm`, `oint`, `olarr`, `olcir`, `olcross`, `oline`,
+`olt`, `omacr`, `omega`, `omicron`, `omid`, `ominus`, `oopf`, `opar`, `operp`,
+`oplus`, `or`, `orarr`, `ord`, `ord`, `ord`, `order`, `orderof`, `ordf`, `ordm`,
+`origof`, `oror`, `orslope`, `orv`, `oscr`, `oslas`, `oslash`, `osol`, `otild`,
+`otilde`, `otimes`, `otimesas`, `oum`, `ouml`, `ovbar`, `par`, `par`, `para`,
+`parallel`, `parsim`, `parsl`, `part`, `pcy`, `percnt`, `period`, `permil`,
+`perp`, `pertenk`, `pfr`, `phi`, `phiv`, `phmmat`, `phone`, `pi`, `pitchfork`,
+`piv`, `planck`, `planckh`, `plankv`, `plus`, `plusacir`, `plusb`, `pluscir`,
+`plusdo`, `plusdu`, `pluse`, `plusm`, `plusmn`, `plussim`, `plustwo`, `pm`,
+`pointint`, `popf`, `poun`, `pound`, `pr`, `prE`, `prap`, `prcue`, `pre`,
+`prec`, `precapprox`, `preccurlyeq`, `preceq`, `precnapprox`, `precneqq`,
+`precnsim`, `precsim`, `prime`, `primes`, `prnE`, `prnap`, `prnsim`, `prod`,
+`profalar`, `profline`, `profsurf`, `prop`, `propto`, `prsim`, `prurel`, `pscr`,
+`psi`, `puncsp`, `qfr`, `qint`, `qopf`, `qprime`, `qscr`, `quaternions`,
+`quatint`, `quest`, `questeq`, `quo`, `quot`, `rAarr`, `rArr`, `rAtail`,
+`rBarr`, `rHar`, `race`, `racute`, `radic`, `raemptyv`, `rang`, `rangd`,
+`range`, `rangle`, `raqu`, `raquo`, `rarr`, `rarrap`, `rarrb`, `rarrbfs`,
+`rarrc`, `rarrfs`, `rarrhk`, `rarrlp`, `rarrpl`, `rarrsim`, `rarrtl`, `rarrw`,
+`ratail`, `ratio`, `rationals`, `rbarr`, `rbbrk`, `rbrace`, `rbrack`, `rbrke`,
+`rbrksld`, `rbrkslu`, `rcaron`, `rcedil`, `rceil`, `rcub`, `rcy`, `rdca`,
+`rdldhar`, `rdquo`, `rdquor`, `rdsh`, `re`, `real`, `realine`, `realpart`,
+`reals`, `rect`, `reg`, `rfisht`, `rfloor`, `rfr`, `rhard`, `rharu`, `rharul`,
+`rho`, `rhov`, `rightarrow`, `rightarrowtail`, `rightharpoondown`,
+`rightharpoonup`, `rightleftarrows`, `rightleftharpoons`, `rightrightarrows`,
+`rightsquigarrow`, `rightthreetimes`, `ring`, `risingdotseq`, `rlarr`, `rlhar`,
+`rlm`, `rmoust`, `rmoustache`, `rnmid`, `roang`, `roarr`, `robrk`, `ropar`,
+`ropf`, `roplus`, `rotimes`, `rpar`, `rpargt`, `rppolint`, `rrarr`, `rsaquo`,
+`rscr`, `rsh`, `rsqb`, `rsquo`, `rsquor`, `rthree`, `rtimes`, `rtri`, `rtrie`,
+`rtrif`, `rtriltri`, `ruluhar`, `rx`, `sacute`, `sbquo`, `sc`, `scE`, `scap`,
+`scaron`, `sccue`, `sce`, `scedil`, `scirc`, `scnE`, `scnap`, `scnsim`,
+`scpolint`, `scsim`, `scy`, `sdot`, `sdotb`, `sdote`, `seArr`, `searhk`,
+`searr`, `searrow`, `sec`, `sect`, `semi`, `seswar`, `setminus`, `setmn`,
+`sext`, `sfr`, `sfrown`, `sh`, `sharp`, `shchcy`, `shcy`, `shortmid`,
+`shortparallel`, `shy`, `sigma`, `sigmaf`, `sigmav`, `sim`, `simdot`, `sime`,
+`simeq`, `simg`, `simgE`, `siml`, `simlE`, `simne`, `simplus`, `simrarr`,
+`slarr`, `smallsetminus`, `smashp`, `smeparsl`, `smid`, `smile`, `smt`, `smte`,
+`smtes`, `softcy`, `sol`, `solb`, `solbar`, `sopf`, `spades`, `spadesuit`,
+`spar`, `sqcap`, `sqcaps`, `sqcup`, `sqcups`, `sqsub`, `sqsube`, `sqsubset`,
+`sqsubseteq`, `sqsup`, `sqsupe`, `sqsupset`, `sqsupseteq`, `squ`, `square`,
+`squarf`, `squf`, `srarr`, `sscr`, `ssetmn`, `ssmile`, `sstarf`, `star`,
+`starf`, `straightepsilon`, `straightphi`, `strns`, `sub`, `subE`, `subdot`,
+`sube`, `subedot`, `submult`, `subnE`, `subne`, `subplus`, `subrarr`, `subset`,
+`subseteq`, `subseteqq`, `subsetneq`, `subsetneqq`, `subsim`, `subsub`,
+`subsup`, `succ`, `succapprox`, `succcurlyeq`, `succeq`, `succnapprox`,
+`succneqq`, `succnsim`, `succsim`, `sum`, `sung`, `sup`, `sup`, `sup`, `sup`,
+`sup1`, `sup2`, `sup3`, `supE`, `supdot`, `supdsub`, `supe`, `supedot`,
+`suphsol`, `suphsub`, `suplarr`, `supmult`, `supnE`, `supne`, `supplus`,
+`supset`, `supseteq`, `supseteqq`, `supsetneq`, `supsetneqq`, `supsim`,
+`supsub`, `supsup`, `swArr`, `swarhk`, `swarr`, `swarrow`, `swnwar`, `szli`,
+`szlig`, `target`, `tau`, `tbrk`, `tcaron`, `tcedil`, `tcy`, `tdot`, `telrec`,
+`tfr`, `there4`, `therefore`, `theta`, `thetasym`, `thetav`, `thickapprox`,
+`thicksim`, `thinsp`, `thkap`, `thksim`, `thor`, `thorn`, `tilde`, `time`,
+`times`, `timesb`, `timesbar`, `timesd`, `tint`, `toea`, `top`, `topbot`,
+`topcir`, `topf`, `topfork`, `tosa`, `tprime`, `trade`, `triangle`,
+`triangledown`, `triangleleft`, `trianglelefteq`, `triangleq`, `triangleright`,
+`trianglerighteq`, `tridot`, `trie`, `triminus`, `triplus`, `trisb`, `tritime`,
+`trpezium`, `tscr`, `tscy`, `tshcy`, `tstrok`, `twixt`, `twoheadleftarrow`,
+`twoheadrightarrow`, `uArr`, `uHar`, `uacut`, `uacute`, `uarr`, `ubrcy`,
+`ubreve`, `ucir`, `ucirc`, `ucy`, `udarr`, `udblac`, `udhar`, `ufisht`, `ufr`,
+`ugrav`, `ugrave`, `uharl`, `uharr`, `uhblk`, `ulcorn`, `ulcorner`, `ulcrop`,
+`ultri`, `um`, `umacr`, `uml`, `uogon`, `uopf`, `uparrow`, `updownarrow`,
+`upharpoonleft`, `upharpoonright`, `uplus`, `upsi`, `upsih`, `upsilon`,
+`upuparrows`, `urcorn`, `urcorner`, `urcrop`, `uring`, `urtri`, `uscr`, `utdot`,
+`utilde`, `utri`, `utrif`, `uuarr`, `uum`, `uuml`, `uwangle`, `vArr`, `vBar`,
+`vBarv`, `vDash`, `vangrt`, `varepsilon`, `varkappa`, `varnothing`, `varphi`,
+`varpi`, `varpropto`, `varr`, `varrho`, `varsigma`, `varsubsetneq`,
+`varsubsetneqq`, `varsupsetneq`, `varsupsetneqq`, `vartheta`, `vartriangleleft`,
+`vartriangleright`, `vcy`, `vdash`, `vee`, `veebar`, `veeeq`, `vellip`,
+`verbar`, `vert`, `vfr`, `vltri`, `vnsub`, `vnsup`, `vopf`, `vprop`, `vrtri`,
+`vscr`, `vsubnE`, `vsubne`, `vsupnE`, `vsupne`, `vzigzag`, `wcirc`, `wedbar`,
+`wedge`, `wedgeq`, `weierp`, `wfr`, `wopf`, `wp`, `wr`, `wreath`, `wscr`,
+`xcap`, `xcirc`, `xcup`, `xdtri`, `xfr`, `xhArr`, `xharr`, `xi`, `xlArr`,
+`xlarr`, `xmap`, `xnis`, `xodot`, `xopf`, `xoplus`, `xotime`, `xrArr`, `xrarr`,
+`xscr`, `xsqcup`, `xuplus`, `xutri`, `xvee`, `xwedge`, `yacut`, `yacute`,
+`yacy`, `ycirc`, `ycy`, `ye`, `yen`, `yfr`, `yicy`, `yopf`, `yscr`, `yucy`,
+`yum`, `yuml`, `zacute`, `zcaron`, `zcy`, `zdot`, `zeetrf`, `zeta`, `zfr`,
+`zhcy`, `zigrarr`, `zopf`, `zscr`, `zwj`, or `zwnj`.
+
+## Acknowledgments
+
+Thanks to John Gruber for inventing Markdown.
+
+Thanks to John MacFarlane for defining CommonMark.
+
+Thanks to ZEIT, Inc., Gatsby, Inc., Netlify, Inc., Holloway, Inc., and the many
+organizations and individuals for financial support through
+[OpenCollective](https://opencollective.com/unified)
+
+## License
+
+Copyright © 2019 Titus Wormer.
+This work is licensed under a
+[Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
