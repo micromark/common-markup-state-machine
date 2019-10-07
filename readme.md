@@ -42,52 +42,49 @@ Common Markup parser.
     *   [7.2 Initial whitespace state](#72-initial-whitespace-state)
     *   [7.3 Line ending state](#73-line-ending-state)
     *   [7.4 Carriage return state](#74-carriage-return-state)
-    *   [7.5 Escape state](#75-escape-state)
-    *   [7.6 In line state](#76-in-line-state)
-    *   [7.7 ATX heading opening sequence state](#77-atx-heading-opening-sequence-state)
-    *   [7.8 ATX heading opening sequence after state](#78-atx-heading-opening-sequence-after-state)
-    *   [7.9 ATX heading content state](#79-atx-heading-content-state)
-    *   [7.10 ATX heading whitespace state](#710-atx-heading-whitespace-state)
-    *   [7.11 ATX heading number sign sequence state](#711-atx-heading-number-sign-sequence-state)
-    *   [7.12 Asterisk line asterisk after state](#712-asterisk-line-asterisk-after-state)
-    *   [7.13 Asterisk line whitespace state](#713-asterisk-line-whitespace-state)
-    *   [7.14 HTML block open state](#714-html-block-open-state)
-    *   [7.15 HTML block open markup declaration state](#715-html-block-open-markup-declaration-state)
-    *   [7.16 HTML block open comment inside state](#716-html-block-open-comment-inside-state)
-    *   [7.17 HTML block open character data inside state](#717-html-block-open-character-data-inside-state)
-    *   [7.18 HTML block open tag name inside state](#718-html-block-open-tag-name-inside-state)
-    *   [7.19 HTML block open simple self closing tag state](#719-html-block-open-simple-self-closing-tag-state)
-    *   [7.20 HTML block open complete attribute before state](#720-html-block-open-complete-attribute-before-state)
-    *   [7.21 HTML block open complete attribute name state](#721-html-block-open-complete-attribute-name-state)
-    *   [7.22 HTML block open complete attribute name after state](#722-html-block-open-complete-attribute-name-after-state)
-    *   [7.23 HTML block open complete attribute value before state](#723-html-block-open-complete-attribute-value-before-state)
-    *   [7.24 HTML block open complete double quoted attribute value state](#724-html-block-open-complete-double-quoted-attribute-value-state)
-    *   [7.25 HTML block open complete single quoted attribute value state](#725-html-block-open-complete-single-quoted-attribute-value-state)
-    *   [7.26 HTML block open complete unquoted attribute value state](#726-html-block-open-complete-unquoted-attribute-value-state)
-    *   [7.27 HTML block open complete self closing tag state](#727-html-block-open-complete-self-closing-tag-state)
-    *   [7.28 HTML block open complete tag after state](#728-html-block-open-complete-tag-after-state)
-    *   [7.29 HTML block continuation line state](#729-html-block-continuation-line-state)
-    *   [7.30 HTML block continuation close tag state](#730-html-block-continuation-close-tag-state)
-    *   [7.31 HTML block continuation close tag name inside state](#731-html-block-continuation-close-tag-name-inside-state)
-    *   [7.32 HTML block continuation comment inside state](#732-html-block-continuation-comment-inside-state)
-    *   [7.33 HTML block continuation character data inside state](#733-html-block-continuation-character-data-inside-state)
-    *   [7.34 HTML block continuation declaration before state](#734-html-block-continuation-declaration-before-state)
-    *   [7.35 HTML block close line state](#735-html-block-close-line-state)
-    *   [7.36 Setext heading underline equals to sequence state](#736-setext-heading-underline-equals-to-sequence-state)
-    *   [7.37 Setext heading underline equals to after state](#737-setext-heading-underline-equals-to-after-state)
-    *   [7.38 Fenced code grave accent opening fence state](#738-fenced-code-grave-accent-opening-fence-state)
-    *   [7.39 Fenced code grave accent opening fence whitespace state](#739-fenced-code-grave-accent-opening-fence-whitespace-state)
-    *   [7.40 Fenced code grave accent opening fence metadata state](#740-fenced-code-grave-accent-opening-fence-metadata-state)
-    *   [7.41 Fenced code grave accent opening fence escape after state](#741-fenced-code-grave-accent-opening-fence-escape-after-state)
-    *   [7.42 Fenced code tilde opening fence state](#742-fenced-code-tilde-opening-fence-state)
-    *   [7.43 Fenced code tilde opening fence whitespace state](#743-fenced-code-tilde-opening-fence-whitespace-state)
-    *   [7.44 Fenced code tilde opening fence metadata state](#744-fenced-code-tilde-opening-fence-metadata-state)
-    *   [7.45 Fenced code tilde opening fence escape after state](#745-fenced-code-tilde-opening-fence-escape-after-state)
-    *   [7.46 Fenced code continuation line state](#746-fenced-code-continuation-line-state)
-    *   [7.47 Fenced code close sequence state](#747-fenced-code-close-sequence-state)
-    *   [7.48 Fenced code close whitespace state](#748-fenced-code-close-whitespace-state)
-    *   [7.49 Indented code line state](#749-indented-code-line-state)
-    *   [7.50 Content continuation state](#750-content-continuation-state)
+    *   [7.5 In line state](#75-in-line-state)
+    *   [7.6 ATX heading opening sequence state](#76-atx-heading-opening-sequence-state)
+    *   [7.7 ATX heading opening sequence after state](#77-atx-heading-opening-sequence-after-state)
+    *   [7.8 ATX heading content state](#78-atx-heading-content-state)
+    *   [7.9 ATX heading whitespace state](#79-atx-heading-whitespace-state)
+    *   [7.10 ATX heading number sign sequence state](#710-atx-heading-number-sign-sequence-state)
+    *   [7.11 Asterisk line asterisk after state](#711-asterisk-line-asterisk-after-state)
+    *   [7.12 Asterisk line whitespace state](#712-asterisk-line-whitespace-state)
+    *   [7.13 HTML block open state](#713-html-block-open-state)
+    *   [7.14 HTML block open markup declaration state](#714-html-block-open-markup-declaration-state)
+    *   [7.15 HTML block open comment inside state](#715-html-block-open-comment-inside-state)
+    *   [7.16 HTML block open character data inside state](#716-html-block-open-character-data-inside-state)
+    *   [7.17 HTML block open tag name inside state](#717-html-block-open-tag-name-inside-state)
+    *   [7.18 HTML block open simple self closing tag state](#718-html-block-open-simple-self-closing-tag-state)
+    *   [7.19 HTML block open complete attribute before state](#719-html-block-open-complete-attribute-before-state)
+    *   [7.20 HTML block open complete attribute name state](#720-html-block-open-complete-attribute-name-state)
+    *   [7.21 HTML block open complete attribute name after state](#721-html-block-open-complete-attribute-name-after-state)
+    *   [7.22 HTML block open complete attribute value before state](#722-html-block-open-complete-attribute-value-before-state)
+    *   [7.23 HTML block open complete double quoted attribute value state](#723-html-block-open-complete-double-quoted-attribute-value-state)
+    *   [7.24 HTML block open complete single quoted attribute value state](#724-html-block-open-complete-single-quoted-attribute-value-state)
+    *   [7.25 HTML block open complete unquoted attribute value state](#725-html-block-open-complete-unquoted-attribute-value-state)
+    *   [7.26 HTML block open complete self closing tag state](#726-html-block-open-complete-self-closing-tag-state)
+    *   [7.27 HTML block open complete tag after state](#727-html-block-open-complete-tag-after-state)
+    *   [7.28 HTML block continuation line state](#728-html-block-continuation-line-state)
+    *   [7.29 HTML block continuation close tag state](#729-html-block-continuation-close-tag-state)
+    *   [7.30 HTML block continuation close tag name inside state](#730-html-block-continuation-close-tag-name-inside-state)
+    *   [7.31 HTML block continuation comment inside state](#731-html-block-continuation-comment-inside-state)
+    *   [7.32 HTML block continuation character data inside state](#732-html-block-continuation-character-data-inside-state)
+    *   [7.33 HTML block continuation declaration before state](#733-html-block-continuation-declaration-before-state)
+    *   [7.34 HTML block close line state](#734-html-block-close-line-state)
+    *   [7.35 Setext heading underline equals to sequence state](#735-setext-heading-underline-equals-to-sequence-state)
+    *   [7.36 Setext heading underline equals to after state](#736-setext-heading-underline-equals-to-after-state)
+    *   [7.37 Fenced code grave accent opening fence state](#737-fenced-code-grave-accent-opening-fence-state)
+    *   [7.38 Fenced code grave accent opening fence whitespace state](#738-fenced-code-grave-accent-opening-fence-whitespace-state)
+    *   [7.39 Fenced code grave accent opening fence metadata state](#739-fenced-code-grave-accent-opening-fence-metadata-state)
+    *   [7.40 Fenced code tilde opening fence state](#740-fenced-code-tilde-opening-fence-state)
+    *   [7.41 Fenced code tilde opening fence whitespace state](#741-fenced-code-tilde-opening-fence-whitespace-state)
+    *   [7.42 Fenced code tilde opening fence metadata state](#742-fenced-code-tilde-opening-fence-metadata-state)
+    *   [7.43 Fenced code continuation line state](#743-fenced-code-continuation-line-state)
+    *   [7.44 Fenced code close sequence state](#744-fenced-code-close-sequence-state)
+    *   [7.45 Fenced code close whitespace state](#745-fenced-code-close-whitespace-state)
+    *   [7.46 Indented code line state](#746-indented-code-line-state)
+    *   [7.47 Content continuation state](#747-content-continuation-state)
 *   [8 Tokens](#8-tokens)
     *   [8.1 Whitespace token](#81-whitespace-token)
     *   [8.2 Line ending token](#82-line-ending-token)
@@ -95,43 +92,48 @@ Common Markup parser.
     *   [8.4 Marker token](#84-marker-token)
     *   [8.5 Sequence token](#85-sequence-token)
     *   [8.6 Content token](#86-content-token)
-    *   [8.7 Escape token](#87-escape-token)
 *   [9 Groups](#9-groups)
     *   [9.1 Blank line group](#91-blank-line-group)
-    *   [9.2 Escape group](#92-escape-group)
-    *   [9.3 ATX heading group](#93-atx-heading-group)
-    *   [9.4 ATX heading fence group](#94-atx-heading-fence-group)
-    *   [9.5 ATX heading content group](#95-atx-heading-content-group)
-    *   [9.6 Thematic break group](#96-thematic-break-group)
-    *   [9.7 HTML group](#97-html-group)
-    *   [9.8 HTML line group](#98-html-line-group)
-    *   [9.9 Indented code group](#99-indented-code-group)
-    *   [9.10 Indented code line group](#910-indented-code-line-group)
-    *   [9.11 Blockquote group](#911-blockquote-group)
-    *   [9.12 Fenced code group](#912-fenced-code-group)
-    *   [9.13 Fenced code fence group](#913-fenced-code-fence-group)
-    *   [9.14 Fenced code language group](#914-fenced-code-language-group)
-    *   [9.15 Fenced code metadata group](#915-fenced-code-metadata-group)
-    *   [9.16 Fenced code line group](#916-fenced-code-line-group)
-    *   [9.17 Content group](#917-content-group)
-    *   [9.18 Content line group](#918-content-line-group)
-    *   [9.19 Setext heading group](#919-setext-heading-group)
-    *   [9.20 Setext heading content group](#920-setext-heading-content-group)
-    *   [9.21 Setext heading underline group](#921-setext-heading-underline-group)
-    *   [9.22 Definition group](#922-definition-group)
-    *   [9.23 Paragraph group](#923-paragraph-group)
+    *   [9.2 ATX heading group](#92-atx-heading-group)
+    *   [9.3 ATX heading fence group](#93-atx-heading-fence-group)
+    *   [9.4 ATX heading content group](#94-atx-heading-content-group)
+    *   [9.5 Thematic break group](#95-thematic-break-group)
+    *   [9.6 HTML group](#96-html-group)
+    *   [9.7 HTML line group](#97-html-line-group)
+    *   [9.8 Indented code group](#98-indented-code-group)
+    *   [9.9 Indented code line group](#99-indented-code-line-group)
+    *   [9.10 Blockquote group](#910-blockquote-group)
+    *   [9.11 Fenced code group](#911-fenced-code-group)
+    *   [9.12 Fenced code fence group](#912-fenced-code-fence-group)
+    *   [9.13 Fenced code language group](#913-fenced-code-language-group)
+    *   [9.14 Fenced code metadata group](#914-fenced-code-metadata-group)
+    *   [9.15 Fenced code line group](#915-fenced-code-line-group)
+    *   [9.16 Content group](#916-content-group)
+    *   [9.17 Content line group](#917-content-line-group)
+    *   [9.18 Setext heading group](#918-setext-heading-group)
+    *   [9.19 Setext heading content group](#919-setext-heading-content-group)
+    *   [9.20 Setext heading underline group](#920-setext-heading-underline-group)
+    *   [9.21 Definition group](#921-definition-group)
+    *   [9.22 Definition label group](#922-definition-label-group)
+    *   [9.23 Definition label content group](#923-definition-label-content-group)
+    *   [9.24 Definition destination quoted group](#924-definition-destination-quoted-group)
+    *   [9.25 Definition destination unquoted group](#925-definition-destination-unquoted-group)
+    *   [9.26 Definition title group](#926-definition-title-group)
+    *   [9.27 Paragraph group](#927-paragraph-group)
 *   [10 Processing](#10-processing)
     *   [10.1 Process as an ATX heading](#101-process-as-an-atx-heading)
     *   [10.2 Process as a Setext primary heading](#102-process-as-a-setext-primary-heading)
     *   [10.3 Process as an asterisk line](#103-process-as-an-asterisk-line)
     *   [10.4 Process as an asterisk line opening](#104-process-as-an-asterisk-line-opening)
     *   [10.5 Process as a Fenced code fence](#105-process-as-a-fenced-code-fence)
+    *   [10.6 Process as Content](#106-process-as-content)
+    *   [10.7 Process as Definitions](#107-process-as-definitions)
+    *   [10.8 Process as a Paragraph](#108-process-as-a-paragraph)
 *   [11 WIP](#11-wip)
 *   [12 References](#12-references)
 *   [13 Appendix](#13-appendix)
     *   [13.1 Raw tags](#131-raw-tags)
     *   [13.2 Simple tags](#132-simple-tags)
-    *   [13.3 Entities](#133-entities)
 *   [14 Acknowledgments](#14-acknowledgments)
 *   [15 License](#15-license)
 
@@ -282,15 +284,6 @@ The <a id="current-group" href="#current-group">**current group**</a> is the bot
 
 The <a id="queue" href="#queue">**queue**</a> is a list of tokens.
 The <a id="current-token" href="#current-token">**current token**</a> is the last token in the [queue][queue].
-
-Certain states also use a <a id="return-state" href="#return-state">**return state**</a> to return to the state it was
-invoked from.
-
-> ❗️ Todo: The queue can only contain tokens, this is annoying for escapes (a
-> marker and a content), as it makes sense to group them (same for entities or
-> character references when they are done).
-> We can either process the queue when emitting, or somehow support groups and
-> flattening of groups?
 
 ## 6 Actions
 
@@ -483,17 +476,7 @@ open groups][stack-of-open-groups] and the [queue][queue].
 
     Emit and reconsume in the [*Initial state*][s-initial]
 
-### 7.5 Escape state
-
-*   ↪ **[ASCII punctuation][ascii-punctuation]**
-
-    Queue a [*Escape token*][t-escape], consume, and switch to the [return state][return-state]
-*   ↪ **Anything else**
-
-    Change the [current token][current-token] into a [*Content token*][t-content], and reconsume in the
-    [return state][return-state]
-
-### 7.6 In line state
+### 7.5 In line state
 
 If the [stack of continuation][stack-of-continuation] matches all open groups:
 
@@ -563,7 +546,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     [*Whitespace token*][t-whitespace] if there is one, consume, and switch to the
     [*Content continuation state*][s-content-continuation]
 
-### 7.7 ATX heading opening sequence state
+### 7.6 ATX heading opening sequence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -586,7 +569,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     Change the [current token][current-token] into a [*Content token*][t-content], consume, and switch to the
     [*Content continuation state*][s-content-continuation]
 
-### 7.8 ATX heading opening sequence after state
+### 7.7 ATX heading opening sequence after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -608,7 +591,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     Open an [*ATX heading group*][g-atx-heading], open an [*ATX heading fence group*][g-atx-heading-fence], emit, close, queue a
     [*Content token*][t-content], consume, and switch to the [*ATX heading content state*][s-atx-heading-content]
 
-### 7.9 ATX heading content state
+### 7.8 ATX heading content state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -623,7 +606,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     Consume
 
-### 7.10 ATX heading whitespace state
+### 7.9 ATX heading whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -643,7 +626,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     Queue a [*Content token*][t-content], consume, and switch to the [*ATX heading content state*][s-atx-heading-content]
 
-### 7.11 ATX heading number sign sequence state
+### 7.10 ATX heading number sign sequence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -661,7 +644,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     Queue a [*Content token*][t-content], consume, and switch to the [*ATX heading content state*][s-atx-heading-content]
 
-### 7.12 Asterisk line asterisk after state
+### 7.11 Asterisk line asterisk after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -681,7 +664,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     [Process as an Asterisk line opening][process-as-an-asterisk-line-opening].
 
-### 7.13 Asterisk line whitespace state
+### 7.12 Asterisk line whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -702,7 +685,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     [Process as an Asterisk line opening][process-as-an-asterisk-line-opening].
 
-### 7.14 HTML block open state
+### 7.13 HTML block open state
 
 *   ↪ **U+0021 EXCLAMATION MARK (`!`)**
 
@@ -733,7 +716,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.15 HTML block open markup declaration state
+### 7.14 HTML block open markup declaration state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -752,7 +735,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.16 HTML block open comment inside state
+### 7.15 HTML block open comment inside state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -765,7 +748,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.17 HTML block open character data inside state
+### 7.16 HTML block open character data inside state
 
 If the next few characters are:
 
@@ -781,7 +764,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.18 HTML block open tag name inside state
+### 7.17 HTML block open tag name inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -849,7 +832,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.19 HTML block open simple self closing tag state
+### 7.18 HTML block open simple self closing tag state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -862,7 +845,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.20 HTML block open complete attribute before state
+### 7.19 HTML block open complete attribute before state
 
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**\
@@ -898,7 +881,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.21 HTML block open complete attribute name state
+### 7.20 HTML block open complete attribute name state
 
 *   ↪ **U+002D DASH (`-`)**\
     ↪ **U+002E DOT (`.`)**\
@@ -911,7 +894,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML block open complete attribute name after state*][s-html-block-open-complete-attribute-name-after]
 
-### 7.22 HTML block open complete attribute name after state
+### 7.21 HTML block open complete attribute name after state
 
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**\
@@ -937,7 +920,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.23 HTML block open complete attribute value before state
+### 7.22 HTML block open complete attribute value before state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -967,7 +950,7 @@ If the next few characters are:
     Consume and switch to the
     [*HTML block open complete unquoted attribute value state*][s-html-block-open-complete-unquoted-attribute-value]
 
-### 7.24 HTML block open complete double quoted attribute value state
+### 7.23 HTML block open complete double quoted attribute value state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -982,7 +965,7 @@ If the next few characters are:
 
     Consume
 
-### 7.25 HTML block open complete single quoted attribute value state
+### 7.24 HTML block open complete single quoted attribute value state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -997,7 +980,7 @@ If the next few characters are:
 
     Consume
 
-### 7.26 HTML block open complete unquoted attribute value state
+### 7.25 HTML block open complete unquoted attribute value state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
@@ -1016,7 +999,7 @@ If the next few characters are:
 
     Consume
 
-### 7.27 HTML block open complete self closing tag state
+### 7.26 HTML block open complete self closing tag state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -1026,7 +1009,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.28 HTML block open complete tag after state
+### 7.27 HTML block open complete tag after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
@@ -1042,7 +1025,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.29 HTML block continuation line state
+### 7.28 HTML block continuation line state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1093,7 +1076,7 @@ If the next few characters are:
 
     Consume
 
-### 7.30 HTML block continuation close tag state
+### 7.29 HTML block continuation close tag state
 
 *   ↪ **U+002F SLASH (`/`)**
 
@@ -1102,7 +1085,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line]
 
-### 7.31 HTML block continuation close tag name inside state
+### 7.30 HTML block continuation close tag name inside state
 
 *   ↪ **[ASCII alpha][ascii-alpha]**
 
@@ -1121,7 +1104,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line]
 
-### 7.32 HTML block continuation comment inside state
+### 7.31 HTML block continuation comment inside state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -1130,7 +1113,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line]
 
-### 7.33 HTML block continuation character data inside state
+### 7.32 HTML block continuation character data inside state
 
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
@@ -1139,7 +1122,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line]
 
-### 7.34 HTML block continuation declaration before state
+### 7.33 HTML block continuation declaration before state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -1148,7 +1131,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line]
 
-### 7.35 HTML block close line state
+### 7.34 HTML block close line state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1159,7 +1142,7 @@ If the next few characters are:
 
     Consume
 
-### 7.36 Setext heading underline equals to sequence state
+### 7.35 Setext heading underline equals to sequence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1179,7 +1162,7 @@ If the next few characters are:
     Turn the [current token][current-token] into a [*Content token*][t-content], consume, and switch to the
     [*Content continuation state*][s-content-continuation]
 
-### 7.37 Setext heading underline equals to after state
+### 7.36 Setext heading underline equals to after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1196,7 +1179,7 @@ If the next few characters are:
     Turn the previous and  [current token][current-token] into a [*Content token*][t-content], consume, and
     switch to the [*Content continuation state*][s-content-continuation]
 
-### 7.38 Fenced code grave accent opening fence state
+### 7.37 Fenced code grave accent opening fence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1232,7 +1215,7 @@ If the next few characters are:
     Turn the queue, except for the first token if it is a [*Whitespace token*][t-whitespace], into a
     [*Content token*][t-content] and reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.39 Fenced code grave accent opening fence whitespace state
+### 7.38 Fenced code grave accent opening fence whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1255,7 +1238,7 @@ If the next few characters are:
     Queue a [*Content token*][t-content], consume, and switch to the
     [*Fenced code grave accent opening fence metadata state*][s-fenced-code-grave-accent-opening-fence-metadata]
 
-### 7.40 Fenced code grave accent opening fence metadata state
+### 7.39 Fenced code grave accent opening fence metadata state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1273,27 +1256,11 @@ If the next few characters are:
     This is not fenced code.
     Turn the queue, except for the first token if it is a [*Whitespace token*][t-whitespace], into a
     [*Content token*][t-content] and reconsume in the [*Content continuation state*][s-content-continuation]
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Queue a [*Marker token*][t-marker], consume, set the [return state][return-state] to
-    [*Fenced code grave accent opening fence escape after state*][s-fenced-code-grave-accent-opening-fence-escape-after], and switch to the
-    [*Escape state*][s-escape]
 *   ↪ **Anything else**
 
     Consume
 
-### 7.41 Fenced code grave accent opening fence escape after state
-
-*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
-    ↪ **U+0020 SPACE (SP)**
-
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Fenced code grave accent opening fence whitespace state*][s-fenced-code-grave-accent-opening-fence-whitespace]
-*   ↪ **Anything else**
-
-    Reconsume in the [*Fenced code grave accent opening fence whitespace state*][s-fenced-code-grave-accent-opening-fence-whitespace]
-
-### 7.42 Fenced code tilde opening fence state
+### 7.40 Fenced code tilde opening fence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1329,7 +1296,7 @@ If the next few characters are:
     Turn the [current token][current-token] into a [*Content token*][t-content] and reconsume in the
     [*Content continuation state*][s-content-continuation]
 
-### 7.43 Fenced code tilde opening fence whitespace state
+### 7.41 Fenced code tilde opening fence whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1347,7 +1314,7 @@ If the next few characters are:
     Queue a [*Content token*][t-content], consume, and switch to the
     [*Fenced code tilde opening fence metadata state*][s-fenced-code-tilde-opening-fence-metadata]
 
-### 7.44 Fenced code tilde opening fence metadata state
+### 7.42 Fenced code tilde opening fence metadata state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1360,26 +1327,11 @@ If the next few characters are:
 
     Queue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Fenced code tilde opening fence whitespace state*][s-fenced-code-tilde-opening-fence-whitespace]
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Queue a [*Marker token*][t-marker], consume, set the [return state][return-state] to
-    [*Fenced code tilde opening fence escape after state*][s-fenced-code-tilde-opening-fence-escape-after], and switch to the [*Escape state*][s-escape]
 *   ↪ **Anything else**
 
     Consume
 
-### 7.45 Fenced code tilde opening fence escape after state
-
-*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
-    ↪ **U+0020 SPACE (SP)**
-
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Fenced code tilde opening fence whitespace state*][s-fenced-code-tilde-opening-fence-whitespace]
-*   ↪ **Anything else**
-
-    Reconsume in the [*Fenced code tilde opening fence whitespace state*][s-fenced-code-tilde-opening-fence-whitespace]
-
-### 7.46 Fenced code continuation line state
+### 7.43 Fenced code continuation line state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1391,7 +1343,7 @@ If the next few characters are:
 
     Consume
 
-### 7.47 Fenced code close sequence state
+### 7.44 Fenced code close sequence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1400,8 +1352,8 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `openingSize`
 
     If the [current token][current-token]’s size is greater than or equal to `openingSize`,
-    open a [*Fenced code group*][g-fenced-code], [process as a Fenced code fence][process-as-a-fenced-code-fence] and reconsume in
-    the [*Line ending state*][s-line-ending]
+    [process as a Fenced code fence][process-as-a-fenced-code-fence], close, and reconsume in the
+    [*Line ending state*][s-line-ending]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
@@ -1425,7 +1377,7 @@ If the next few characters are:
     Turn the [current token][current-token] into a [*Content token*][t-content] and reconsume in the
     [*Fenced code continuation line state*][s-fenced-code-continuation-line]
 
-### 7.48 Fenced code close whitespace state
+### 7.45 Fenced code close whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1443,7 +1395,7 @@ If the next few characters are:
     Turn the queue, except for the first token if it is a [*Whitespace token*][t-whitespace], into a
     [*Content token*][t-content] and reconsume in the [*Fenced code continuation line state*][s-fenced-code-continuation-line]
 
-### 7.49 Indented code line state
+### 7.46 Indented code line state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1458,7 +1410,7 @@ If the next few characters are:
 
     Consume
 
-### 7.50 Content continuation state
+### 7.47 Content continuation state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1561,18 +1513,6 @@ interface Content <: Token {
 {type: 'content', prefix: '  '}
 ```
 
-### 8.7 Escape token
-
-A [*Escape token*][t-escape] represents an escaped character that is content, not syntax.
-
-```idl
-interface Escape <: Token {}
-```
-
-```js
-{type: 'escape'}
-```
-
 ## 9 Groups
 
 Groups are named groups of tokens and other blocks.
@@ -1587,17 +1527,7 @@ interface BlankLine <: Group {
 }
 ```
 
-### 9.2 Escape group
-
-A [*Escape group*][g-escape] represents an escaped character or a literal character.
-
-```idl
-interface Escape <: Group {
-  children: [Marker | Escape]
-}
-```
-
-### 9.3 ATX heading group
+### 9.2 ATX heading group
 
 An [*ATX heading group*][g-atx-heading] represents a heading for a section.
 
@@ -1607,7 +1537,7 @@ interface AtxHeading <: Group {
 }
 ```
 
-### 9.4 ATX heading fence group
+### 9.3 ATX heading fence group
 
 An [*ATX heading fence group*][g-atx-heading-fence] represents a fence of a heading.
 
@@ -1617,7 +1547,7 @@ interface AtxHeadingFence <: Group {
 }
 ```
 
-### 9.5 ATX heading content group
+### 9.4 ATX heading content group
 
 An [*ATX heading content group*][g-atx-heading-content] represents the phrasing of a heading.
 
@@ -1627,7 +1557,7 @@ interface AtxHeadingContent <: Group {
 }
 ```
 
-### 9.6 Thematic break group
+### 9.5 Thematic break group
 
 A [*Thematic break group*][g-thematic-break] represents a thematic break in a section.
 
@@ -1637,7 +1567,7 @@ interface ThematicBreak <: Group {
 }
 ```
 
-### 9.7 HTML group
+### 9.6 HTML group
 
 An [*HTML group*][g-html] represents embedded HTML.
 
@@ -1647,7 +1577,7 @@ interface HTML <: Group {
 }
 ```
 
-### 9.8 HTML line group
+### 9.7 HTML line group
 
 An [*HTML line group*][g-html-line] represents a line of HTML.
 
@@ -1657,7 +1587,7 @@ interface HTMLLine <: Group {
 }
 ```
 
-### 9.9 Indented code group
+### 9.8 Indented code group
 
 An [*Indented code group*][g-indented-code] represents preformatted text.
 
@@ -1667,7 +1597,7 @@ interface IndentedCode <: Group {
 }
 ```
 
-### 9.10 Indented code line group
+### 9.9 Indented code line group
 
 An [*Indented code line group*][g-indented-code-line] represents a line of indented code.
 
@@ -1677,7 +1607,7 @@ interface IndentedCodeLine <: Group {
 }
 ```
 
-### 9.11 Blockquote group
+### 9.10 Blockquote group
 
 A [*Blockquote group*][g-blockquote] represents paraphrased text.
 
@@ -1687,7 +1617,7 @@ interface Blockquote <: Group {
 }
 ```
 
-### 9.12 Fenced code group
+### 9.11 Fenced code group
 
 A [*Fenced code group*][g-fenced-code] represents preformatted text.
 
@@ -1697,7 +1627,7 @@ interface FencedCode <: Group {
 }
 ```
 
-### 9.13 Fenced code fence group
+### 9.12 Fenced code fence group
 
 A [*Fenced code fence group*][g-fenced-code-fence] represents a fence of fenced code.
 
@@ -1707,27 +1637,27 @@ interface FencedCodeFence <: Group {
 }
 ```
 
-### 9.14 Fenced code language group
+### 9.13 Fenced code language group
 
 A [*Fenced code language group*][g-fenced-code-language] represents the programming language of fenced code.
 
 ```idl
 interface FencedCodeLanguage <: Group {
-  children: [Whitespace | Content | EscapeGroup]
+  children: [Whitespace | Content]
 }
 ```
 
-### 9.15 Fenced code metadata group
+### 9.14 Fenced code metadata group
 
 A [*Fenced code metadata group*][g-fenced-code-metadata] represents the metadata about fenced code.
 
 ```idl
 interface FencedCodeMetadata <: Group {
-  children: [Whitespace | Content | EscapeGroup]
+  children: [Whitespace | Content]
 }
 ```
 
-### 9.16 Fenced code line group
+### 9.15 Fenced code line group
 
 A [*Fenced code line group*][g-fenced-code-line] represents a line of fenced code.
 
@@ -1737,7 +1667,7 @@ interface FencedCodeLine <: Group {
 }
 ```
 
-### 9.17 Content group
+### 9.16 Content group
 
 A [*Content group*][g-content] represents content: definitions, paragraphs, and sometimes heading
 content.
@@ -1748,7 +1678,7 @@ interface Content <: Group {
 }
 ```
 
-### 9.18 Content line group
+### 9.17 Content line group
 
 A [*Content line group*][g-content-line] represents a line of content.
 
@@ -1758,7 +1688,7 @@ interface ContentLine <: Group {
 }
 ```
 
-### 9.19 Setext heading group
+### 9.18 Setext heading group
 
 An [*Setext heading group*][g-setext-heading] represents a heading for a section.
 
@@ -1768,11 +1698,11 @@ interface SetextHeading <: Group {
 }
 ```
 
-### 9.20 Setext heading content group
+### 9.19 Setext heading content group
 
 > ❗️ Todo
 
-### 9.21 Setext heading underline group
+### 9.20 Setext heading underline group
 
 A [*Setext heading underline group*][g-setext-heading-underline] represents a fence of a heading.
 
@@ -1782,11 +1712,71 @@ interface SetextHeadingUnderline <: Group {
 }
 ```
 
-### 9.22 Definition group
+### 9.21 Definition group
 
-> ❗️ Todo
+A [*Definition group*][g-definition] represents a link reference definition.
 
-### 9.23 Paragraph group
+```idl
+interface Definition <: Group {
+  children: [DefinitionLabelGroup | DefinitionLabelQuotedGroup | DefinitionLabelUnquotedGroup | DefinitionTitleGroup | Whitespace | LineEnding]
+}
+```
+
+### 9.22 Definition label group
+
+A [*Definition label group*][g-definition-label] represents the label of a definition.
+
+```idl
+interface DefinitionLabel <: Group {
+  children: [DefinitionLabelContentGroup | Marker | Whitespace | LineEnding]
+}
+```
+
+### 9.23 Definition label content group
+
+A [*Definition label content group*][g-definition-label-content] represents the content of the label of a
+definition.
+
+```idl
+interface DefinitionLabelContent <: Group {
+  children: [Content | Whitespace | LineEnding]
+}
+```
+
+### 9.24 Definition destination quoted group
+
+A [*Definition destination quoted group*][g-definition-destination-quoted] represents an enclosed destination of a
+definition.
+
+```idl
+interface DefinitionDestinationQuoted <: Group {
+  children: [Content | Marker]
+}
+```
+
+### 9.25 Definition destination unquoted group
+
+A [*Definition destination unquoted group*][g-definition-destination-unquoted] represents an unclosed destination of a
+definition.
+
+```idl
+interface DefinitionDestinationUnquoted <: Group {
+  children: [Content]
+}
+```
+
+### 9.26 Definition title group
+
+A [*Definition title group*][g-definition-title] represents advisory information, such as a description of
+the destination of the definition.
+
+```idl
+interface DefinitionTitle <: Group {
+  children: [Content | Marker | Whitespace | LineEnding]
+}
+```
+
+### 9.27 Paragraph group
 
 > ❗️ Todo
 
@@ -1807,25 +1797,26 @@ If the token in the queue before `index` is a [*Sequence token*][t-sequence], re
 If the token in the queue before `index` is a [*Whitespace token*][t-whitespace], remove `1` from
 `index`.
 
+> ❗️ Todo: define how to process the phrasing.
+
 If there are tokens in the queue before `index`, open an [*ATX heading content group*][g-atx-heading-content],
 emit the tokens in the queue before `index` as a single [*Content token*][t-content], and close.
 
 If there is a token at `index` in queue, open an [*ATX heading fence group*][g-atx-heading-fence],
 emit the tokens in the queue from `index`, and close.
 
-Finally, close the [current group][current-group].
-
-> ❗️ Todo: define how to process the phrasing.
+Finally, close.
 
 ### 10.2 Process as a Setext primary heading
 
-> ❗️ Todo: define how to process content.
-
 To <a id="process-as-a-setext-primary-heading" href="#process-as-a-setext-primary-heading">**process as a Setext primary heading**</a> is to perform the following steps:
 
-Process the current group (a [*Content group*][g-content]) with a *setext primary heading* hint.
+Process the [current group][current-group]: [process as Content][process-as-content] with a *setext primary
+heading* hint.
+
 If the hint is used, open a [*Setext heading underline group*][g-setext-heading-underline], emit, and close
-twice.
+twice, and return.
+
 Otherwise, let `index` be the position of the [current token][current-token] in the queue.
 
 If the [current token][current-token] is a [*Whitespace token*][t-whitespace], remove `1` from `index`.
@@ -1864,28 +1855,259 @@ To <a id="process-as-an-asterisk-line-opening" href="#process-as-an-asterisk-lin
 
 ### 10.5 Process as a Fenced code fence
 
-Let `index` be `0`.
+To <a id="process-as-a-fenced-code-fence" href="#process-as-a-fenced-code-fence">**process as a Fenced code fence**</a> is to perform the following steps:
 
-If the token in the queue at `index` is a [*Whitespace token*][t-whitespace], add `1` to `index`.
+Let `fenceEnd` be `1`.
+Let `end` be the number of tokens in the queue.
 
-Let `lang` be `index`.
+If the token in the queue before `end` is a [*Whitespace token*][t-whitespace], remove `1` from `end`.
 
-If the token in the queue after `lang` is a [*Whitespace token*][t-whitespace], add `1` to `lang`.
+If the token in the queue before `fenceEnd` is a [*Whitespace token*][t-whitespace], add `1` to
+`fenceEnd`.
 
-Let `meta` be `lang`.
+If `fenceEnd` is not `end`, and the token in the queue at `fenceEnd` is a
+[*Whitespace token*][t-whitespace] , add `1` to `fenceEnd`.
 
-If the token in the queue after `meta` is a [*Whitespace token*][t-whitespace], add `1` to `meta`.
+If `fenceEnd` is not `end`, let `langEnd` be `fenceEnd` plus `1`.
 
-Open a [*Fenced code fence group*][g-fenced-code-fence], emit the tokens before `index`.
+If `langEnd` is defined and it is not `end`, let `metaStart` be `langEnd` plus
+`1`.
 
-If there is a token after `lang` in the queue, open a [*Fenced code language group*][g-fenced-code-language],
-and emit the literal grouped tokens between `lang` and `meta` in the queue, and
-close.
+Open a [*Fenced code fence group*][g-fenced-code-fence] and emit the tokens before `fenceEnd`.
 
-If there is a token after `meta` in the queue, open a [*Fenced code metadata group*][g-fenced-code-metadata],
-and emit the literal grouped tokens after `meta` in the queue, and close.
+> ❗️ Todo: this is one content token, but it should be parsed for escapes and
+> character references.
+
+If `langEnd` is defined, open a [*Fenced code language group*][g-fenced-code-language], emit the token before
+`langEnd`, and close.
+
+> ❗️ Todo: this content token should be parsed for escapes and character
+> references.
+
+If `metaStart` is defined, emit the token before `metaStart`, open a
+[*Fenced code metadata group*][g-fenced-code-metadata], emit the tokens in the queue between `metaStart` and
+`end` (inclusive) as a single [*Content token*][t-content], and close.
+
+If there is a token at `end`, emit it.
+
+Finally, close.
+
+### 10.6 Process as Content
+
+To <a id="process-as-content" href="#process-as-content">**process as Content**</a> is to perform the following steps on the characters
+within the bounds of the tokens in the group.
+Processing content can be given a hint, in which case the hint is either
+*setext primary heading* or *setext secondary heading*.
+Content consists of lines, where each line is a [*Content token*][t-content], optionally preceded
+by a [*Whitespace token*][t-whitespace], and between each line is a [*Line ending token*][t-line-ending].
+To create the boundaries of lines of content, perform the following steps:
+
+*   Let `lines` be an empty list
+*   Let `index` be `0`
+*   *Loop*: let `start` be the start position of the token at `index` in the
+    tokens
+*   If the token after `index` in tokens is a [*Content token*][t-content], add `1` to `index`
+*   Let `end` be the end position of the token at `index` in tokens
+*   If the token after `index` in tokens is a [*Line ending token*][t-line-ending], add `1` to `index`,
+    add a line to `lines` with `start`, `end`, and `ending` set the token at
+    `index` in tokens
+*   Otherwise, add a line to `lines` with `start`, `end`, and without a `ending`
+*   Add `1` to `index`
+*   If there is no token at `index` in tokens, return
+*   Go to the step labeled *loop*.
+
+With lines, now perform the following steps:
+
+*   Let `pointer` be a pointer to the first line (`0`) and the start of the
+    first line in lines
+*   [Process as Definitions][process-as-definitions] with `lines` given `pointer`
+*   If `pointer` is the last place in `lines`, return that hint is not used
+*   Otherwise, [process as a Paragraph][process-as-a-paragraph] with `lines` given `pointer` and
+    `hint`, and return that hint was used
+
+### 10.7 Process as Definitions
+
+Perform the following steps with the given pointer and lines:
+
+*   Let `start` be a copy of `pointer`
+*   Let `labelBeforeStart` be a copy of `pointer`
+*   Skip whitespace and line endings within `lines` given `pointer`
+*   Let `labelBeforeEnd` be a copy of `pointer`
+*   If the character at `pointer` is not U+005B LEFT SQUARE BRACKET (`[`), let `pointer` be `start` and
+    return
+*   Move `pointer` one place forward
+*   Let `labelOpenStart` be a copy of `pointer`
+*   Skip whitespace and line endings within `lines` given `pointer`
+*   If the character at `pointer` is U+005D RIGHT SQUARE BRACKET (`]`), let `pointer` be `start` and
+    return
+*   Let `labelOpenEnd` be a copy of `pointer`
+*   Let `backslash` be a copy of `pointer`
+*   Let `bracket` be a copy of `pointer`
+*   *Look for label end*: scan for U+005D RIGHT SQUARE BRACKET (`]`) within `lines` given `bracket`
+*   *Look for label escape*: scan for U+005C BACKSLASH (`\`) within `lines` given `backslash`
+*   If `backslash` points to the place right before `bracket`, move `backslash`
+    one place forward, move `bracket` one place forward, and go the step labeled
+    *look for label end*
+*   Otherwise, if `backslash` is before `bracket`, move `backslash` one place
+    forward, and go the step labeled *look for label escape*
+*   Otherwise, if `bracket` is not a place, let `pointer` be `start` and return
+*   Let `pointer` be `bracket`
+*   Let `labelCloseEnd` be a copy of `pointer`
+*   Let `labelCloseStart` be a copy of `pointer`
+*   Skip whitespace and line endings backwards within `lines` given
+    `labelCloseStart`
+*   If `pointer` points to the end of the line, let `pointer` be `start` and
+    return
+*   Move `pointer` one place forward
+*   If the character at `pointer` is not U+003A COLON (`:`), let `pointer` be `start` and
+    return
+*   Move `pointer` one place forward
+*   Let `destinationBeforeStart` be a copy of `pointer`
+*   Skip whitespace and line endings within `lines` given `pointer`
+*   Let `destinationBeforeEnd` be a copy of `pointer`
+*   Let `quoted` be `false`, and perform either of the following substeps:
+
+    *   If `pointer` is a U+003C LESS THAN (`<`):
+
+        *   Let `quoted` be `true`
+        *   Move `pointer` one place forward
+        *   Let `destinationStart` be a copy of `pointer`
+        *   *Quoted destination continuation*: if `pointer` points to the end of
+            the line or the character U+003C LESS THAN (`<`), let `pointer` be `start` and return
+        *   Otherwise, if the character at `pointer` is U+003E GREATER THAN (`>`), let
+            `destinationEnd` be a copy of `pointer`, move `pointer` one place
+            forward, and break
+        *   Otherwise, if the character at `pointer` is U+005C BACKSLASH (`\`) and the character
+            after `pointer` is U+003C LESS THAN (`<`) or U+003E GREATER THAN (`>`), move `pointer` two places forward,
+            and go to the step labeled *quoted destination continuation*
+        *   Otherwise, move `pointer` one place forward and go to the step
+            labeled *quoted destination continuation*
+    *   Otherwise:
+
+        *   Let `balance` be `0`
+        *   Let `destinationStart` be a copy of `pointer`
+        *   *Quoted destination continuation*: if the character at `pointer` is
+            an [ASCII control][ascii-control], let `pointer` be `start` and return
+        *   Otherwise, if `pointer` points to the end of the line or a U+0009 CHARACTER TABULATION (HT) or
+            U+0020 SPACE (SP), let `destinationEnd` be a copy of `pointer` and break
+        *   Otherwise, if the character at `pointer` is U+0028 LEFT PARENTHESIS (`(`), increment `balance`
+            by `1`, move `pointer` one place forward, and go to the step labeled
+            *unquoted destination continuation*
+        *   Otherwise, if the character at `pointer` is U+0029 RIGHT PARENTHESIS (`)`), and `balance` is
+            `0`, let `pointer` be `start` and return
+        *   Otherwise, if the character at `pointer` is U+0029 RIGHT PARENTHESIS (`)`), decrement `balance`
+            by `1`, move `pointer` one place forward, and go to the step labeled
+            *unquoted destination continuation*
+        *   Otherwise, if the character at `pointer` is U+005C BACKSLASH (`\`) and the character
+            after `pointer` is U+0028 LEFT PARENTHESIS (`(`) or U+0029 RIGHT PARENTHESIS (`)`), move `pointer` two places forward,
+            and go to the step labeled *unquoted destination continuation*
+        *   Otherwise, move `pointer` one place forward, and go to the step
+            labeled *unquoted destination continuation*
+*   Let `destinationAfterStart` be a copy of `pointer`
+*   Skip whitespace (not line endings) within `lines` given `pointer`
+*   Let `destinationAfterEnd` be a copy of `pointer`
+*   If `pointer` is the end of the line, let `save` be a copy of `pointer`
+*   Skip whitespace (not line endings) within `lines` given `pointer`
+*   Let `titleBeforeEnd` be a copy of `pointer`
+*   If the character at `pointer` is U+0022 QUOTATION MARK (`"`) or U+0027 APOSTROPHE (`'`), let `marker` be that character
+*   Otherwise, if the character is U+0028 LEFT PARENTHESIS (`(`), let `marker` be U+0029 RIGHT PARENTHESIS (`)`)
+*   Otherwise, if `save` is a place, create a definition without a title, let
+    `pointer` be `save`, process as definitions with `lines` given `pointer`,
+    and return
+*   Otherwise, let `pointer` be `start` and return
+*   Move `pointer` one place forward
+*   Let `titleStart` be a copy of `pointer`
+*   *Title continuation*: if the character at `pointer` is `marker`, let
+    `titleEnd` be a copy of `pointer`, move `pointer` one place forward, and
+    break
+*   Otherwise, if the character at `pointer` is U+005C BACKSLASH (`\`) and the character after
+    `pointer` is `marker`, move `pointer` two places forward, and go to the step
+    labeled *title continuation*
+*   Otherwise, move `pointer` one place forward, and go to the step labeled
+    *title continuation*
+*   Let `titleAfterStart` be a copy of `pointer`
+*   Skip whitespace (not line endings) within `lines` given `pointer`
+*   Let `titleAfterEnd` be a copy of `pointer`
+*   If `pointer` is the end of the line, create a definition with a title,
+    process as definitions with `lines` given `pointer`, and return
+*   Otherwise, if `save` is a place, create a definition without a title, let
+    `pointer` be `save`, process as definitions with `lines` given `pointer`,
+    and return
+*   Otherwise, let `pointer` be `start`, and return
+
+#### 10.7.1 Create a definition
+
+Open a [*Definition group*][g-definition].
+If `labelBeforeStart` is not `labelBeforeEnd`, emit the whitespace between both
+points.
+Open a [*Definition label group*][g-definition-label].
+Emit a [*Marker token*][t-marker] with the character at `labelBeforeEnd`.
+If `labelOpenStart` is not `labelOpenEnd`, emit the whitespace and line
+endings between both points.
+
+Open a [*Definition label content group*][g-definition-label-content].
+
+> ❗️ Todo: this content token should be parsed for escapes and character
+> references.
+
+Emit the content and line endings between `labelOpenEnd` and `labelCloseStart`.
 
 Close.
+
+If `labelCloseStart` is not `labelCloseEnd`, emit the whitespace and line
+endings between both points.
+
+Close.
+
+Emit a [*Marker token*][t-marker] with the character at `labelCloseEnd`.
+Close.
+Emit a [*Marker token*][t-marker] with the character after `labelCloseEnd`.
+
+If `destinationBeforeStart` is not `destinationBeforeEnd`, emit the whitespace
+and line endings between both points.
+
+> ❗️ Todo: these content token should be parsed for escapes and character
+> references.
+
+If `quoted` is `true`, open a [*Definition destination quoted group*][g-definition-destination-quoted], emit a [*Marker token*][t-marker]
+with the character at `destinationBeforeEnd`, emit the content and line endings
+between `destinationStart` and `destinationEnd`, emit a [*Marker token*][t-marker] with the
+character at `destinationEnd`, and close.
+
+Otherwise, open a [*Definition destination unquoted group*][g-definition-destination-unquoted], emit the content and line
+endings between `destinationStart` and `destinationEnd`, and close.
+
+If `destinationAfterStart` is not `destinationAfterEnd`, emit the whitespace
+between both points.
+
+> ❗️ Todo: this content token should be parsed for escapes and character
+> references.
+
+If the destination to be created is with a title, if `destinationAfterEnd` is not
+`titleBeforeEnd`, emit the whitespace and line endings between both points,
+open a [*Definition title group*][g-definition-title], emit a [*Marker token*][t-marker] with the character at
+`titleBeforeEnd`, emit the content and line endings between `titleStart` and
+`titleEnd`, close, and if `titleAfterStart` is not `titleAfterEnd`, emit the
+whitespace between both points.
+
+Finally, close.
+
+### 10.8 Process as a Paragraph
+
+To <a id="process-as-a-paragraph" href="#process-as-a-paragraph">**process as a Paragraph**</a> is to perform the following steps with the given
+pointer, lines, and hint:
+
+Processing content can be given a hint, in which case the hint is either
+*setext primary heading* or *setext secondary heading*.
+
+*   If a hint is given, open a [*Setext heading group*][g-setext-heading]
+*   Otherwise, open a [*Paragraph group*][g-paragraph]
+*   Open an [*Setext heading content group*][g-setext-heading-content]
+*   > ❗️ Todo: define how to process the phrasing.
+
+    Process the phrasing
+*   If a hint is given, close once
+*   Otherwise, close twice
 
 ## 11 WIP
 
@@ -1933,318 +2155,6 @@ A <a id="simple-tag" href="#simple-tag">**simple tag**</a> is one of: `address`,
 `menu`, `menuitem`, `nav`, `noframes`, `ol`, `optgroup`, `option`, `p`,
 `param`, `section`, `source`, `summary`, `table`, `tbody`, `td`, `tfoot`, `th`,
 `thead`, `title`, `tr`, `track`, and `ul`.
-
-### 13.3 Entities
-
-An <a id="entity-name" href="#entity-name">**entity name**</a> is one of: `AEli`, `AElig`, `AM`, `AMP`, `Aacut`, `Aacute`,
-`Abreve`, `Acir`, `Acirc`, `Acy`, `Afr`, `Agrav`, `Agrave`, `Alpha`, `Amacr`,
-`And`, `Aogon`, `Aopf`, `ApplyFunction`, `Arin`, `Aring`, `Ascr`, `Assign`,
-`Atild`, `Atilde`, `Aum`, `Auml`, `Backslash`, `Barv`, `Barwed`, `Bcy`,
-`Because`, `Bernoullis`, `Beta`, `Bfr`, `Bopf`, `Breve`, `Bscr`, `Bumpeq`,
-`CHcy`, `COP`, `COPY`, `Cacute`, `Cap`, `CapitalDifferentialD`, `Cayleys`,
-`Ccaron`, `Ccedi`, `Ccedil`, `Ccirc`, `Cconint`, `Cdot`, `Cedilla`, `CenterDot`,
-`Cfr`, `Chi`, `CircleDot`, `CircleMinus`, `CirclePlus`, `CircleTimes`,
-`ClockwiseContourIntegral`, `CloseCurlyDoubleQuote`, `CloseCurlyQuote`, `Colon`,
-`Colone`, `Congruent`, `Conint`, `ContourIntegral`, `Copf`, `Coproduct`,
-`CounterClockwiseContourIntegral`, `Cross`, `Cscr`, `Cup`, `CupCap`, `DD`,
-`DDotrahd`, `DJcy`, `DScy`, `DZcy`, `Dagger`, `Darr`, `Dashv`, `Dcaron`, `Dcy`,
-`Del`, `Delta`, `Dfr`, `DiacriticalAcute`, `DiacriticalDot`,
-`DiacriticalDoubleAcute`, `DiacriticalGrave`, `DiacriticalTilde`, `Diamond`,
-`DifferentialD`, `Dopf`, `Dot`, `DotDot`, `DotEqual`, `DoubleContourIntegral`,
-`DoubleDot`, `DoubleDownArrow`, `DoubleLeftArrow`, `DoubleLeftRightArrow`,
-`DoubleLeftTee`, `DoubleLongLeftArrow`, `DoubleLongLeftRightArrow`,
-`DoubleLongRightArrow`, `DoubleRightArrow`, `DoubleRightTee`, `DoubleUpArrow`,
-`DoubleUpDownArrow`, `DoubleVerticalBar`, `DownArrow`, `DownArrowBar`,
-`DownArrowUpArrow`, `DownBreve`, `DownLeftRightVector`, `DownLeftTeeVector`,
-`DownLeftVector`, `DownLeftVectorBar`, `DownRightTeeVector`, `DownRightVector`,
-`DownRightVectorBar`, `DownTee`, `DownTeeArrow`, `Downarrow`, `Dscr`, `Dstrok`,
-`ENG`, `ET`, `ETH`, `Eacut`, `Eacute`, `Ecaron`, `Ecir`, `Ecirc`, `Ecy`, `Edot`,
-`Efr`, `Egrav`, `Egrave`, `Element`, `Emacr`, `EmptySmallSquare`,
-`EmptyVerySmallSquare`, `Eogon`, `Eopf`, `Epsilon`, `Equal`, `EqualTilde`,
-`Equilibrium`, `Escr`, `Esim`, `Eta`, `Eum`, `Euml`, `Exists`, `ExponentialE`,
-`Fcy`, `Ffr`, `FilledSmallSquare`, `FilledVerySmallSquare`, `Fopf`, `ForAll`,
-`Fouriertrf`, `Fscr`, `G`, `GJcy`, `GT`, `Gamma`, `Gammad`, `Gbreve`, `Gcedil`,
-`Gcirc`, `Gcy`, `Gdot`, `Gfr`, `Gg`, `Gopf`, `GreaterEqual`, `GreaterEqualLess`,
-`GreaterFullEqual`, `GreaterGreater`, `GreaterLess`, `GreaterSlantEqual`,
-`GreaterTilde`, `Gscr`, `Gt`, `HARDcy`, `Hacek`, `Hat`, `Hcirc`, `Hfr`,
-`HilbertSpace`, `Hopf`, `HorizontalLine`, `Hscr`, `Hstrok`, `HumpDownHump`,
-`HumpEqual`, `IEcy`, `IJlig`, `IOcy`, `Iacut`, `Iacute`, `Icir`, `Icirc`, `Icy`,
-`Idot`, `Ifr`, `Igrav`, `Igrave`, `Im`, `Imacr`, `ImaginaryI`, `Implies`, `Int`,
-`Integral`, `Intersection`, `InvisibleComma`, `InvisibleTimes`, `Iogon`, `Iopf`,
-`Iota`, `Iscr`, `Itilde`, `Iukcy`, `Ium`, `Iuml`, `Jcirc`, `Jcy`, `Jfr`, `Jopf`,
-`Jscr`, `Jsercy`, `Jukcy`, `KHcy`, `KJcy`, `Kappa`, `Kcedil`, `Kcy`, `Kfr`,
-`Kopf`, `Kscr`, `L`, `LJcy`, `LT`, `Lacute`, `Lambda`, `Lang`, `Laplacetrf`,
-`Larr`, `Lcaron`, `Lcedil`, `Lcy`, `LeftAngleBracket`, `LeftArrow`,
-`LeftArrowBar`, `LeftArrowRightArrow`, `LeftCeiling`, `LeftDoubleBracket`,
-`LeftDownTeeVector`, `LeftDownVector`, `LeftDownVectorBar`, `LeftFloor`,
-`LeftRightArrow`, `LeftRightVector`, `LeftTee`, `LeftTeeArrow`, `LeftTeeVector`,
-`LeftTriangle`, `LeftTriangleBar`, `LeftTriangleEqual`, `LeftUpDownVector`,
-`LeftUpTeeVector`, `LeftUpVector`, `LeftUpVectorBar`, `LeftVector`,
-`LeftVectorBar`, `Leftarrow`, `Leftrightarrow`, `LessEqualGreater`,
-`LessFullEqual`, `LessGreater`, `LessLess`, `LessSlantEqual`, `LessTilde`,
-`Lfr`, `Ll`, `Lleftarrow`, `Lmidot`, `LongLeftArrow`, `LongLeftRightArrow`,
-`LongRightArrow`, `Longleftarrow`, `Longleftrightarrow`, `Longrightarrow`,
-`Lopf`, `LowerLeftArrow`, `LowerRightArrow`, `Lscr`, `Lsh`, `Lstrok`, `Lt`,
-`Map`, `Mcy`, `MediumSpace`, `Mellintrf`, `Mfr`, `MinusPlus`, `Mopf`, `Mscr`,
-`Mu`, `NJcy`, `Nacute`, `Ncaron`, `Ncedil`, `Ncy`, `NegativeMediumSpace`,
-`NegativeThickSpace`, `NegativeThinSpace`, `NegativeVeryThinSpace`,
-`NestedGreaterGreater`, `NestedLessLess`, `NewLine`, `Nfr`, `NoBreak`,
-`NonBreakingSpace`, `Nopf`, `Not`, `NotCongruent`, `NotCupCap`,
-`NotDoubleVerticalBar`, `NotElement`, `NotEqual`, `NotEqualTilde`, `NotExists`,
-`NotGreater`, `NotGreaterEqual`, `NotGreaterFullEqual`, `NotGreaterGreater`,
-`NotGreaterLess`, `NotGreaterSlantEqual`, `NotGreaterTilde`, `NotHumpDownHump`,
-`NotHumpEqual`, `NotLeftTriangle`, `NotLeftTriangleBar`, `NotLeftTriangleEqual`,
-`NotLess`, `NotLessEqual`, `NotLessGreater`, `NotLessLess`, `NotLessSlantEqual`,
-`NotLessTilde`, `NotNestedGreaterGreater`, `NotNestedLessLess`, `NotPrecedes`,
-`NotPrecedesEqual`, `NotPrecedesSlantEqual`, `NotReverseElement`,
-`NotRightTriangle`, `NotRightTriangleBar`, `NotRightTriangleEqual`,
-`NotSquareSubset`, `NotSquareSubsetEqual`, `NotSquareSuperset`,
-`NotSquareSupersetEqual`, `NotSubset`, `NotSubsetEqual`, `NotSucceeds`,
-`NotSucceedsEqual`, `NotSucceedsSlantEqual`, `NotSucceedsTilde`, `NotSuperset`,
-`NotSupersetEqual`, `NotTilde`, `NotTildeEqual`, `NotTildeFullEqual`,
-`NotTildeTilde`, `NotVerticalBar`, `Nscr`, `Ntild`, `Ntilde`, `Nu`, `OElig`,
-`Oacut`, `Oacute`, `Ocir`, `Ocirc`, `Ocy`, `Odblac`, `Ofr`, `Ograv`, `Ograve`,
-`Omacr`, `Omega`, `Omicron`, `Oopf`, `OpenCurlyDoubleQuote`, `OpenCurlyQuote`,
-`Or`, `Oscr`, `Oslas`, `Oslash`, `Otild`, `Otilde`, `Otimes`, `Oum`, `Ouml`,
-`OverBar`, `OverBrace`, `OverBracket`, `OverParenthesis`, `PartialD`, `Pcy`,
-`Pfr`, `Phi`, `Pi`, `PlusMinus`, `Poincareplane`, `Popf`, `Pr`, `Precedes`,
-`PrecedesEqual`, `PrecedesSlantEqual`, `PrecedesTilde`, `Prime`, `Product`,
-`Proportion`, `Proportional`, `Pscr`, `Psi`, `QUO`, `QUOT`, `Qfr`, `Qopf`,
-`Qscr`, `RBarr`, `RE`, `REG`, `Racute`, `Rang`, `Rarr`, `Rarrtl`, `Rcaron`,
-`Rcedil`, `Rcy`, `Re`, `ReverseElement`, `ReverseEquilibrium`,
-`ReverseUpEquilibrium`, `Rfr`, `Rho`, `RightAngleBracket`, `RightArrow`,
-`RightArrowBar`, `RightArrowLeftArrow`, `RightCeiling`, `RightDoubleBracket`,
-`RightDownTeeVector`, `RightDownVector`, `RightDownVectorBar`, `RightFloor`,
-`RightTee`, `RightTeeArrow`, `RightTeeVector`, `RightTriangle`,
-`RightTriangleBar`, `RightTriangleEqual`, `RightUpDownVector`,
-`RightUpTeeVector`, `RightUpVector`, `RightUpVectorBar`, `RightVector`,
-`RightVectorBar`, `Rightarrow`, `Ropf`, `RoundImplies`, `Rrightarrow`, `Rscr`,
-`Rsh`, `RuleDelayed`, `SHCHcy`, `SHcy`, `SOFTcy`, `Sacute`, `Sc`, `Scaron`,
-`Scedil`, `Scirc`, `Scy`, `Sfr`, `ShortDownArrow`, `ShortLeftArrow`,
-`ShortRightArrow`, `ShortUpArrow`, `Sigma`, `SmallCircle`, `Sopf`, `Sqrt`,
-`Square`, `SquareIntersection`, `SquareSubset`, `SquareSubsetEqual`,
-`SquareSuperset`, `SquareSupersetEqual`, `SquareUnion`, `Sscr`, `Star`, `Sub`,
-`Subset`, `SubsetEqual`, `Succeeds`, `SucceedsEqual`, `SucceedsSlantEqual`,
-`SucceedsTilde`, `SuchThat`, `Sum`, `Sup`, `Superset`, `SupersetEqual`,
-`Supset`, `THOR`, `THORN`, `TRADE`, `TSHcy`, `TScy`, `Tab`, `Tau`, `Tcaron`,
-`Tcedil`, `Tcy`, `Tfr`, `Therefore`, `Theta`, `ThickSpace`, `ThinSpace`,
-`Tilde`, `TildeEqual`, `TildeFullEqual`, `TildeTilde`, `Topf`, `TripleDot`,
-`Tscr`, `Tstrok`, `Uacut`, `Uacute`, `Uarr`, `Uarrocir`, `Ubrcy`, `Ubreve`,
-`Ucir`, `Ucirc`, `Ucy`, `Udblac`, `Ufr`, `Ugrav`, `Ugrave`, `Umacr`, `UnderBar`,
-`UnderBrace`, `UnderBracket`, `UnderParenthesis`, `Union`, `UnionPlus`, `Uogon`,
-`Uopf`, `UpArrow`, `UpArrowBar`, `UpArrowDownArrow`, `UpDownArrow`,
-`UpEquilibrium`, `UpTee`, `UpTeeArrow`, `Uparrow`, `Updownarrow`,
-`UpperLeftArrow`, `UpperRightArrow`, `Upsi`, `Upsilon`, `Uring`, `Uscr`,
-`Utilde`, `Uum`, `Uuml`, `VDash`, `Vbar`, `Vcy`, `Vdash`, `Vdashl`, `Vee`,
-`Verbar`, `Vert`, `VerticalBar`, `VerticalLine`, `VerticalSeparator`,
-`VerticalTilde`, `VeryThinSpace`, `Vfr`, `Vopf`, `Vscr`, `Vvdash`, `Wcirc`,
-`Wedge`, `Wfr`, `Wopf`, `Wscr`, `Xfr`, `Xi`, `Xopf`, `Xscr`, `YAcy`, `YIcy`,
-`YUcy`, `Yacut`, `Yacute`, `Ycirc`, `Ycy`, `Yfr`, `Yopf`, `Yscr`, `Yuml`,
-`ZHcy`, `Zacute`, `Zcaron`, `Zcy`, `Zdot`, `ZeroWidthSpace`, `Zeta`, `Zfr`,
-`Zopf`, `Zscr`, `aacut`, `aacute`, `abreve`, `ac`, `acE`, `acd`, `acir`,
-`acirc`, `acut`, `acute`, `acy`, `aeli`, `aelig`, `af`, `afr`, `agrav`,
-`agrave`, `alefsym`, `aleph`, `alpha`, `am`, `amacr`, `amalg`, `amp`, `and`,
-`andand`, `andd`, `andslope`, `andv`, `ang`, `ange`, `angle`, `angmsd`,
-`angmsdaa`, `angmsdab`, `angmsdac`, `angmsdad`, `angmsdae`, `angmsdaf`,
-`angmsdag`, `angmsdah`, `angrt`, `angrtvb`, `angrtvbd`, `angsph`, `angst`,
-`angzarr`, `aogon`, `aopf`, `ap`, `apE`, `apacir`, `ape`, `apid`, `apos`,
-`approx`, `approxeq`, `arin`, `aring`, `ascr`, `ast`, `asymp`, `asympeq`,
-`atild`, `atilde`, `aum`, `auml`, `awconint`, `awint`, `bNot`, `backcong`,
-`backepsilon`, `backprime`, `backsim`, `backsimeq`, `barvee`, `barwed`,
-`barwedge`, `bbrk`, `bbrktbrk`, `bcong`, `bcy`, `bdquo`, `becaus`, `because`,
-`bemptyv`, `bepsi`, `bernou`, `beta`, `beth`, `between`, `bfr`, `bigcap`,
-`bigcirc`, `bigcup`, `bigodot`, `bigoplus`, `bigotimes`, `bigsqcup`, `bigstar`,
-`bigtriangledown`, `bigtriangleup`, `biguplus`, `bigvee`, `bigwedge`, `bkarow`,
-`blacklozenge`, `blacksquare`, `blacktriangle`, `blacktriangledown`,
-`blacktriangleleft`, `blacktriangleright`, `blank`, `blk12`, `blk14`, `blk34`,
-`block`, `bne`, `bnequiv`, `bnot`, `bopf`, `bot`, `bottom`, `bowtie`, `boxDL`,
-`boxDR`, `boxDl`, `boxDr`, `boxH`, `boxHD`, `boxHU`, `boxHd`, `boxHu`, `boxUL`,
-`boxUR`, `boxUl`, `boxUr`, `boxV`, `boxVH`, `boxVL`, `boxVR`, `boxVh`, `boxVl`,
-`boxVr`, `boxbox`, `boxdL`, `boxdR`, `boxdl`, `boxdr`, `boxh`, `boxhD`, `boxhU`,
-`boxhd`, `boxhu`, `boxminus`, `boxplus`, `boxtimes`, `boxuL`, `boxuR`, `boxul`,
-`boxur`, `boxv`, `boxvH`, `boxvL`, `boxvR`, `boxvh`, `boxvl`, `boxvr`, `bprime`,
-`breve`, `brvba`, `brvbar`, `bscr`, `bsemi`, `bsim`, `bsime`, `bsol`, `bsolb`,
-`bsolhsub`, `bull`, `bullet`, `bump`, `bumpE`, `bumpe`, `bumpeq`, `cacute`,
-`cap`, `capand`, `capbrcup`, `capcap`, `capcup`, `capdot`, `caps`, `caret`,
-`caron`, `ccaps`, `ccaron`, `ccedi`, `ccedil`, `ccirc`, `ccups`, `ccupssm`,
-`cdot`, `cedi`, `cedil`, `cemptyv`, `cen`, `cent`, `centerdot`, `cfr`, `chcy`,
-`check`, `checkmark`, `chi`, `cir`, `cirE`, `circ`, `circeq`, `circlearrowleft`,
-`circlearrowright`, `circledR`, `circledS`, `circledast`, `circledcirc`,
-`circleddash`, `cire`, `cirfnint`, `cirmid`, `cirscir`, `clubs`, `clubsuit`,
-`colon`, `colone`, `coloneq`, `comma`, `commat`, `comp`, `compfn`, `complement`,
-`complexes`, `cong`, `congdot`, `conint`, `cop`, `copf`, `coprod`, `copy`,
-`copysr`, `crarr`, `cross`, `cscr`, `csub`, `csube`, `csup`, `csupe`, `ctdot`,
-`cudarrl`, `cudarrr`, `cuepr`, `cuesc`, `cularr`, `cularrp`, `cup`, `cupbrcap`,
-`cupcap`, `cupcup`, `cupdot`, `cupor`, `cups`, `curarr`, `curarrm`,
-`curlyeqprec`, `curlyeqsucc`, `curlyvee`, `curlywedge`, `curre`, `curren`,
-`curvearrowleft`, `curvearrowright`, `cuvee`, `cuwed`, `cwconint`, `cwint`,
-`cylcty`, `dArr`, `dHar`, `dagger`, `daleth`, `darr`, `dash`, `dashv`,
-`dbkarow`, `dblac`, `dcaron`, `dcy`, `dd`, `ddagger`, `ddarr`, `ddotseq`, `de`,
-`deg`, `delta`, `demptyv`, `dfisht`, `dfr`, `dharl`, `dharr`, `diam`, `diamond`,
-`diamondsuit`, `diams`, `die`, `digamma`, `disin`, `div`, `divid`, `divide`,
-`divideontimes`, `divonx`, `djcy`, `dlcorn`, `dlcrop`, `dollar`, `dopf`, `dot`,
-`doteq`, `doteqdot`, `dotminus`, `dotplus`, `dotsquare`, `doublebarwedge`,
-`downarrow`, `downdownarrows`, `downharpoonleft`, `downharpoonright`, `drbkarow`,
-`drcorn`, `drcrop`, `dscr`, `dscy`, `dsol`, `dstrok`, `dtdot`, `dtri`, `dtrif`,
-`duarr`, `duhar`, `dwangle`, `dzcy`, `dzigrarr`, `eDDot`, `eDot`, `eacut`,
-`eacute`, `easter`, `ecaron`, `ecir`, `ecir`, `ecirc`, `ecolon`, `ecy`, `edot`,
-`ee`, `efDot`, `efr`, `eg`, `egrav`, `egrave`, `egs`, `egsdot`, `el`,
-`elinters`, `ell`, `els`, `elsdot`, `emacr`, `empty`, `emptyset`, `emptyv`,
-`emsp`, `emsp13`, `emsp14`, `eng`, `ensp`, `eogon`, `eopf`, `epar`, `eparsl`,
-`eplus`, `epsi`, `epsilon`, `epsiv`, `eqcirc`, `eqcolon`, `eqsim`, `eqslantgtr`,
-`eqslantless`, `equals`, `equest`, `equiv`, `equivDD`, `eqvparsl`, `erDot`,
-`erarr`, `escr`, `esdot`, `esim`, `et`, `eta`, `eth`, `eum`, `euml`, `euro`,
-`excl`, `exist`, `expectation`, `exponentiale`, `fallingdotseq`, `fcy`,
-`female`, `ffilig`, `fflig`, `ffllig`, `ffr`, `filig`, `fjlig`, `flat`, `fllig`,
-`fltns`, `fnof`, `fopf`, `forall`, `fork`, `forkv`, `fpartint`, `frac1`,
-`frac1`, `frac12`, `frac13`, `frac14`, `frac15`, `frac16`, `frac18`, `frac23`,
-`frac25`, `frac3`, `frac34`, `frac35`, `frac38`, `frac45`, `frac56`, `frac58`,
-`frac78`, `frasl`, `frown`, `fscr`, `g`, `gE`, `gEl`, `gacute`, `gamma`,
-`gammad`, `gap`, `gbreve`, `gcirc`, `gcy`, `gdot`, `ge`, `gel`, `geq`, `geqq`,
-`geqslant`, `ges`, `gescc`, `gesdot`, `gesdoto`, `gesdotol`, `gesl`, `gesles`,
-`gfr`, `gg`, `ggg`, `gimel`, `gjcy`, `gl`, `glE`, `gla`, `glj`, `gnE`, `gnap`,
-`gnapprox`, `gne`, `gneq`, `gneqq`, `gnsim`, `gopf`, `grave`, `gscr`, `gsim`,
-`gsime`, `gsiml`, `gt`, `gtcc`, `gtcir`, `gtdot`, `gtlPar`, `gtquest`,
-`gtrapprox`, `gtrarr`, `gtrdot`, `gtreqless`, `gtreqqless`, `gtrless`, `gtrsim`,
-`gvertneqq`, `gvnE`, `hArr`, `hairsp`, `half`, `hamilt`, `hardcy`, `harr`,
-`harrcir`, `harrw`, `hbar`, `hcirc`, `hearts`, `heartsuit`, `hellip`, `hercon`,
-`hfr`, `hksearow`, `hkswarow`, `hoarr`, `homtht`, `hookleftarrow`,
-`hookrightarrow`, `hopf`, `horbar`, `hscr`, `hslash`, `hstrok`, `hybull`,
-`hyphen`, `iacut`, `iacute`, `ic`, `icir`, `icirc`, `icy`, `iecy`, `iexc`,
-`iexcl`, `iff`, `ifr`, `igrav`, `igrave`, `ii`, `iiiint`, `iiint`, `iinfin`,
-`iiota`, `ijlig`, `imacr`, `image`, `imagline`, `imagpart`, `imath`, `imof`,
-`imped`, `in`, `incare`, `infin`, `infintie`, `inodot`, `int`, `intcal`,
-`integers`, `intercal`, `intlarhk`, `intprod`, `iocy`, `iogon`, `iopf`, `iota`,
-`iprod`, `iques`, `iquest`, `iscr`, `isin`, `isinE`, `isindot`, `isins`,
-`isinsv`, `isinv`, `it`, `itilde`, `iukcy`, `ium`, `iuml`, `jcirc`, `jcy`,
-`jfr`, `jmath`, `jopf`, `jscr`, `jsercy`, `jukcy`, `kappa`, `kappav`, `kcedil`,
-`kcy`, `kfr`, `kgreen`, `khcy`, `kjcy`, `kopf`, `kscr`, `l`, `lAarr`, `lArr`,
-`lAtail`, `lBarr`, `lE`, `lEg`, `lHar`, `lacute`, `laemptyv`, `lagran`,
-`lambda`, `lang`, `langd`, `langle`, `lap`, `laqu`, `laquo`, `larr`, `larrb`,
-`larrbfs`, `larrfs`, `larrhk`, `larrlp`, `larrpl`, `larrsim`, `larrtl`, `lat`,
-`latail`, `late`, `lates`, `lbarr`, `lbbrk`, `lbrace`, `lbrack`, `lbrke`,
-`lbrksld`, `lbrkslu`, `lcaron`, `lcedil`, `lceil`, `lcub`, `lcy`, `ldca`,
-`ldquo`, `ldquor`, `ldrdhar`, `ldrushar`, `ldsh`, `le`, `leftarrow`,
-`leftarrowtail`, `leftharpoondown`, `leftharpoonup`, `leftleftarrows`,
-`leftrightarrow`, `leftrightarrows`, `leftrightharpoons`, `leftrightsquigarrow`,
-`leftthreetimes`, `leg`, `leq`, `leqq`, `leqslant`, `les`, `lescc`, `lesdot`,
-`lesdoto`, `lesdotor`, `lesg`, `lesges`, `lessapprox`, `lessdot`, `lesseqgtr`,
-`lesseqqgtr`, `lessgtr`, `lesssim`, `lfisht`, `lfloor`, `lfr`, `lg`, `lgE`,
-`lhard`, `lharu`, `lharul`, `lhblk`, `ljcy`, `ll`, `llarr`, `llcorner`,
-`llhard`, `lltri`, `lmidot`, `lmoust`, `lmoustache`, `lnE`, `lnap`, `lnapprox`,
-`lne`, `lneq`, `lneqq`, `lnsim`, `loang`, `loarr`, `lobrk`, `longleftarrow`,
-`longleftrightarrow`, `longmapsto`, `longrightarrow`, `looparrowleft`,
-`looparrowright`, `lopar`, `lopf`, `loplus`, `lotimes`, `lowast`, `lowbar`,
-`loz`, `lozenge`, `lozf`, `lpar`, `lparlt`, `lrarr`, `lrcorner`, `lrhar`,
-`lrhard`, `lrm`, `lrtri`, `lsaquo`, `lscr`, `lsh`, `lsim`, `lsime`, `lsimg`,
-`lsqb`, `lsquo`, `lsquor`, `lstrok`, `lt`, `ltcc`, `ltcir`, `ltdot`, `lthree`,
-`ltimes`, `ltlarr`, `ltquest`, `ltrPar`, `ltri`, `ltrie`, `ltrif`, `lurdshar`,
-`luruhar`, `lvertneqq`, `lvnE`, `mDDot`, `mac`, `macr`, `male`, `malt`,
-`maltese`, `map`, `mapsto`, `mapstodown`, `mapstoleft`, `mapstoup`, `marker`,
-`mcomma`, `mcy`, `mdash`, `measuredangle`, `mfr`, `mho`, `micr`, `micro`,
-`mid`, `midast`, `midcir`, `middo`, `middot`, `minus`, `minusb`, `minusd`,
-`minusdu`, `mlcp`, `mldr`, `mnplus`, `models`, `mopf`, `mp`, `mscr`, `mstpos`,
-`mu`, `multimap`, `mumap`, `nGg`, `nGt`, `nGtv`, `nLeftarrow`,
-`nLeftrightarrow`, `nLl`, `nLt`, `nLtv`, `nRightarrow`, `nVDash`, `nVdash`,
-`nabla`, `nacute`, `nang`, `nap`, `napE`, `napid`, `napos`, `napprox`, `natur`,
-`natural`, `naturals`, `nbs`, `nbsp`, `nbump`, `nbumpe`, `ncap`, `ncaron`,
-`ncedil`, `ncong`, `ncongdot`, `ncup`, `ncy`, `ndash`, `ne`, `neArr`, `nearhk`,
-`nearr`, `nearrow`, `nedot`, `nequiv`, `nesear`, `nesim`, `nexist`, `nexists`,
-`nfr`, `ngE`, `nge`, `ngeq`, `ngeqq`, `ngeqslant`, `nges`, `ngsim`, `ngt`,
-`ngtr`, `nhArr`, `nharr`, `nhpar`, `ni`, `nis`, `nisd`, `niv`, `njcy`, `nlArr`,
-`nlE`, `nlarr`, `nldr`, `nle`, `nleftarrow`, `nleftrightarrow`, `nleq`,
-`nleqq`, `nleqslant`, `nles`, `nless`, `nlsim`, `nlt`, `nltri`, `nltrie`,
-`nmid`, `no`, `nopf`, `not`, `notin`, `notinE`, `notindot`, `notinva`,
-`notinvb`, `notinvc`, `notni`, `notniva`, `notnivb`, `notnivc`, `npar`,
-`nparallel`, `nparsl`, `npart`, `npolint`, `npr`, `nprcue`, `npre`, `nprec`,
-`npreceq`, `nrArr`, `nrarr`, `nrarrc`, `nrarrw`, `nrightarrow`, `nrtri`,
-`nrtrie`, `nsc`, `nsccue`, `nsce`, `nscr`, `nshortmid`, `nshortparallel`,
-`nsim`, `nsime`, `nsimeq`, `nsmid`, `nspar`, `nsqsube`, `nsqsupe`, `nsub`,
-`nsubE`, `nsube`, `nsubset`, `nsubseteq`, `nsubseteqq`, `nsucc`, `nsucceq`,
-`nsup`, `nsupE`, `nsupe`, `nsupset`, `nsupseteq`, `nsupseteqq`, `ntgl`, `ntild`,
-`ntilde`, `ntlg`, `ntriangleleft`, `ntrianglelefteq`, `ntriangleright`,
-`ntrianglerighteq`, `nu`, `num`, `numero`, `numsp`, `nvDash`, `nvHarr`, `nvap`,
-`nvdash`, `nvge`, `nvgt`, `nvinfin`, `nvlArr`, `nvle`, `nvlt`, `nvltrie`,
-`nvrArr`, `nvrtrie`, `nvsim`, `nwArr`, `nwarhk`, `nwarr`, `nwarrow`, `nwnear`,
-`oS`, `oacut`, `oacute`, `oast`, `ocir`, `ocir`, `ocirc`, `ocy`, `odash`,
-`odblac`, `odiv`, `odot`, `odsold`, `oelig`, `ofcir`, `ofr`, `ogon`, `ograv`,
-`ograve`, `ogt`, `ohbar`, `ohm`, `oint`, `olarr`, `olcir`, `olcross`, `oline`,
-`olt`, `omacr`, `omega`, `omicron`, `omid`, `ominus`, `oopf`, `opar`, `operp`,
-`oplus`, `or`, `orarr`, `ord`, `ord`, `ord`, `order`, `orderof`, `ordf`, `ordm`,
-`origof`, `oror`, `orslope`, `orv`, `oscr`, `oslas`, `oslash`, `osol`, `otild`,
-`otilde`, `otimes`, `otimesas`, `oum`, `ouml`, `ovbar`, `par`, `par`, `para`,
-`parallel`, `parsim`, `parsl`, `part`, `pcy`, `percnt`, `period`, `permil`,
-`perp`, `pertenk`, `pfr`, `phi`, `phiv`, `phmmat`, `phone`, `pi`, `pitchfork`,
-`piv`, `planck`, `planckh`, `plankv`, `plus`, `plusacir`, `plusb`, `pluscir`,
-`plusdo`, `plusdu`, `pluse`, `plusm`, `plusmn`, `plussim`, `plustwo`, `pm`,
-`pointint`, `popf`, `poun`, `pound`, `pr`, `prE`, `prap`, `prcue`, `pre`,
-`prec`, `precapprox`, `preccurlyeq`, `preceq`, `precnapprox`, `precneqq`,
-`precnsim`, `precsim`, `prime`, `primes`, `prnE`, `prnap`, `prnsim`, `prod`,
-`profalar`, `profline`, `profsurf`, `prop`, `propto`, `prsim`, `prurel`, `pscr`,
-`psi`, `puncsp`, `qfr`, `qint`, `qopf`, `qprime`, `qscr`, `quaternions`,
-`quatint`, `quest`, `questeq`, `quo`, `quot`, `rAarr`, `rArr`, `rAtail`,
-`rBarr`, `rHar`, `race`, `racute`, `radic`, `raemptyv`, `rang`, `rangd`,
-`range`, `rangle`, `raqu`, `raquo`, `rarr`, `rarrap`, `rarrb`, `rarrbfs`,
-`rarrc`, `rarrfs`, `rarrhk`, `rarrlp`, `rarrpl`, `rarrsim`, `rarrtl`, `rarrw`,
-`ratail`, `ratio`, `rationals`, `rbarr`, `rbbrk`, `rbrace`, `rbrack`, `rbrke`,
-`rbrksld`, `rbrkslu`, `rcaron`, `rcedil`, `rceil`, `rcub`, `rcy`, `rdca`,
-`rdldhar`, `rdquo`, `rdquor`, `rdsh`, `re`, `real`, `realine`, `realpart`,
-`reals`, `rect`, `reg`, `rfisht`, `rfloor`, `rfr`, `rhard`, `rharu`, `rharul`,
-`rho`, `rhov`, `rightarrow`, `rightarrowtail`, `rightharpoondown`,
-`rightharpoonup`, `rightleftarrows`, `rightleftharpoons`, `rightrightarrows`,
-`rightsquigarrow`, `rightthreetimes`, `ring`, `risingdotseq`, `rlarr`, `rlhar`,
-`rlm`, `rmoust`, `rmoustache`, `rnmid`, `roang`, `roarr`, `robrk`, `ropar`,
-`ropf`, `roplus`, `rotimes`, `rpar`, `rpargt`, `rppolint`, `rrarr`, `rsaquo`,
-`rscr`, `rsh`, `rsqb`, `rsquo`, `rsquor`, `rthree`, `rtimes`, `rtri`, `rtrie`,
-`rtrif`, `rtriltri`, `ruluhar`, `rx`, `sacute`, `sbquo`, `sc`, `scE`, `scap`,
-`scaron`, `sccue`, `sce`, `scedil`, `scirc`, `scnE`, `scnap`, `scnsim`,
-`scpolint`, `scsim`, `scy`, `sdot`, `sdotb`, `sdote`, `seArr`, `searhk`,
-`searr`, `searrow`, `sec`, `sect`, `semi`, `seswar`, `setminus`, `setmn`,
-`sext`, `sfr`, `sfrown`, `sh`, `sharp`, `shchcy`, `shcy`, `shortmid`,
-`shortparallel`, `shy`, `sigma`, `sigmaf`, `sigmav`, `sim`, `simdot`, `sime`,
-`simeq`, `simg`, `simgE`, `siml`, `simlE`, `simne`, `simplus`, `simrarr`,
-`slarr`, `smallsetminus`, `smashp`, `smeparsl`, `smid`, `smile`, `smt`, `smte`,
-`smtes`, `softcy`, `sol`, `solb`, `solbar`, `sopf`, `spades`, `spadesuit`,
-`spar`, `sqcap`, `sqcaps`, `sqcup`, `sqcups`, `sqsub`, `sqsube`, `sqsubset`,
-`sqsubseteq`, `sqsup`, `sqsupe`, `sqsupset`, `sqsupseteq`, `squ`, `square`,
-`squarf`, `squf`, `srarr`, `sscr`, `ssetmn`, `ssmile`, `sstarf`, `star`,
-`starf`, `straightepsilon`, `straightphi`, `strns`, `sub`, `subE`, `subdot`,
-`sube`, `subedot`, `submult`, `subnE`, `subne`, `subplus`, `subrarr`, `subset`,
-`subseteq`, `subseteqq`, `subsetneq`, `subsetneqq`, `subsim`, `subsub`,
-`subsup`, `succ`, `succapprox`, `succcurlyeq`, `succeq`, `succnapprox`,
-`succneqq`, `succnsim`, `succsim`, `sum`, `sung`, `sup`, `sup`, `sup`, `sup`,
-`sup1`, `sup2`, `sup3`, `supE`, `supdot`, `supdsub`, `supe`, `supedot`,
-`suphsol`, `suphsub`, `suplarr`, `supmult`, `supnE`, `supne`, `supplus`,
-`supset`, `supseteq`, `supseteqq`, `supsetneq`, `supsetneqq`, `supsim`,
-`supsub`, `supsup`, `swArr`, `swarhk`, `swarr`, `swarrow`, `swnwar`, `szli`,
-`szlig`, `target`, `tau`, `tbrk`, `tcaron`, `tcedil`, `tcy`, `tdot`, `telrec`,
-`tfr`, `there4`, `therefore`, `theta`, `thetasym`, `thetav`, `thickapprox`,
-`thicksim`, `thinsp`, `thkap`, `thksim`, `thor`, `thorn`, `tilde`, `time`,
-`times`, `timesb`, `timesbar`, `timesd`, `tint`, `toea`, `top`, `topbot`,
-`topcir`, `topf`, `topfork`, `tosa`, `tprime`, `trade`, `triangle`,
-`triangledown`, `triangleleft`, `trianglelefteq`, `triangleq`, `triangleright`,
-`trianglerighteq`, `tridot`, `trie`, `triminus`, `triplus`, `trisb`, `tritime`,
-`trpezium`, `tscr`, `tscy`, `tshcy`, `tstrok`, `twixt`, `twoheadleftarrow`,
-`twoheadrightarrow`, `uArr`, `uHar`, `uacut`, `uacute`, `uarr`, `ubrcy`,
-`ubreve`, `ucir`, `ucirc`, `ucy`, `udarr`, `udblac`, `udhar`, `ufisht`, `ufr`,
-`ugrav`, `ugrave`, `uharl`, `uharr`, `uhblk`, `ulcorn`, `ulcorner`, `ulcrop`,
-`ultri`, `um`, `umacr`, `uml`, `uogon`, `uopf`, `uparrow`, `updownarrow`,
-`upharpoonleft`, `upharpoonright`, `uplus`, `upsi`, `upsih`, `upsilon`,
-`upuparrows`, `urcorn`, `urcorner`, `urcrop`, `uring`, `urtri`, `uscr`, `utdot`,
-`utilde`, `utri`, `utrif`, `uuarr`, `uum`, `uuml`, `uwangle`, `vArr`, `vBar`,
-`vBarv`, `vDash`, `vangrt`, `varepsilon`, `varkappa`, `varnothing`, `varphi`,
-`varpi`, `varpropto`, `varr`, `varrho`, `varsigma`, `varsubsetneq`,
-`varsubsetneqq`, `varsupsetneq`, `varsupsetneqq`, `vartheta`, `vartriangleleft`,
-`vartriangleright`, `vcy`, `vdash`, `vee`, `veebar`, `veeeq`, `vellip`,
-`verbar`, `vert`, `vfr`, `vltri`, `vnsub`, `vnsup`, `vopf`, `vprop`, `vrtri`,
-`vscr`, `vsubnE`, `vsubne`, `vsupnE`, `vsupne`, `vzigzag`, `wcirc`, `wedbar`,
-`wedge`, `wedgeq`, `weierp`, `wfr`, `wopf`, `wp`, `wr`, `wreath`, `wscr`,
-`xcap`, `xcirc`, `xcup`, `xdtri`, `xfr`, `xhArr`, `xharr`, `xi`, `xlArr`,
-`xlarr`, `xmap`, `xnis`, `xodot`, `xopf`, `xoplus`, `xotime`, `xrArr`, `xrarr`,
-`xscr`, `xsqcup`, `xuplus`, `xutri`, `xvee`, `xwedge`, `yacut`, `yacute`,
-`yacy`, `ycirc`, `ycy`, `ye`, `yen`, `yfr`, `yicy`, `yopf`, `yscr`, `yucy`,
-`yum`, `yuml`, `zacute`, `zcaron`, `zcy`, `zdot`, `zeetrf`, `zeta`, `zfr`,
-`zhcy`, `zigrarr`, `zopf`, `zscr`, `zwj`, or `zwnj`.
 
 ## 14 Acknowledgments
 
@@ -2298,8 +2208,6 @@ This work is licensed under a
 
 [current-token]: #current-token
 
-[return-state]: #return-state
-
 [process-as-an-atx-heading]: #process-as-an-atx-heading
 
 [process-as-a-setext-primary-heading]: #process-as-a-setext-primary-heading
@@ -2308,11 +2216,15 @@ This work is licensed under a
 
 [process-as-an-asterisk-line-opening]: #process-as-an-asterisk-line-opening
 
+[process-as-a-fenced-code-fence]: #process-as-a-fenced-code-fence
+
+[process-as-content]: #process-as-content
+
+[process-as-a-paragraph]: #process-as-a-paragraph
+
 [raw-tag]: #raw-tag
 
 [simple-tag]: #simple-tag
-
-[entity-name]: #entity-name
 
 [s-initial]: #71-initial-state
 
@@ -2322,97 +2234,91 @@ This work is licensed under a
 
 [s-carriage-return]: #74-carriage-return-state
 
-[s-escape]: #75-escape-state
+[s-in-line]: #75-in-line-state
 
-[s-in-line]: #76-in-line-state
+[s-atx-heading-opening-sequence]: #76-atx-heading-opening-sequence-state
 
-[s-atx-heading-opening-sequence]: #77-atx-heading-opening-sequence-state
+[s-atx-heading-opening-sequence-after]: #77-atx-heading-opening-sequence-after-state
 
-[s-atx-heading-opening-sequence-after]: #78-atx-heading-opening-sequence-after-state
+[s-atx-heading-content]: #78-atx-heading-content-state
 
-[s-atx-heading-content]: #79-atx-heading-content-state
+[s-atx-heading-whitespace]: #79-atx-heading-whitespace-state
 
-[s-atx-heading-whitespace]: #710-atx-heading-whitespace-state
+[s-atx-heading-number-sign-sequence]: #710-atx-heading-number-sign-sequence-state
 
-[s-atx-heading-number-sign-sequence]: #711-atx-heading-number-sign-sequence-state
+[s-asterisk-line-asterisk-after]: #711-asterisk-line-asterisk-after-state
 
-[s-asterisk-line-asterisk-after]: #712-asterisk-line-asterisk-after-state
+[s-asterisk-line-whitespace]: #712-asterisk-line-whitespace-state
 
-[s-asterisk-line-whitespace]: #713-asterisk-line-whitespace-state
+[s-html-block-open]: #713-html-block-open-state
 
-[s-html-block-open]: #714-html-block-open-state
+[s-html-block-open-markup-declaration]: #714-html-block-open-markup-declaration-state
 
-[s-html-block-open-markup-declaration]: #715-html-block-open-markup-declaration-state
+[s-html-block-open-comment-inside]: #715-html-block-open-comment-inside-state
 
-[s-html-block-open-comment-inside]: #716-html-block-open-comment-inside-state
+[s-html-block-open-character-data-inside]: #716-html-block-open-character-data-inside-state
 
-[s-html-block-open-character-data-inside]: #717-html-block-open-character-data-inside-state
+[s-html-block-open-tag-name-inside]: #717-html-block-open-tag-name-inside-state
 
-[s-html-block-open-tag-name-inside]: #718-html-block-open-tag-name-inside-state
+[s-html-block-open-simple-self-closing-tag]: #718-html-block-open-simple-self-closing-tag-state
 
-[s-html-block-open-simple-self-closing-tag]: #719-html-block-open-simple-self-closing-tag-state
+[s-html-block-open-complete-attribute-before]: #719-html-block-open-complete-attribute-before-state
 
-[s-html-block-open-complete-attribute-before]: #720-html-block-open-complete-attribute-before-state
+[s-html-block-open-complete-attribute-name]: #720-html-block-open-complete-attribute-name-state
 
-[s-html-block-open-complete-attribute-name]: #721-html-block-open-complete-attribute-name-state
+[s-html-block-open-complete-attribute-name-after]: #721-html-block-open-complete-attribute-name-after-state
 
-[s-html-block-open-complete-attribute-name-after]: #722-html-block-open-complete-attribute-name-after-state
+[s-html-block-open-complete-attribute-value-before]: #722-html-block-open-complete-attribute-value-before-state
 
-[s-html-block-open-complete-attribute-value-before]: #723-html-block-open-complete-attribute-value-before-state
+[s-html-block-open-complete-double-quoted-attribute-value]: #723-html-block-open-complete-double-quoted-attribute-value-state
 
-[s-html-block-open-complete-double-quoted-attribute-value]: #724-html-block-open-complete-double-quoted-attribute-value-state
+[s-html-block-open-complete-single-quoted-attribute-value]: #724-html-block-open-complete-single-quoted-attribute-value-state
 
-[s-html-block-open-complete-single-quoted-attribute-value]: #725-html-block-open-complete-single-quoted-attribute-value-state
+[s-html-block-open-complete-unquoted-attribute-value]: #725-html-block-open-complete-unquoted-attribute-value-state
 
-[s-html-block-open-complete-unquoted-attribute-value]: #726-html-block-open-complete-unquoted-attribute-value-state
+[s-html-block-open-complete-self-closing-tag]: #726-html-block-open-complete-self-closing-tag-state
 
-[s-html-block-open-complete-self-closing-tag]: #727-html-block-open-complete-self-closing-tag-state
+[s-html-block-open-complete-tag-after]: #727-html-block-open-complete-tag-after-state
 
-[s-html-block-open-complete-tag-after]: #728-html-block-open-complete-tag-after-state
+[s-html-block-continuation-line]: #728-html-block-continuation-line-state
 
-[s-html-block-continuation-line]: #729-html-block-continuation-line-state
+[s-html-block-continuation-close-tag]: #729-html-block-continuation-close-tag-state
 
-[s-html-block-continuation-close-tag]: #730-html-block-continuation-close-tag-state
+[s-html-block-continuation-close-tag-name-inside]: #730-html-block-continuation-close-tag-name-inside-state
 
-[s-html-block-continuation-close-tag-name-inside]: #731-html-block-continuation-close-tag-name-inside-state
+[s-html-block-continuation-comment-inside]: #731-html-block-continuation-comment-inside-state
 
-[s-html-block-continuation-comment-inside]: #732-html-block-continuation-comment-inside-state
+[s-html-block-continuation-character-data-inside]: #732-html-block-continuation-character-data-inside-state
 
-[s-html-block-continuation-character-data-inside]: #733-html-block-continuation-character-data-inside-state
+[s-html-block-continuation-declaration-before]: #733-html-block-continuation-declaration-before-state
 
-[s-html-block-continuation-declaration-before]: #734-html-block-continuation-declaration-before-state
+[s-html-block-close-line]: #734-html-block-close-line-state
 
-[s-html-block-close-line]: #735-html-block-close-line-state
+[s-setext-heading-underline-equals-to-sequence]: #735-setext-heading-underline-equals-to-sequence-state
 
-[s-setext-heading-underline-equals-to-sequence]: #736-setext-heading-underline-equals-to-sequence-state
+[s-setext-heading-underline-equals-to-after]: #736-setext-heading-underline-equals-to-after-state
 
-[s-setext-heading-underline-equals-to-after]: #737-setext-heading-underline-equals-to-after-state
+[s-fenced-code-grave-accent-opening-fence]: #737-fenced-code-grave-accent-opening-fence-state
 
-[s-fenced-code-grave-accent-opening-fence]: #738-fenced-code-grave-accent-opening-fence-state
+[s-fenced-code-grave-accent-opening-fence-whitespace]: #738-fenced-code-grave-accent-opening-fence-whitespace-state
 
-[s-fenced-code-grave-accent-opening-fence-whitespace]: #739-fenced-code-grave-accent-opening-fence-whitespace-state
+[s-fenced-code-grave-accent-opening-fence-metadata]: #739-fenced-code-grave-accent-opening-fence-metadata-state
 
-[s-fenced-code-grave-accent-opening-fence-metadata]: #740-fenced-code-grave-accent-opening-fence-metadata-state
+[s-fenced-code-tilde-opening-fence]: #740-fenced-code-tilde-opening-fence-state
 
-[s-fenced-code-grave-accent-opening-fence-escape-after]: #741-fenced-code-grave-accent-opening-fence-escape-after-state
+[s-fenced-code-tilde-opening-fence-whitespace]: #741-fenced-code-tilde-opening-fence-whitespace-state
 
-[s-fenced-code-tilde-opening-fence]: #742-fenced-code-tilde-opening-fence-state
+[s-fenced-code-tilde-opening-fence-metadata]: #742-fenced-code-tilde-opening-fence-metadata-state
 
-[s-fenced-code-tilde-opening-fence-whitespace]: #743-fenced-code-tilde-opening-fence-whitespace-state
+[s-fenced-code-continuation-line]: #743-fenced-code-continuation-line-state
 
-[s-fenced-code-tilde-opening-fence-metadata]: #744-fenced-code-tilde-opening-fence-metadata-state
+[s-fenced-code-close-sequence]: #744-fenced-code-close-sequence-state
 
-[s-fenced-code-tilde-opening-fence-escape-after]: #745-fenced-code-tilde-opening-fence-escape-after-state
+[s-fenced-code-close-whitespace]: #745-fenced-code-close-whitespace-state
 
-[s-fenced-code-continuation-line]: #746-fenced-code-continuation-line-state
+[s-indented-code-line]: #746-indented-code-line-state
 
-[s-fenced-code-close-sequence]: #747-fenced-code-close-sequence-state
-
-[s-fenced-code-close-whitespace]: #748-fenced-code-close-whitespace-state
-
-[s-indented-code-line]: #749-indented-code-line-state
-
-[s-content-continuation]: #750-content-continuation-state
+[s-content-continuation]: #747-content-continuation-state
 
 [t-whitespace]: #81-whitespace-token
 
@@ -2426,50 +2332,56 @@ This work is licensed under a
 
 [t-content]: #86-content-token
 
-[t-escape]: #87-escape-token
-
 [g-blank-line]: #91-blank-line-group
 
-[g-escape]: #92-escape-group
+[g-atx-heading]: #92-atx-heading-group
 
-[g-atx-heading]: #93-atx-heading-group
+[g-atx-heading-fence]: #93-atx-heading-fence-group
 
-[g-atx-heading-fence]: #94-atx-heading-fence-group
+[g-atx-heading-content]: #94-atx-heading-content-group
 
-[g-atx-heading-content]: #95-atx-heading-content-group
+[g-thematic-break]: #95-thematic-break-group
 
-[g-thematic-break]: #96-thematic-break-group
+[g-html]: #96-html-group
 
-[g-html]: #97-html-group
+[g-html-line]: #97-html-line-group
 
-[g-html-line]: #98-html-line-group
+[g-indented-code]: #98-indented-code-group
 
-[g-indented-code]: #99-indented-code-group
+[g-indented-code-line]: #99-indented-code-line-group
 
-[g-indented-code-line]: #910-indented-code-line-group
+[g-blockquote]: #910-blockquote-group
 
-[g-blockquote]: #911-blockquote-group
+[g-fenced-code]: #911-fenced-code-group
 
-[g-fenced-code]: #912-fenced-code-group
+[g-fenced-code-fence]: #912-fenced-code-fence-group
 
-[g-fenced-code-fence]: #913-fenced-code-fence-group
+[g-fenced-code-language]: #913-fenced-code-language-group
 
-[g-fenced-code-language]: #914-fenced-code-language-group
+[g-fenced-code-metadata]: #914-fenced-code-metadata-group
 
-[g-fenced-code-metadata]: #915-fenced-code-metadata-group
+[g-fenced-code-line]: #915-fenced-code-line-group
 
-[g-fenced-code-line]: #916-fenced-code-line-group
+[g-content]: #916-content-group
 
-[g-content]: #917-content-group
+[g-content-line]: #917-content-line-group
 
-[g-content-line]: #918-content-line-group
+[g-setext-heading]: #918-setext-heading-group
 
-[g-setext-heading]: #919-setext-heading-group
+[g-setext-heading-content]: #919-setext-heading-content-group
 
-[g-setext-heading-content]: #920-setext-heading-content-group
+[g-setext-heading-underline]: #920-setext-heading-underline-group
 
-[g-setext-heading-underline]: #921-setext-heading-underline-group
+[g-definition]: #921-definition-group
 
-[g-definition]: #922-definition-group
+[g-definition-label]: #922-definition-label-group
 
-[g-paragraph]: #923-paragraph-group
+[g-definition-label-content]: #923-definition-label-content-group
+
+[g-definition-destination-quoted]: #924-definition-destination-quoted-group
+
+[g-definition-destination-unquoted]: #925-definition-destination-unquoted-group
+
+[g-definition-title]: #926-definition-title-group
+
+[g-paragraph]: #927-paragraph-group
