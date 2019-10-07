@@ -129,6 +129,8 @@ Common Markup parser.
     *   [10.6 Process as Content](#106-process-as-content)
     *   [10.7 Process as Definitions](#107-process-as-definitions)
     *   [10.8 Process as a Paragraph](#108-process-as-a-paragraph)
+    *   [10.9 Process as a String](#109-process-as-a-string)
+    *   [10.10 Process as a Phrasing](#1010-process-as-a-phrasing)
 *   [11 WIP](#11-wip)
 *   [12 References](#12-references)
 *   [13 Appendix](#13-appendix)
@@ -270,7 +272,6 @@ punctuation][ascii-punctuation] (**\[UNICODE]**).
 
 > ❗️ Todo:
 >
-> *   [ASCII control][ascii-control] is used by unquoted destinations.
 > *   [Unicode whitespace][unicode-whitespace] and [Unicode punctuation][unicode-punctuation] are used by emphasis
 >     and importance
 
@@ -1797,13 +1798,14 @@ If the token in the queue before `index` is a [*Sequence token*][t-sequence], re
 If the token in the queue before `index` is a [*Whitespace token*][t-whitespace], remove `1` from
 `index`.
 
-> ❗️ Todo: define how to process the phrasing.
+If `index` is not `0`, let `line` be a line where `start` is the start position
+of the token at `0`, `end` is the end position of the token at `index` if there
+is one or the last token in the queue otherwise, and without an ending, open a
+[*ATX heading content group*][g-atx-heading-content], [process as Phrasing][process-as-phrasing] with `lines` set to a list with a
+single entry `line`, and close.
 
-If there are tokens in the queue before `index`, open an [*ATX heading content group*][g-atx-heading-content],
-emit the tokens in the queue before `index` as a single [*Content token*][t-content], and close.
-
-If there is a token at `index` in queue, open an [*ATX heading fence group*][g-atx-heading-fence],
-emit the tokens in the queue from `index`, and close.
+If there is a token at `index` in queue, open an [*ATX heading fence group*][g-atx-heading-fence], emit the
+tokens in the queue from `index`, and close.
 
 Finally, close.
 
@@ -1858,37 +1860,36 @@ To <a id="process-as-an-asterisk-line-opening" href="#process-as-an-asterisk-lin
 To <a id="process-as-a-fenced-code-fence" href="#process-as-a-fenced-code-fence">**process as a Fenced code fence**</a> is to perform the following steps:
 
 Let `fenceEnd` be `1`.
-Let `end` be the number of tokens in the queue.
+Let `lineEnd` be the number of tokens in the queue.
 
-If the token in the queue before `end` is a [*Whitespace token*][t-whitespace], remove `1` from `end`.
+If the token in the queue before `lineEnd` is a [*Whitespace token*][t-whitespace], remove `1` from
+`lineEnd`.
 
 If the token in the queue before `fenceEnd` is a [*Whitespace token*][t-whitespace], add `1` to
 `fenceEnd`.
 
-If `fenceEnd` is not `end`, and the token in the queue at `fenceEnd` is a
+If `fenceEnd` is not `lineEnd`, and the token in the queue at `fenceEnd` is a
 [*Whitespace token*][t-whitespace] , add `1` to `fenceEnd`.
 
-If `fenceEnd` is not `end`, let `langEnd` be `fenceEnd` plus `1`.
+If `fenceEnd` is not `lineEnd`, let `langEnd` be `fenceEnd` plus `1`.
 
-If `langEnd` is defined and it is not `end`, let `metaStart` be `langEnd` plus
-`1`.
+If `langEnd` is defined and it is not `lineEnd`, let `metaStart` be `langEnd`
+plus `1`.
 
 Open a [*Fenced code fence group*][g-fenced-code-fence] and emit the tokens before `fenceEnd`.
 
-> ❗️ Todo: this is one content token, but it should be parsed for escapes and
-> character references.
+If `langEnd` is defined, let `lang` be a line where `start` is the start
+position of the token at `fenceEnd`, `end` is the end position of the token at
+`langEnd`, and without an ending, open a [*Fenced code language group*][g-fenced-code-language], [process as a
+String][process-as-a-string] with `lines` set to a list with a single entry `lang`, and close.
 
-If `langEnd` is defined, open a [*Fenced code language group*][g-fenced-code-language], emit the token before
-`langEnd`, and close.
+If `metaStart` is defined, emit the token at `langEnd`, let `meta` be a line
+where `start` is the start position of the token at `metaStart`, `end` is the
+end position of the token at `lineEnd`, and without an ending, open a
+[*Fenced code metadata group*][g-fenced-code-metadata], [process as a String][process-as-a-string] with `lines` set to a list with
+a single entry `meta`, and close.
 
-> ❗️ Todo: this content token should be parsed for escapes and character
-> references.
-
-If `metaStart` is defined, emit the token before `metaStart`, open a
-[*Fenced code metadata group*][g-fenced-code-metadata], emit the tokens in the queue between `metaStart` and
-`end` (inclusive) as a single [*Content token*][t-content], and close.
-
-If there is a token at `end`, emit it.
+If there is a token at `lineEnd`, emit it.
 
 Finally, close.
 
@@ -2045,14 +2046,9 @@ Emit a [*Marker token*][t-marker] with the character at `labelBeforeEnd`.
 If `labelOpenStart` is not `labelOpenEnd`, emit the whitespace and line
 endings between both points.
 
-Open a [*Definition label content group*][g-definition-label-content].
-
-> ❗️ Todo: this content token should be parsed for escapes and character
-> references.
-
-Emit the content and line endings between `labelOpenEnd` and `labelCloseStart`.
-
-Close.
+Let `label` be a slice of the lines between `labelOpenEnd` and
+`labelCloseStart`, open a [*Definition label content group*][g-definition-label-content], [process as a String][process-as-a-string]
+with `lines` set to `label`, and close.
 
 If `labelCloseStart` is not `labelCloseEnd`, emit the whitespace and line
 endings between both points.
@@ -2066,29 +2062,28 @@ Emit a [*Marker token*][t-marker] with the character after `labelCloseEnd`.
 If `destinationBeforeStart` is not `destinationBeforeEnd`, emit the whitespace
 and line endings between both points.
 
-> ❗️ Todo: these content token should be parsed for escapes and character
-> references.
+If `quoted` is `true`, emit a [*Marker token*][t-marker] with the character at
+`destinationBeforeEnd`, let `destination` be a line where `start` is
+`destinationStart`, `end` is `destinationEnd`, and without an ending, open a
+[*Definition destination quoted group*][g-definition-destination-quoted], [process as a String][process-as-a-string] with `lines` set to a
+list with a single entry `destination`, emit a [*Marker token*][t-marker] with the character at
+`destinationEnd`, and close.
 
-If `quoted` is `true`, open a [*Definition destination quoted group*][g-definition-destination-quoted], emit a [*Marker token*][t-marker]
-with the character at `destinationBeforeEnd`, emit the content and line endings
-between `destinationStart` and `destinationEnd`, emit a [*Marker token*][t-marker] with the
-character at `destinationEnd`, and close.
-
-Otherwise, open a [*Definition destination unquoted group*][g-definition-destination-unquoted], emit the content and line
-endings between `destinationStart` and `destinationEnd`, and close.
+Otherwise, let `destination` be a line where `start` is `destinationStart`,
+`end` is `destinationEnd`, and without an ending, open a
+[*Definition destination quoted group*][g-definition-destination-quoted], [process as a String][process-as-a-string] with `lines` set to a
+list with a single entry `destination`, and close.
 
 If `destinationAfterStart` is not `destinationAfterEnd`, emit the whitespace
 between both points.
 
-> ❗️ Todo: this content token should be parsed for escapes and character
-> references.
-
-If the destination to be created is with a title, if `destinationAfterEnd` is not
-`titleBeforeEnd`, emit the whitespace and line endings between both points,
-open a [*Definition title group*][g-definition-title], emit a [*Marker token*][t-marker] with the character at
-`titleBeforeEnd`, emit the content and line endings between `titleStart` and
-`titleEnd`, close, and if `titleAfterStart` is not `titleAfterEnd`, emit the
-whitespace between both points.
+If the destination is to be created with a title, then if `destinationAfterEnd`
+is not `titleBeforeEnd`, emit the whitespace and line endings between both
+points, open a [*Definition title group*][g-definition-title], emit a [*Marker token*][t-marker] with the character at
+`titleBeforeEnd`, let `title` be a slice of the lines between `titleStart` and
+`titleEnd`, [process as a String][process-as-a-string] with `lines` set to `title`, emit a [*Marker token*][t-marker]
+with the character at `titleEnd`, then if `titleAfterStart` is not
+`titleAfterEnd`, emit the whitespace between both points, and close
 
 Finally, close.
 
@@ -2100,14 +2095,20 @@ pointer, lines, and hint:
 Processing content can be given a hint, in which case the hint is either
 *setext primary heading* or *setext secondary heading*.
 
-*   If a hint is given, open a [*Setext heading group*][g-setext-heading]
+*   If a hint is given, open a [*Setext heading group*][g-setext-heading] and open a
+    [*Setext heading content group*][g-setext-heading-content]
 *   Otherwise, open a [*Paragraph group*][g-paragraph]
-*   Open an [*Setext heading content group*][g-setext-heading-content]
-*   > ❗️ Todo: define how to process the phrasing.
+*   [Process as Phrasing][process-as-phrasing] given `lines`
+*   Close (once, if there was a hint, the place that hinted has to close the
+    setext heading)
 
-    Process the phrasing
-*   If a hint is given, close once
-*   Otherwise, close twice
+### 10.9 Process as a String
+
+> ❗️ Todo: escapes and character references
+
+### 10.10 Process as a Phrasing
+
+> ❗️ Todo
 
 ## 11 WIP
 
