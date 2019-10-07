@@ -4,6 +4,10 @@ module.exports = expandCharacters
 
 var {characters, names} = init()
 
+// .
+// characters[0xfffd] = '�'
+// names['�'] = 'Replacement character'
+
 function expandCharacters() {
   return transform
 
@@ -183,7 +187,39 @@ function init() {
       '|',
       '}',
       '~',
-      'DEL'
+      'DEL',
+      'PAD',
+      'HOP',
+      'BPH',
+      'NBH',
+      'IND',
+      'NEL',
+      'SSA',
+      'ESA',
+      'HTS',
+      'HTJ',
+      'LTS',
+      'PLD',
+      'PLU',
+      'RI',
+      'SS2',
+      'SS3',
+      'DCS',
+      'PU1',
+      'PU2',
+      'STS',
+      'CCH',
+      'MW',
+      'SPA',
+      'EPA',
+      'SOS',
+      'SGCI',
+      'SCI',
+      'CSI',
+      'ST',
+      'OSC',
+      'PM',
+      'APC'
     ],
     names: {
       NUL: 'Null',
@@ -222,7 +258,39 @@ function init() {
       '{': 'Left curly brace',
       '|': 'Vertical bar',
       '}': 'Right curly brace',
-      '~': 'Tilde'
+      '~': 'Tilde',
+      PAD: 'Padding Character',
+      HOP: 'High Octet Preset',
+      BPH: 'Break Permitted Here',
+      NBH: 'No Break Here',
+      IND: 'Index',
+      NEL: 'Next Line',
+      SSA: 'Start of Selected Area',
+      ESA: 'End of Selected Area',
+      HTS: 'Character (Horizontal) Tabulation Set',
+      HTJ: 'Character (Horizontal) Tabulation with Justification',
+      LTS: 'Line (Vertical) Tabulation Set',
+      PLD: 'Partial Line Forward (Down)',
+      PLU: 'Partial Line Backward (Up)',
+      RI: 'Reverse Line Feed (Index)',
+      SS2: 'Single-Shift Two',
+      SS3: 'Single-Shift Three',
+      DCS: 'Device Control String',
+      PU1: 'Private Use One',
+      PU2: 'Private Use Two',
+      STS: 'Set Transmit State',
+      CCH: 'Cancel character',
+      MW: 'Message Waiting',
+      SPA: 'Start of Protected Area',
+      EPA: 'End of Protected Area',
+      SOS: 'Start of String',
+      SGCI: 'Single Graphic Character Introducer',
+      SCI: 'Single Character Introducer',
+      CSI: 'Control Sequence Introducer',
+      ST: 'String Terminator',
+      OSC: 'Operating System Command',
+      PM: 'Private Message',
+      APC: 'Application Program Command'
     }
   }
 }
