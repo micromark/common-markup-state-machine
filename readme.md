@@ -131,14 +131,13 @@ Common Markup parser.
     *   [10.8 Process as a Paragraph](#108-process-as-a-paragraph)
     *   [10.9 Process as Raw text](#109-process-as-raw-text)
     *   [10.10 Process as Phrasing](#1010-process-as-phrasing)
-*   [11 WIP](#11-wip)
-*   [12 References](#12-references)
-*   [13 Appendix](#13-appendix)
-    *   [13.1 Raw tags](#131-raw-tags)
-    *   [13.2 Simple tags](#132-simple-tags)
-    *   [13.3 Named character references](#133-named-character-references)
-*   [14 Acknowledgments](#14-acknowledgments)
-*   [15 License](#15-license)
+*   [11 References](#11-references)
+*   [12 Appendix](#12-appendix)
+    *   [12.1 Raw tags](#121-raw-tags)
+    *   [12.2 Simple tags](#122-simple-tags)
+    *   [12.3 Named character references](#123-named-character-references)
+*   [13 Acknowledgments](#13-acknowledgments)
+*   [14 License](#14-license)
 
 ## 1 Background
 
@@ -2239,22 +2238,7 @@ lines:
 > link references, images, image references, autolinks, HTML, hard line breaks,
 > soft line breaks.
 
-## 11 WIP
-
-Content, when it is closed, can result in zero or more [*Definition group*][g-definition]’s, and,
-depending on whether it is closed by a construct that could be a Setext heading
-underline, either a [*Setext heading group*][g-setext-heading] or [*Paragraph group*][g-paragraph].
-
-Phrasing is found in [*ATX heading content group*][g-atx-heading-content], [*Setext heading content group*][g-setext-heading-content], and
-[*Paragraph group*][g-paragraph].
-
-Some constructs, namely [*Definition group*][g-definition], [*Setext heading content group*][g-setext-heading-content], and [*Paragraph group*][g-paragraph],
-can span multiple lines.
-
-The procedures of parsing content, definitions, and phrasing is similar to
-tokenization, but operates on tokens instead of an input stream.
-
-## 12 References
+## 11 References
 
 *   **\[HTML]**:
     [HTML Standard](https://html.spec.whatwg.org/multipage/).
@@ -2269,13 +2253,13 @@ tokenization, but operates on tokens instead of an input stream.
     [The Unicode Standard](https://www.unicode.org/versions/).
     Unicode Consortium.
 
-## 13 Appendix
+## 12 Appendix
 
-### 13.1 Raw tags
+### 12.1 Raw tags
 
 A <a id="raw-tag" href="#raw-tag">**raw tag**</a> is one of: `script`, `pre`, and `style`.
 
-### 13.2 Simple tags
+### 12.2 Simple tags
 
 A <a id="simple-tag" href="#simple-tag">**simple tag**</a> is one of: `address`, `article`, `aside`, `base`, `basefont`,
 `blockquote`, `body`, `caption`, `center`, `col`, `colgroup`, `dd`, `details`,
@@ -2286,7 +2270,7 @@ A <a id="simple-tag" href="#simple-tag">**simple tag**</a> is one of: `address`,
 `param`, `section`, `source`, `summary`, `table`, `tbody`, `td`, `tfoot`, `th`,
 `thead`, `title`, `tr`, `track`, and `ul`.
 
-### 13.3 Named character references
+### 12.3 Named character references
 
 A <a id="character-reference-name" href="#character-reference-name">**character reference name**</a> is one of:
 `AEli`, `AElig`, `AM`, `AMP`, `Aacut`, `Aacute`,
@@ -2599,7 +2583,7 @@ A <a id="character-reference-name" href="#character-reference-name">**character 
 `yum`, `yuml`, `zacute`, `zcaron`, `zcy`, `zdot`, `zeetrf`, `zeta`, `zfr`,
 `zhcy`, `zigrarr`, `zopf`, `zscr`, `zwj`, or `zwnj`.
 
-## 14 Acknowledgments
+## 13 Acknowledgments
 
 Thanks to John Gruber for inventing Markdown.
 
@@ -2609,7 +2593,7 @@ Thanks to ZEIT, Inc., Gatsby, Inc., Netlify, Inc., Holloway, Inc., and the many
 organizations and individuals for financial support through
 [OpenCollective](https://opencollective.com/unified)
 
-## 15 License
+## 14 License
 
 Copyright © 2019 Titus Wormer.
 This work is licensed under a

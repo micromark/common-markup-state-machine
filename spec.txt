@@ -2122,21 +2122,6 @@ lines:
 > link references, images, image references, autolinks, HTML, hard line breaks,
 > soft line breaks.
 
-## WIP
-
-Content, when it is closed, can result in zero or more g:definition’s, and,
-depending on whether it is closed by a construct that could be a Setext heading
-underline, either a g:setext-heading or g:paragraph.
-
-Phrasing is found in g:atx-heading-content, g:setext-heading-content, and
-g:paragraph.
-
-Some constructs, namely g:definition, g:setext-heading-content, and g:paragraph,
-can span multiple lines.
-
-The procedures of parsing content, definitions, and phrasing is similar to
-tokenization, but operates on tokens instead of an input stream.
-
 ## References
 
 *   **\[HTML]**:
