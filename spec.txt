@@ -10,7 +10,7 @@ Common Markup parser.
 >
 > *   Phrasing
 > *   List items
-> *   Stack of continuation (`>` and `␠␠` for blockquote and list items)
+> *   [Stack of continuation](#) (`>` and `␠␠` for blockquote and list items)
 > *   Extensions
 > *   How to turn tokens into t:content
 > *   Character references in fenced code metadata
@@ -176,7 +176,7 @@ The [input stream](#) consists of the characters pushed into it.
 The [input character](#) is the first character in the [input stream][] that has
 not yet been consumed.
 Initially, the input character is the first character in the input.
-Finally, if all character are consumed, the input character is a [c:EOF][].
+Finally, if all character are consumed, the input character is an [c:EOF][].
 
 Any occurrences of c:HT in the [input stream][] is represented by that character
 and 0-3 [c:VS][] characters.
@@ -1833,7 +1833,8 @@ With lines, now perform the following steps:
 
 ### Process as Definitions
 
-Perform the following steps with the given pointer and lines:
+To [process as Definitions](#) is to perform the following steps with the given
+pointer and lines:
 
 *   Let `start` be a copy of `pointer`
 *   Let `labelBeforeStart` be a copy of `pointer`

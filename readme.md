@@ -10,7 +10,7 @@ Common Markup parser.
 >
 > *   Phrasing
 > *   List items
-> *   Stack of continuation (`>` and `␠␠` for blockquote and list items)
+> *   <a id="stack-of-continuation" href="#stack-of-continuation">**Stack of continuation**</a> (`>` and `␠␠` for blockquote and list items)
 > *   Extensions
 > *   How to turn tokens into [*Content token*][t-content]
 > *   Character references in fenced code metadata
@@ -295,7 +295,7 @@ The <a id="input-stream" href="#input-stream">**input stream**</a> consists of t
 The <a id="input-character" href="#input-character">**input character**</a> is the first character in the [input stream][input-stream] that has
 not yet been consumed.
 Initially, the input character is the first character in the input.
-Finally, if all character are consumed, the input character is a [EOF][ceof].
+Finally, if all character are consumed, the input character is an [EOF][ceof].
 
 Any occurrences of U+0009 CHARACTER TABULATION (HT) in the [input stream][input-stream] is represented by that character
 and 0-3 [VIRTUAL SPACE][cvs] characters.
@@ -1949,7 +1949,8 @@ With lines, now perform the following steps:
 
 ### 10.7 Process as Definitions
 
-Perform the following steps with the given pointer and lines:
+To <a id="process-as-definitions" href="#process-as-definitions">**process as Definitions**</a> is to perform the following steps with the given
+pointer and lines:
 
 *   Let `start` be a copy of `pointer`
 *   Let `labelBeforeStart` be a copy of `pointer`
@@ -2550,6 +2551,8 @@ Copyright © 2019 Titus Wormer.
 This work is licensed under a
 [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
 
+[stack-of-continuation]: #stack-of-continuation
+
 [ceof]: #ceof
 
 [cvs]: #cvs
@@ -2607,6 +2610,8 @@ This work is licensed under a
 [process-as-a-fenced-code-fence]: #process-as-a-fenced-code-fence
 
 [process-as-content]: #process-as-content
+
+[process-as-definitions]: #process-as-definitions
 
 [process-as-a-paragraph]: #process-as-a-paragraph
 
