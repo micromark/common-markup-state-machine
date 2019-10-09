@@ -13,8 +13,6 @@ Common Markup parser.
 > *   <a id="stack-of-continuation" href="#stack-of-continuation">**Stack of continuation**</a> (`>` and `␠␠` for blockquote and list items)
 > *   Extensions
 > *   How to turn tokens into [*Content token*][t-content]
-> *   Character references in fenced code metadata
-> *   How to group escape and entity/character references
 >
 > It is developed jointly with a reference parser:
 > [`micromark`](https://github.com/micromark/micromark).
@@ -119,7 +117,9 @@ Common Markup parser.
     *   [9.24 Definition destination quoted group](#924-definition-destination-quoted-group)
     *   [9.25 Definition destination unquoted group](#925-definition-destination-unquoted-group)
     *   [9.26 Definition title group](#926-definition-title-group)
-    *   [9.27 Paragraph group](#927-paragraph-group)
+    *   [9.27 Escape group](#927-escape-group)
+    *   [9.28 Character reference group](#928-character-reference-group)
+    *   [9.29 Paragraph group](#929-paragraph-group)
 *   [10 Processing](#10-processing)
     *   [10.1 Process as an ATX heading](#101-process-as-an-atx-heading)
     *   [10.2 Process as a Setext primary heading](#102-process-as-a-setext-primary-heading)
@@ -129,15 +129,14 @@ Common Markup parser.
     *   [10.6 Process as Content](#106-process-as-content)
     *   [10.7 Process as Definitions](#107-process-as-definitions)
     *   [10.8 Process as a Paragraph](#108-process-as-a-paragraph)
-    *   [10.9 Process as a String](#109-process-as-a-string)
+    *   [10.9 Process as Raw text](#109-process-as-raw-text)
     *   [10.10 Process as Phrasing](#1010-process-as-phrasing)
 *   [11 WIP](#11-wip)
 *   [12 References](#12-references)
 *   [13 Appendix](#13-appendix)
     *   [13.1 Raw tags](#131-raw-tags)
     *   [13.2 Simple tags](#132-simple-tags)
-    *   [13.3 Control replacements](#133-control-replacements)
-    *   [13.4 Named character references](#134-named-character-references)
+    *   [13.3 Named character references](#133-named-character-references)
 *   [14 Acknowledgments](#14-acknowledgments)
 *   [15 License](#15-license)
 
@@ -232,33 +231,33 @@ a prefix of the content.
 
 ### 3.3 Character groups
 
-An <a id="ascii-digit" href="#ascii-digit">**ASCII digit**</a> is a character in the range U+0030 (`0`) to U+0039 (`9`), inclusive.
+An <a id="ascii-digit" href="#ascii-digit">**ASCII digit**</a> is a character in the inclusive range U+0030 (`0`) to U+0039 (`9`).
 
-An <a id="ascii-upper-hex-digit" href="#ascii-upper-hex-digit">**ASCII upper hex digit**</a> is an [ASCII digit][ascii-digit] or a character in the range
-U+0041 (`A`) to U+0046 (`F`), inclusive.
+An <a id="ascii-upper-hex-digit" href="#ascii-upper-hex-digit">**ASCII upper hex digit**</a> is an [ASCII digit][ascii-digit] or a character in the
+inclusive range U+0041 (`A`) to U+0046 (`F`).
 
-An <a id="ascii-lower-hex-digit" href="#ascii-lower-hex-digit">**ASCII lower hex digit**</a> is an [ASCII digit][ascii-digit] or a character in the range
-U+0061 (`a`) to U+0066 (`f`), inclusive.
+An <a id="ascii-lower-hex-digit" href="#ascii-lower-hex-digit">**ASCII lower hex digit**</a> is an [ASCII digit][ascii-digit] or a character in the
+inclusive range U+0061 (`a`) to U+0066 (`f`).
 
 An <a id="ascii-hex-digit" href="#ascii-hex-digit">**ASCII hex digit**</a> is an [ASCII upper hex digit][ascii-upper-hex-digit] or an [ASCII lower hex
 digit][ascii-lower-hex-digit]
 
-An <a id="ascii-upper-alpha" href="#ascii-upper-alpha">**ASCII upper alpha**</a> is a character in the range U+0041 (`A`) to U+005A (`Z`), inclusive.
+An <a id="ascii-upper-alpha" href="#ascii-upper-alpha">**ASCII upper alpha**</a> is a character in the inclusive range U+0041 (`A`) to U+005A (`Z`).
 
-An <a id="ascii-lower-alpha" href="#ascii-lower-alpha">**ASCII lower alpha**</a> is a character in the range U+0061 (`a`) to U+007A (`z`), inclusive.
+An <a id="ascii-lower-alpha" href="#ascii-lower-alpha">**ASCII lower alpha**</a> is a character in the inclusive range U+0061 (`a`) to U+007A (`z`).
 
 An <a id="ascii-alpha" href="#ascii-alpha">**ASCII alpha**</a> is an [ASCII upper alpha][ascii-upper-alpha] or [ASCII lower alpha][ascii-lower-alpha].
 
 An <a id="ascii-alphanumeric" href="#ascii-alphanumeric">**ASCII alphanumeric**</a> is an [ASCII digit][ascii-digit] or [ASCII alpha][ascii-alpha].
 
-An <a id="ascii-punctuation" href="#ascii-punctuation">**ASCII punctuation**</a> is a character in the ranges U+0021 EXCLAMATION MARK (`!`) to U+002F SLASH (`/`), U+003A COLON (`:`) to U+0040 AT SIGN (`@`),
-U+005B LEFT SQUARE BRACKET (`[`) to U+0060 GRAVE ACCENT (`` ` ``), or U+007B LEFT CURLY BRACE (`{`) to U+007E TILDE (`~`), inclusive.
+An <a id="ascii-punctuation" href="#ascii-punctuation">**ASCII punctuation**</a> is a character in the inclusive ranges U+0021 EXCLAMATION MARK (`!`) to U+002F SLASH (`/`), U+003A COLON (`:`)
+to U+0040 AT SIGN (`@`), U+005B LEFT SQUARE BRACKET (`[`) to U+0060 GRAVE ACCENT (`` ` ``), or U+007B LEFT CURLY BRACE (`{`) to U+007E TILDE (`~`).
 
-An <a id="ascii-control" href="#ascii-control">**ASCII control**</a> is a character in the range U+0000 NULL (NUL) to U+001F (US), inclusive, or
+An <a id="ascii-control" href="#ascii-control">**ASCII control**</a> is a character in the inclusive range U+0000 NULL (NUL) to U+001F (US), or
 U+007F (DEL).
 
 To <a id="ascii-lowercase" href="#ascii-lowercase">**ASCII-lowercase**</a> a character, is to increase it by 0x20 if it is in the
-range U+0041 (`A`) to U+005A (`Z`), inclusive.
+inclusive range U+0041 (`A`) to U+005A (`Z`).
 
 A <a id="unicode-whitespace" href="#unicode-whitespace">**Unicode whitespace**</a> is a character in the Unicode `Zs` (Separator, Space)
 category, or U+0009 CHARACTER TABULATION (HT), U+000A LINE FEED (LF), U+000C (FF), or U+000D CARRIAGE RETURN (CR) (**\[UNICODE]**).
@@ -269,24 +268,10 @@ Connector), `Pd` (Punctuation, Dash), `Pe` (Punctuation, Close), `Pf`
 (Punctuation, Other), or `Ps` (Punctuation, Open) categories, or an [ASCII
 punctuation][ascii-punctuation] (**\[UNICODE]**).
 
-A <a id="surrogate" href="#surrogate">**surrogate**</a> is a character that is in the range U+D800 to U+DFFF,
-inclusive.
-
-A <a id="noncharacter" href="#noncharacter">**noncharacter**</a> is a character that is in the range U+FDD0 to U+FDEF,
-inclusive, or U+FFFE, U+FFFF, U+1FFFE, U+1FFFF, U+2FFFE, U+2FFFF, U+3FFFE,
-U+3FFFF, U+4FFFE, U+4FFFF, U+5FFFE, U+5FFFF, U+6FFFE, U+6FFFF, U+7FFFE, U+7FFFF,
-U+8FFFE, U+8FFFF, U+9FFFE, U+9FFFF, U+AFFFE, U+AFFFF, U+BFFFE, U+BFFFF, U+CFFFE,
-U+CFFFF, U+DFFFE, U+DFFFF, U+EFFFE, U+EFFFF, U+FFFFE, U+FFFFF, U+10FFFE, or
-U+10FFFF.
-
 > ❗️ Todo:
 >
 > *   [Unicode whitespace][unicode-whitespace] and [Unicode punctuation][unicode-punctuation] are used by emphasis
 >     and importance
-> *   [ASCII upper hex digit][ascii-upper-hex-digit], [ASCII lower hex digit][ascii-lower-hex-digit], and [ASCII hex
->     digit][ascii-hex-digit] are used by character references
-> *   [Surrogate][surrogate] and [noncharacter][noncharacter] are used by invalid numeric character
->     references in HTML, CM does not define them
 
 ## 4 Preprocessing the input stream
 
@@ -1665,7 +1650,7 @@ A [*Fenced code language group*][g-fenced-code-language] represents the programm
 
 ```idl
 interface FencedCodeLanguage <: Group {
-  children: [Whitespace | Content]
+  children: [EscapeGroup | CharacterReferenceGroup | Content]
 }
 ```
 
@@ -1675,7 +1660,7 @@ A [*Fenced code metadata group*][g-fenced-code-metadata] represents the metadata
 
 ```idl
 interface FencedCodeMetadata <: Group {
-  children: [Whitespace | Content]
+  children: [EscapeGroup | CharacterReferenceGroup | Content | Whitespace]
 }
 ```
 
@@ -1761,7 +1746,7 @@ definition.
 
 ```idl
 interface DefinitionLabelContent <: Group {
-  children: [Content | Whitespace | LineEnding]
+  children: [EscapeGroup | CharacterReferenceGroup | Content | Whitespace | LineEnding]
 }
 ```
 
@@ -1772,7 +1757,7 @@ definition.
 
 ```idl
 interface DefinitionDestinationQuoted <: Group {
-  children: [Content | Marker]
+  children: [EscapeGroup | CharacterReferenceGroup | Content | Marker]
 }
 ```
 
@@ -1783,7 +1768,7 @@ definition.
 
 ```idl
 interface DefinitionDestinationUnquoted <: Group {
-  children: [Content]
+  children: [EscapeGroup | CharacterReferenceGroup | Content]
 }
 ```
 
@@ -1794,11 +1779,32 @@ the destination of the definition.
 
 ```idl
 interface DefinitionTitle <: Group {
-  children: [Content | Marker | Whitespace | LineEnding]
+  children: [EscapeGroup | CharacterReferenceGroup | Content | Whitespace | LineEnding]
 }
 ```
 
-### 9.27 Paragraph group
+### 9.27 Escape group
+
+A [*Escape group*][g-escape] represents an escaped marker or an empty escape.
+
+```idl
+interface Escape <: Group {
+  children: [Marker | Content]
+}
+```
+
+### 9.28 Character reference group
+
+A [*Character reference group*][g-character-reference] represents an escaped character.
+
+```idl
+interface CharacterReference <: Group {
+  kind: name | hexadecimal | decimal
+  children: [Marker | Content]
+}
+```
+
+### 9.29 Paragraph group
 
 > ❗️ Todo
 
@@ -1901,13 +1907,13 @@ Open a [*Fenced code fence group*][g-fenced-code-fence] and emit the tokens befo
 
 If `langEnd` is defined, let `lang` be a line where `start` is the start
 position of the token at `fenceEnd`, `end` is the end position of the token at
-`langEnd`, and without an ending, open a [*Fenced code language group*][g-fenced-code-language], [process as a
-String][process-as-a-string] with `lines` set to a list with a single entry `lang`, and close.
+`langEnd`, and without an ending, open a [*Fenced code language group*][g-fenced-code-language], [process as raw
+text][process-as-raw-text] with `lines` set to a list with a single entry `lang`, and close.
 
 If `metaStart` is defined, emit the token at `langEnd`, let `meta` be a line
 where `start` is the start position of the token at `metaStart`, `end` is the
 end position of the token at `lineEnd`, and without an ending, open a
-[*Fenced code metadata group*][g-fenced-code-metadata], [process as a String][process-as-a-string] with `lines` set to a list with
+[*Fenced code metadata group*][g-fenced-code-metadata], [process as Raw text][process-as-raw-text] with `lines` set to a list with
 a single entry `meta`, and close.
 
 If there is a token at `lineEnd`, emit it.
@@ -2069,7 +2075,7 @@ If `labelOpenStart` is not `labelOpenEnd`, emit the whitespace and line
 endings between both points.
 
 Let `label` be a slice of the lines between `labelOpenEnd` and
-`labelCloseStart`, open a [*Definition label content group*][g-definition-label-content], [process as a String][process-as-a-string]
+`labelCloseStart`, open a [*Definition label content group*][g-definition-label-content], [process as Raw text][process-as-raw-text]
 with `lines` set to `label`, and close.
 
 If `labelCloseStart` is not `labelCloseEnd`, emit the whitespace and line
@@ -2087,13 +2093,13 @@ and line endings between both points.
 If `quoted` is `true`, emit a [*Marker token*][t-marker] with the character at
 `destinationBeforeEnd`, let `destination` be a line where `start` is
 `destinationStart`, `end` is `destinationEnd`, and without an ending, open a
-[*Definition destination quoted group*][g-definition-destination-quoted], [process as a String][process-as-a-string] with `lines` set to a
+[*Definition destination quoted group*][g-definition-destination-quoted], [process as Raw text][process-as-raw-text] with `lines` set to a
 list with a single entry `destination`, emit a [*Marker token*][t-marker] with the character at
 `destinationEnd`, and close.
 
 Otherwise, let `destination` be a line where `start` is `destinationStart`,
 `end` is `destinationEnd`, and without an ending, open a
-[*Definition destination quoted group*][g-definition-destination-quoted], [process as a String][process-as-a-string] with `lines` set to a
+[*Definition destination quoted group*][g-definition-destination-quoted], [process as Raw text][process-as-raw-text] with `lines` set to a
 list with a single entry `destination`, and close.
 
 If `destinationAfterStart` is not `destinationAfterEnd`, emit the whitespace
@@ -2103,7 +2109,7 @@ If the destination is to be created with a title, then if `destinationAfterEnd`
 is not `titleBeforeEnd`, emit the whitespace and line endings between both
 points, open a [*Definition title group*][g-definition-title], emit a [*Marker token*][t-marker] with the character at
 `titleBeforeEnd`, let `title` be a slice of the lines between `titleStart` and
-`titleEnd`, [process as a String][process-as-a-string] with `lines` set to `title`, emit a [*Marker token*][t-marker]
+`titleEnd`, [process as Raw text][process-as-raw-text] with `lines` set to `title`, emit a [*Marker token*][t-marker]
 with the character at `titleEnd`, then if `titleAfterStart` is not
 `titleAfterEnd`, emit the whitespace between both points, and close
 
@@ -2121,15 +2127,108 @@ Processing content can be given a hint, in which case the hint is either
     [*Setext heading content group*][g-setext-heading-content]
 *   Otherwise, open a [*Paragraph group*][g-paragraph]
 *   [Process as Phrasing][process-as-phrasing] given `lines`
-*   Close (once, if there was a hint, the place that hinted has to close the
-    setext heading)
+*   Close (once, because if there was a hint the place that hinted has to close
+    the setext heading)
 
-### 10.9 Process as a String
+### 10.9 Process as Raw text
 
-To <a id="process-as-a-string" href="#process-as-a-string">**process as a String**</a> is to perform the following steps with the given
+To <a id="process-as-raw-text" href="#process-as-raw-text">**process as Raw text**</a> is to perform the following steps with the given
 lines:
 
-> ❗️ Todo: escapes and character references
+*   Let `start` be a pointer to the first line (`0`) and the start of the
+    first line in lines
+*   Let `escape` be a copy of `start`
+*   Let `reference` be a copy of `start`
+*   *Look for reference*: scan for U+0026 AMPERSAND (`&`) within `lines` given `reference`
+*   *Look for escape*: scan for U+005C BACKSLASH (`\`) within `lines` given `escape`
+*   *Check*: if `escape` points to a place before `reference`:
+
+    *   If `start` is not `escape`, emit the content and line endings between
+        `start` and `escape`
+    *   Open a [*Escape group*][g-escape]
+    *   Emit a [*Marker token*][t-marker] with the character at `escape`
+    *   Move `escape` one place forward, and if the character at `escape` is
+        [ASCII punctuation][ascii-punctuation], emit a [*Content token*][t-content] with the character at `escape`
+    *   Close
+    *   Let `start` be a copy of `escape`
+    *   If `escape` is `reference`, go to the step labeled *look for reference*
+    *   Otherwise, go to the step labeled *look for escape*
+*   Otherwise, if `reference` points to a place:
+
+    *   Let `ampersand` be a copy of `reference`
+    *   Move `reference` one place forward
+    *   If the character at `reference` is [ASCII alphanumeric][ascii-alphanumeric]:
+
+        *   Let `referenceStart` be a copy of `reference`
+        *   Skip [ASCII alphanumeric][ascii-alphanumeric] characters within `lines` given
+            `reference`
+        *   If the character at `reference` is not U+003B SEMICOLON (`;`), go to the step labeled
+            *nonreference*
+        *   Otherwise, if the characters between `referenceStart` and
+            `reference` are not a [character reference name][character-reference-name], go to the step
+            labeled *nonreference*
+        *   If `start` is not `ampersand`, emit the content and line endings
+            between `start` and `ampersand`
+        *   Open a [*Character reference group*][g-character-reference] of kind `name`
+        *   Emit a [*Marker token*][t-marker] with the character at `ampersand`
+        *   Emit a [*Content token*][t-content] with the characters between `referenceStart` and
+            `reference`
+        *   Emit a [*Marker token*][t-marker] with the character at `reference`
+        *   Close
+        *   Let `start` be a copy of `reference`
+        *   Move `start` one place forward
+        *   Go to the step labeled *look for reference*
+    *   Otherwise, if the character at `reference` is U+0023 NUMBER SIGN (`#`)
+
+        *   Let `numberSign` be a copy of `reference`
+        *   Move `reference` one place forward
+        *   If the character at `reference` is U+0058 (`X`) or U+0078 (`x`):
+
+            *   Let `hex` be a copy of `reference`
+            *   Move `reference` one place forward
+            *   If the character at `reference` is not [ASCII hex digit][ascii-hex-digit], go
+                to the step labeled *nonreference*
+            *   Let `referenceStart` be a copy of `reference`
+            *   Skip [ASCII hex digit][ascii-hex-digit] characters within `lines` given
+                `reference`
+            *   If the character at `reference` is not U+003B SEMICOLON (`;`), go to the step
+                labeled *nonreference*
+            *   If `start` is not `ampersand`, emit the content and line endings
+                between `start` and `ampersand`
+            *   Open a [*Character reference group*][g-character-reference] of kind `hexadecimal`
+            *   Emit a [*Marker token*][t-marker] with the character at `ampersand`
+            *   Emit a [*Marker token*][t-marker] with the character at `numberSign`
+            *   Emit a [*Content token*][t-content] with the character at `hex`
+            *   Emit a [*Content token*][t-content] with the characters between `referenceStart`
+                and `reference`
+            *   Emit a [*Marker token*][t-marker] with the character at `reference`
+            *   Close
+            *   Let `start` be a copy of `reference`
+            *   Move `start` one place forward
+            *   Go to the step labeled *look for reference*
+        *   Otherwise, if the character at `reference` is an [ASCII digit][ascii-digit]:
+
+            *   Let `referenceStart` be a copy of `reference`
+            *   Skip [ASCII digit][ascii-digit] characters within `lines` given `reference`
+            *   If the character at `reference` is not U+003B SEMICOLON (`;`), go to the step
+                labeled *nonreference*
+            *   If `start` is not `ampersand`, emit the content and line endings
+                between `start` and `ampersand`
+            *   Open a [*Character reference group*][g-character-reference] of kind `decimal`
+            *   Emit a [*Marker token*][t-marker] with the character at `ampersand`
+            *   Emit a [*Marker token*][t-marker] with the character at `numberSign`
+            *   Emit a [*Content token*][t-content] with the characters between `referenceStart`
+                and `reference`
+            *   Emit a [*Marker token*][t-marker] with the character at `reference`
+            *   Close
+            *   Let `start` be a copy of `reference`
+            *   Move `start` one place forward
+            *   Go to the step labeled *look for reference*
+        *   Otherwise, go to the step labeled *nonreference*
+    *   *Nonreference*: scan for U+0026 AMPERSAND (`&`) within `lines` given `reference`
+    *   Go to the step labeled *check*
+*   Otherwise, if `start` does not point to the last line or to the end of the
+    last line in lines, emit the content and line endings from `start`
 
 ### 10.10 Process as Phrasing
 
@@ -2187,42 +2286,7 @@ A <a id="simple-tag" href="#simple-tag">**simple tag**</a> is one of: `address`,
 `param`, `section`, `source`, `summary`, `table`, `tbody`, `td`, `tfoot`, `th`,
 `thead`, `title`, `tr`, `track`, and `ul`.
 
-### 13.3 Control replacements
-
-A <a id="control-replacement" href="#control-replacement">**control replacement**</a> is the character in the column “Replacement”, used
-instead of a character in the column “Input”.
-
-| Input | Replacement | Name                                             |
-| ----- | ----------- | ------------------------------------------------ |
-| 0x80  | 0x20AC      | EURO SIGN (`€`)                                  |
-| 0x82  | 0x201A      | SINGLE LOW-9 QUOTATION MARK (`‚`)                |
-| 0x83  | 0x0192      | LATIN SMALL LETTER F WITH HOOK (`ƒ`)             |
-| 0x84  | 0x201E      | DOUBLE LOW-9 QUOTATION MARK (`„`)                |
-| 0x85  | 0x2026      | HORIZONTAL ELLIPSIS (`…`)                        |
-| 0x86  | 0x2020      | DAGGER (`†`)                                     |
-| 0x87  | 0x2021      | DOUBLE DAGGER (`‡`)                              |
-| 0x88  | 0x02C6      | MODIFIER LETTER CIRCUMFLEX ACCENT (`ˆ`)          |
-| 0x89  | 0x2030      | PER MILLE SIGN (`‰`)                             |
-| 0x8A  | 0x0160      | LATIN CAPITAL LETTER S WITH CARON (`Š`)          |
-| 0x8B  | 0x2039      | SINGLE LEFT-POINTING ANGLE QUOTATION MARK (`‹`)  |
-| 0x8C  | 0x0152      | LATIN CAPITAL LIGATURE OE (`Œ`)                  |
-| 0x8E  | 0x017D      | LATIN CAPITAL LETTER Z WITH CARON (`Ž`)          |
-| 0x91  | 0x2018      | LEFT SINGLE QUOTATION MARK (`‘`)                 |
-| 0x92  | 0x2019      | RIGHT SINGLE QUOTATION MARK (`’`)                |
-| 0x93  | 0x201C      | LEFT DOUBLE QUOTATION MARK (`“`)                 |
-| 0x94  | 0x201D      | RIGHT DOUBLE QUOTATION MARK (`”`)                |
-| 0x95  | 0x2022      | BULLET (`•`)                                     |
-| 0x96  | 0x2013      | EN DASH (`–`)                                    |
-| 0x97  | 0x2014      | EM DASH (`—`)                                    |
-| 0x98  | 0x02DC      | SMALL TILDE (`˜`)                                |
-| 0x99  | 0x2122      | TRADE MARK SIGN (`™`)                            |
-| 0x9A  | 0x0161      | LATIN SMALL LETTER S WITH CARON (`š`)            |
-| 0x9B  | 0x203A      | SINGLE RIGHT-POINTING ANGLE QUOTATION MARK (`›`) |
-| 0x9C  | 0x0153      | LATIN SMALL LIGATURE OE (`œ`)                    |
-| 0x9E  | 0x017E      | LATIN SMALL LETTER Z WITH CARON (`ž`)            |
-| 0x9F  | 0x0178      | LATIN CAPITAL LETTER Y WITH DIAERESIS (`Ÿ`)      |
-
-### 13.4 Named character references
+### 13.3 Named character references
 
 A <a id="character-reference-name" href="#character-reference-name">**character reference name**</a> is one of:
 `AEli`, `AElig`, `AM`, `AMP`, `Aacut`, `Aacute`,
@@ -2583,10 +2647,6 @@ This work is licensed under a
 
 [unicode-punctuation]: #unicode-punctuation
 
-[surrogate]: #surrogate
-
-[noncharacter]: #noncharacter
-
 [input-stream]: #input-stream
 
 [input-character]: #input-character
@@ -2615,15 +2675,13 @@ This work is licensed under a
 
 [process-as-a-paragraph]: #process-as-a-paragraph
 
-[process-as-a-string]: #process-as-a-string
+[process-as-raw-text]: #process-as-raw-text
 
 [process-as-phrasing]: #process-as-phrasing
 
 [raw-tag]: #raw-tag
 
 [simple-tag]: #simple-tag
-
-[control-replacement]: #control-replacement
 
 [character-reference-name]: #character-reference-name
 
@@ -2785,4 +2843,8 @@ This work is licensed under a
 
 [g-definition-title]: #926-definition-title-group
 
-[g-paragraph]: #927-paragraph-group
+[g-escape]: #927-escape-group
+
+[g-character-reference]: #928-character-reference-group
+
+[g-paragraph]: #929-paragraph-group
