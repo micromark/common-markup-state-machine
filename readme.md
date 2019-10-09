@@ -25,11 +25,11 @@ Common Markup parser.
 
 *   [1 Background](#1-background)
 *   [2 Overview](#2-overview)
-*   [3 Preprocessing the input stream](#3-preprocessing-the-input-stream)
-*   [4 Characters](#4-characters)
-    *   [4.1 Conceptual characters](#41-conceptual-characters)
-    *   [4.2 Tabs](#42-tabs)
-    *   [4.3 Character groups](#43-character-groups)
+*   [3 Characters](#3-characters)
+    *   [3.1 Conceptual characters](#31-conceptual-characters)
+    *   [3.2 Tabs](#32-tabs)
+    *   [3.3 Character groups](#33-character-groups)
+*   [4 Preprocessing the input stream](#4-preprocessing-the-input-stream)
 *   [5 State](#5-state)
 *   [6 Actions](#6-actions)
     *   [6.1 Consuming](#61-consuming)
@@ -130,7 +130,7 @@ Common Markup parser.
     *   [10.7 Process as Definitions](#107-process-as-definitions)
     *   [10.8 Process as a Paragraph](#108-process-as-a-paragraph)
     *   [10.9 Process as a String](#109-process-as-a-string)
-    *   [10.10 Process as a Phrasing](#1010-process-as-a-phrasing)
+    *   [10.10 Process as Phrasing](#1010-process-as-phrasing)
 *   [11 WIP](#11-wip)
 *   [12 References](#12-references)
 *   [13 Appendix](#13-appendix)
@@ -143,85 +143,73 @@ Common Markup parser.
 
 ## 1 Background
 
-The common markup parser parses a markup language that is commonly referenced to
-as *Markdown*.
+The common markup parser parses a markup language that is commonly known as
+*Markdown*.
 
 The first definition of this format gave several examples of how it worked,
 showing input Markdown and output HTML, and came with a reference implementation
 (known as Markdown.pl).
 When new implementations followed, they mostly followed the first definition,
-but deviated from the first implementation, thus *Markdown* a family of formats.
+but deviated from the first implementation, thus making *Markdown* a family of
+formats.
 
 Some years later, an attempt was made to standardize the differences between the
-Markdown implementations, by specifying how most edge cases should be handled,
-through more input and output examples.
+Markdown implementations, by specifying how several edge cases should be
+handled, through more input and output examples.
 This attempt is known as CommonMark, and many implementations follow it.
 
-This document defines an even more formal format, based on CommonMark, by
-documenting how to parse it, instead of documenting how to use it through input
-and output examples.
+This document defines a more formal format, based on CommonMark, by documenting
+how to parse it, instead of documenting input and output examples.
 This format is:
 
 *   **strict**, as it defines a state machine, which leaves significantly less
     room for interpretation
 *   **agnostic** of HTML, as it does not show examples of output, which lets
     the format be used in new ways
-*   **streaming**, as it is agnostic to HTML, which requires a whole stream to
-    be buffered because references can resolve to following definitions
+*   **streaming**, because coupling with HTML is what requires a whole stream to
+    be buffered as references can resolve to later definitions
 *   **complete**, as it defines different types of tokens and how they are
     grouped, which allows the format to be represented as a concrete syntax tree
 
 The origin story of Markdown is similar to that of HTML, which at a time was
 also a family of formats.
 Through incredible efforts of the WHATWG, a Living Standard was created on how
-to parse the format, through defining a state machine.
+to parse the format, by defining a state machine.
 
 ## 2 Overview
 
-The common markup parser parses a file line by line.
+The common markup parser receives input, typically coming over the network or
+from the local file system.
+Depending on a character in the input stream, certain side effects occur, such
+as that a new token is created, or one state is switched to another.
 Each line is made up of tokens, such as whitespace, markers, sequences, and
-content, which are queued.
-Depending on the character, certain side effects occur, such as that a new token
-is created, or one state is switched to another.
-At certain points, which could be at the end of a line, it is known what to do
-with parts of the queue, which has more effects: the tokens can be changed, such
-as because it is known that a punctuation marker should be treated as content,
-or that groups are closed or new ones opened.
-
-At the end of a line, it is typically known what to do with that line.
-One exception is [*Content group*][g-content], which spans an arbitrary number of lines, and can
-result in zero or more definitions, and optionally either a paragraph or a
+content, that are queued.
+At a certain point in a line, it is known what to do with the queue, which has
+more effects: groups are closed, opened, or tokens are changed, for example
+because it is known that a punctuation marker should be treated as content.
+In some cases, it is not known what to do with a line until a certain point in a
+later line.
+One such exception is [*Content group*][g-content], which spans an arbitrary number of lines, and
+can result in zero or more definitions, and optionally either a paragraph or a
 Setext heading.
 
-## 3 Preprocessing the input stream
+## 3 Characters
 
-The <a id="input-stream" href="#input-stream">**input stream**</a> consists of the characters pushed into it, typically
-coming over the network or from the local file system.
+A character is a Unicode code point and is represented as a four to six digit
+hexadecimal number, prefixed with `U+` (**\[UNICODE]**).
 
-The <a id="input-character" href="#input-character">**input character**</a> is the first character in the [input stream][input-stream] that has
-not yet been consumed.
-Initially, the input character is the first character in the input.
+### 3.1 Conceptual characters
 
-Any occurrences of U+0009 CHARACTER TABULATION (HT) in the [input stream][input-stream] is represented by that character
-and 0-3 [VIRTUAL SPACE][cvs] characters.
-
-## 4 Characters
-
-A character is a Unicode code point and is represented as a four digit
-hexadecimal number, typically prefixed with `U+` (**\[UNICODE]**).
-
-### 4.1 Conceptual characters
+An <a id="ceof" href="#ceof">**EOF**</a> character is a conceptual character representing the end of the
+input.
 
 A <a id="cvs" href="#cvs">**VIRTUAL SPACE**</a> character is a conceptual character representing an expanded column
 size of a U+0009 CHARACTER TABULATION (HT).
 
-An <a id="ceof" href="#ceof">**EOF**</a> character is a conceptual character representing the end of the
-[input stream][input-stream].
+EOF and VIRTUAL SPACE are not real characters, but rather represent the lack of any
+further characters, or a character increase the size of a character.
 
-VIRTUAL SPACE and EOF are not real characters in the stream, but rather a character
-increase the size of a character, or the lack of any further characters.
-
-### 4.2 Tabs
+### 3.2 Tabs
 
 Tabs (U+0009 CHARACTER TABULATION (HT)) are typically not expanded into spaces, but do behave as if they
 were replaced by spaces with a tab stop of 4 characters.
@@ -233,16 +221,16 @@ Say we’d have the following markup (where `␉` represent a tab):
 >␉␉a
 ```
 
-This is represented in the input stream by the characters: U+003E GREATER THAN (`>`), U+0009 CHARACTER TABULATION (HT), VIRTUAL SPACE,
-VIRTUAL SPACE, U+0009 CHARACTER TABULATION (HT), VIRTUAL SPACE, VIRTUAL SPACE, VIRTUAL SPACE, and U+0061 (`a`).
+This is represented by the characters: U+003E GREATER THAN (`>`), U+0009 CHARACTER TABULATION (HT), VIRTUAL SPACE, VIRTUAL SPACE, U+0009 CHARACTER TABULATION (HT), VIRTUAL SPACE, VIRTUAL SPACE,
+VIRTUAL SPACE, and U+0061 (`a`).
 
-When transforming from markup to an output format, tab characters that are not
-part of syntax, should be present in the output format.
+When transforming to an output format, tab characters that are not part of
+syntax, should be present in the output format.
 When the tab itself (and zero or more VIRTUAL SPACE characters) are part of syntax, but
-some VIRTUAL SPACE characters are not, the remaining VIRTUAL SPACE characters should be present in
-the output format as U+0020 SPACE (SP) characters.
+some VIRTUAL SPACE characters are not, the remaining VIRTUAL SPACE characters should be considered
+a prefix of the content.
 
-### 4.3 Character groups
+### 3.3 Character groups
 
 An <a id="ascii-digit" href="#ascii-digit">**ASCII digit**</a> is a character in the range U+0030 (`0`) to U+0039 (`9`), inclusive.
 
@@ -295,12 +283,28 @@ U+10FFFF.
 >
 > *   [Unicode whitespace][unicode-whitespace] and [Unicode punctuation][unicode-punctuation] are used by emphasis
 >     and importance
+> *   [ASCII upper hex digit][ascii-upper-hex-digit], [ASCII lower hex digit][ascii-lower-hex-digit], and [ASCII hex
+>     digit][ascii-hex-digit] are used by character references
+> *   [Surrogate][surrogate] and [noncharacter][noncharacter] are used by invalid numeric character
+>     references in HTML, CM does not define them
+
+## 4 Preprocessing the input stream
+
+The <a id="input-stream" href="#input-stream">**input stream**</a> consists of the characters pushed into it.
+
+The <a id="input-character" href="#input-character">**input character**</a> is the first character in the [input stream][input-stream] that has
+not yet been consumed.
+Initially, the input character is the first character in the input.
+Finally, if all character are consumed, the input character is a [EOF][ceof].
+
+Any occurrences of U+0009 CHARACTER TABULATION (HT) in the [input stream][input-stream] is represented by that character
+and 0-3 [VIRTUAL SPACE][cvs] characters.
 
 ## 5 State
 
 Initially, the <a id="stack-of-open-groups" href="#stack-of-open-groups">**stack of open groups**</a> is empty.
 The stack grows downwards; the topmost group on the stack is the first one
-opened, and the bottommost group of the stack is the last still open group.
+opened, and the bottommost group of the stack is the last group still open.
 
 The <a id="current-group" href="#current-group">**current group**</a> is the bottommost group in this [stack of open groups][stack-of-open-groups].
 
@@ -315,7 +319,7 @@ To consume the [input character][input-character] affects the [current token][cu
 Due to the nature of the state machine, it is not possible to consume if there
 is no current token.
 To consume the input character, first run the following steps based on the
-token’s type:
+type of the token:
 
 *   ↪ **[*Marker token*][t-marker]**
 
@@ -341,29 +345,30 @@ labelled parameters:
 
 *   ↪ **[*Whitespace token*][t-whitespace]**
 
-    Set the token’s size and used size to zero (0).
-    Set the token’s list of characters to an empty list.
-    If a used size is given, set the token’s used size to the given value
+    Set the size and used size of the token to zero (0).
+    Set the list of characters of the token to an empty list.
+    If a used size is given, set the used size of the token to the given value
 *   ↪ **[*Sequence token*][t-sequence]**
 
-    Set the token’s size to zero (0)
+    Set the size of the token to zero (0)
 *   ↪ **[*Content token*][t-content]**
 
-    Set the token’s prefix to the empty string.
-    If characters are given, let `seen` be `false`, and perform the following
-    steps for each character:
+    Set the prefix of the token to the empty string.
+    If characters are given, perform the following steps:
 
-    *   ↪ **U+0009 CHARACTER TABULATION (HT)**
+    *   Let `seen` be `false`
+    *   For each `character` of the given characters:
 
-        Append the character to the prefix, let `seen` be `true`
-    *   ↪ **U+0020 SPACE (SP)**
+        *   ↪ **U+0009 CHARACTER TABULATION (HT)**
 
-        Append the character to the prefix
-    *   ↪ **[VIRTUAL SPACE][cvs]**
+            Append `character` to the prefix, let `seen` be `true`
+        *   ↪ **U+0020 SPACE (SP)**
 
-        If `seen` is `true`, do nothing.
+            Append `character` to the prefix
+        *   ↪ **[VIRTUAL SPACE][cvs]**
 
-        Otherwise, append a U+0020 SPACE (SP) character to the prefix
+            *   If `seen` is `true`, do nothing
+            *   Otherwise, append a U+0020 SPACE (SP) character to the prefix
 *   ↪ **Anything else**
 
     Do nothing
@@ -371,16 +376,15 @@ labelled parameters:
 ### 6.3 Emitting
 
 To emit a token is to add it to the [current group][current-group].
-A token may be emitted directly, but typically the tokens the [queue][queue] are
-emitted.
-After emitting, the queue is cleared.
+It is possible to emit a token directly, but it is more common to emit the
+tokens the [queue][queue].
+The queue is cleared after emitting.
 Emitting tokens may have side effects, based on their types:
 
 *   ↪ **[*End-of-file token*][t-end-of-file]**
 
-    Close all groups in the [stack of open groups][stack-of-open-groups], starting at the
-    bottommost group (the [current group][current-group]), moving up until the topmost group
-    is closed
+    Close all groups in the [stack of open groups][stack-of-open-groups], by repeatedly closing the
+    [current group][current-group]) while there is one
 *   ↪ **Anything else**
 
     Do nothing
@@ -393,9 +397,7 @@ Opening groups may have side effects, based on their type:
 
 *   ↪ **[*Blank line group*][g-blank-line]**
 
-    If the [current group][current-group] is a [*Content group*][g-content], close it.
-
-    Otherwise, if the current group is an [*HTML group*][g-html], and its kind is `6` or `7`,
+    If the [current group][current-group] is a [*Content group*][g-content], or an [*HTML group*][g-html] of kind `6` or `7`,
     close it.
 
     Otherwise, treat it as per the “anything else” entry below
@@ -404,9 +406,7 @@ Opening groups may have side effects, based on their type:
     ↪ **[*HTML group*][g-html]**\
     ↪ **[*Thematic break group*][g-thematic-break]**
 
-    If the [current group][current-group] is a [*Content group*][g-content], close it.
-
-    Otherwise, if the [current group][current-group] is a [*Indented code group*][g-indented-code], close it.
+    If the [current group][current-group] is a [*Content group*][g-content] or a [*Indented code group*][g-indented-code], close it.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
@@ -421,20 +421,20 @@ Closing groups may have side effects, based on their type:
 
 *   ↪ **[*Content group*][g-content]**
 
-    > ❗️ Todo: Process content
-*   ↪ **[*ATX heading content group*][g-atx-heading-content]**
+    [Process as Content][process-as-content] without a hint
+*   ↪ **Anything else**
 
-    > ❗️ Todo: Process content
+    Do nothing
 
 ## 7 Tokenization
 
 Implementations must act as if they use the following state machine to tokenize
 common markup.
 The state machine must start in the [*Initial state*][s-initial].
-Most states consume a single character, which may have various side-effects, and
-either switch the state machine to a new state to reconsume the
-[input character][input-character], or switch it to a new state to consume the next character,
-or stays in the same state to consume the next character.
+Most states consume a single character, which may have various side effects, and
+either switch the state machine to a new state to reconsume the [input
+character][input-character], or switch it to a new state to consume the next character, or
+stays in the same state to consume the next character.
 
 The exact behavior of certain states depends on state, such as the [stack of
 open groups][stack-of-open-groups] and the [queue][queue].
@@ -1821,7 +1821,7 @@ If the token in the queue before `index` is a [*Whitespace token*][t-whitespace]
 
 If `index` is not `0`, let `line` be a line where `start` is the start position
 of the token at `0`, `end` is the end position of the token at `index` if there
-is one or the last token in the queue otherwise, and without an ending, open a
+is one or otherwise the last token in the queue, and without an ending, open a
 [*ATX heading content group*][g-atx-heading-content], [process as Phrasing][process-as-phrasing] with `lines` set to a list with a
 single entry `line`, and close.
 
@@ -2125,11 +2125,19 @@ Processing content can be given a hint, in which case the hint is either
 
 ### 10.9 Process as a String
 
+To <a id="process-as-a-string" href="#process-as-a-string">**process as a String**</a> is to perform the following steps with the given
+lines:
+
 > ❗️ Todo: escapes and character references
 
-### 10.10 Process as a Phrasing
+### 10.10 Process as Phrasing
 
-> ❗️ Todo
+To <a id="process-as-phrasing" href="#process-as-phrasing">**process as Phrasing**</a> is to perform the following steps with the given
+lines:
+
+> ❗️ Todo: escapes, character references, code, emphasis, importance, links,
+> link references, images, image references, autolinks, HTML, hard line breaks,
+> soft line breaks.
 
 ## 11 WIP
 
@@ -2542,13 +2550,9 @@ Copyright © 2019 Titus Wormer.
 This work is licensed under a
 [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
 
-[input-stream]: #input-stream
-
-[input-character]: #input-character
+[ceof]: #ceof
 
 [cvs]: #cvs
-
-[ceof]: #ceof
 
 [ascii-digit]: #ascii-digit
 
@@ -2580,6 +2584,10 @@ This work is licensed under a
 
 [noncharacter]: #noncharacter
 
+[input-stream]: #input-stream
+
+[input-character]: #input-character
+
 [stack-of-open-groups]: #stack-of-open-groups
 
 [current-group]: #current-group
@@ -2601,6 +2609,10 @@ This work is licensed under a
 [process-as-content]: #process-as-content
 
 [process-as-a-paragraph]: #process-as-a-paragraph
+
+[process-as-a-string]: #process-as-a-string
+
+[process-as-phrasing]: #process-as-phrasing
 
 [raw-tag]: #raw-tag
 
