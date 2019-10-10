@@ -8,11 +8,10 @@ Common Markup parser.
 > This document is currently in progress.
 > Some parts are still in progress:
 >
-> *   Phrasing
-> *   List items
 > *   [Stack of continuation](#) (`>` and `␠␠` for blockquote and list items)
 > *   Extensions
-> *   How to turn tokens into t:content
+> *   Emphasis, strong, links, images in text
+> *   Lots of infra algorithms
 >
 > It is developed jointly with a reference parser:
 > [`micromark`](https://github.com/micromark/micromark).
@@ -1691,67 +1690,68 @@ interface CharacterReference <: Group {
 
 > ❗️ Todo
 
+### Image opening group
+
+### Link opening group
+
+### Link or image closing group
+
+### Emphasis or strong group
+
+### Phrasing code group
+
 ## Processing
 
 ### Process as an ATX heading
 
 To [process as an ATX heading](#) is to perform the following steps:
 
-Let `index` be the number of tokens in the queue.
+*   Let `index` be the number of tokens in the queue
+*   If the token in the queue before `index` is a t:whitespace, subtract `1`
+    from `index`
+*   If the token in the queue before `index` is a t:sequence, subtract `1` from
+    `index`
+*   If the token in the queue before `index` is a t:whitespace, subtract `1`
+    from `index`
+*   If `index` is not `0`:
 
-If the token in the queue before `index` is a t:whitespace, remove `1` from
-`index`.
+    *   Let `last` be the token at `index` if there is one, or otherwise the
+        last token in the queue
+    *   Let `line` be a line without an ending where `start` is the start
+        position of the token at `0`, and `end` is the end position of `last`
+    *   Open an g:atx-heading-content
+    *   [Process as Phrasing][] with `lines` set to a list with a single entry
+        `line`
+    *   Close
+*   If there is a token at `index` in queue:
 
-If the token in the queue before `index` is a t:sequence, remove `1` from
-`index`.
-
-If the token in the queue before `index` is a t:whitespace, remove `1` from
-`index`.
-
-If `index` is not `0`, let `line` be a line where `start` is the start position
-of the token at `0`, `end` is the end position of the token at `index` if there
-is one or otherwise the last token in the queue, and without an ending, open a
-g:atx-heading-content, [process as Phrasing][] with `lines` set to a list with a
-single entry `line`, and close.
-
-If there is a token at `index` in queue, open an g:atx-heading-fence, emit the
-tokens in the queue from `index`, and close.
-
-Finally, close.
+    *   Open an g:atx-heading-fence
+    *   Emit the tokens in the queue from `index`
+    *   Close
+*   Close
 
 ### Process as a Setext primary heading
 
 To [process as a Setext primary heading](#) is to perform the following steps:
 
-Process the [current group][]: [process as Content][] with a *setext primary
-heading* hint.
+*   Let `used` be the result of [process as Content][] with the [current
+    group][] given hint *setext primary heading*
+*   If `used`:
 
-If the hint is used, open a g:setext-heading-underline, emit, and close
-twice, and return.
+    *   Open a g:setext-heading-underline
+    *   Emit
+    *   Close twice
+*   Otherwise:
 
-Otherwise, let `index` be the position of the [current token][] in the queue.
-
-If the [current token][] is a t:whitespace, remove `1` from `index`.
-
-Open a g:content, emit the tokens before `index`, emit the tokens in the queue
-from `index` as a t:content.
+    *   Let `index` be the position of the [current token][] in the queue
+    *   If the [current token][] is a t:whitespace, remove `1` from `index`
+    *   Open a g:content
+    *   Emit the tokens before `index`
+    *   Emit the tokens in the queue from `index` as a t:content
 
 ### Process as an asterisk line
 
 To [process as an asterisk line](#) is to perform the following steps:
-
-Let `size` be `0` and iterate through each `token` in the queue, and perform the
-following steps for its type:
-
-*   ↪ **t:marker**
-
-    Increment `size` by `1`.
-    If `size` is `3`, this is a thematic break, open a g:thematic-break, emit,
-    close, break from the loop, abort from the state, and reconsume in the
-    s:line-ending
-*   ↪ **Anything else**
-
-    Do nothing
 
 > ❗️ Delay for reference parser: This may be list item markers, list items with
 > code, or content.
@@ -1769,39 +1769,40 @@ To [process as an asterisk line opening](#) is to perform the following steps:
 
 To [process as a Fenced code fence](#) is to perform the following steps:
 
-Let `fenceEnd` be `1`.
-Let `lineEnd` be the number of tokens in the queue.
+*   Let `fenceEnd` be `1`
+*   Let `lineEnd` be the number of tokens in the queue
+*   If the token in the queue before `lineEnd` is a t:whitespace, subtract `1`
+    from `lineEnd`
+*   If the token in the queue before `fenceEnd` is a t:whitespace, add `1` to
+    `fenceEnd`
+*   If `fenceEnd` is not `lineEnd` and the token in the queue at `fenceEnd` is a
+    t:whitespace, add `1` to `fenceEnd`.
+*   If `fenceEnd` is not `lineEnd`, let `langEnd` be `fenceEnd` plus `1`.
+*   If `langEnd` points to a place and it is not `lineEnd`, let `metaStart` be
+    `langEnd` plus `1`
+*   Open a g:fenced-code-fence
+*   Emit the tokens before `fenceEnd`
+*   If `langEnd` points to a place:
 
-If the token in the queue before `lineEnd` is a t:whitespace, remove `1` from
-`lineEnd`.
+    *   Let `lang` be a line without an ending where `start` is the start
+        position of the token at `fenceEnd`, `end` is the end position of the
+        token at `langEnd`
+    *   Open a g:fenced-code-language
+    *   [Process as raw text][] with `lines` set to a list with a single entry
+        `lang`
+    *   Close
+*   If `metaStart` points to a place:
 
-If the token in the queue before `fenceEnd` is a t:whitespace, add `1` to
-`fenceEnd`.
-
-If `fenceEnd` is not `lineEnd`, and the token in the queue at `fenceEnd` is a
-t:whitespace , add `1` to `fenceEnd`.
-
-If `fenceEnd` is not `lineEnd`, let `langEnd` be `fenceEnd` plus `1`.
-
-If `langEnd` is defined and it is not `lineEnd`, let `metaStart` be `langEnd`
-plus `1`.
-
-Open a g:fenced-code-fence and emit the tokens before `fenceEnd`.
-
-If `langEnd` is defined, let `lang` be a line where `start` is the start
-position of the token at `fenceEnd`, `end` is the end position of the token at
-`langEnd`, and without an ending, open a g:fenced-code-language, [process as raw
-text][] with `lines` set to a list with a single entry `lang`, and close.
-
-If `metaStart` is defined, emit the token at `langEnd`, let `meta` be a line
-where `start` is the start position of the token at `metaStart`, `end` is the
-end position of the token at `lineEnd`, and without an ending, open a
-g:fenced-code-metadata, [process as Raw text][] with `lines` set to a list with
-a single entry `meta`, and close.
-
-If there is a token at `lineEnd`, emit it.
-
-Finally, close.
+    *   Emit the token at `langEnd`
+    *   Let `meta` be a line without an ending where `start` is the start
+        position of the token at `metaStart`, `end` is the end position of the
+        token at `lineEnd`
+    *   Open a g:fenced-code-metadata
+    *   [Process as Raw text][] with `lines` set to a list with a single entry
+        `meta`
+    *   Close
+*   If there is a token at `lineEnd`, emit it.
+*   Close
 
 ### Process as Content
 
@@ -1836,32 +1837,33 @@ With lines, now perform the following steps:
 *   Otherwise, [process as a Paragraph][] with `lines` given `pointer` and
     `hint`, and return that hint was used
 
-### Process as Definitions
-
 To [process as Definitions](#) is to perform the following steps with the given
 pointer and lines:
 
 *   Let `start` be a copy of `pointer`
 *   Let `labelBeforeStart` be a copy of `pointer`
 *   Skip whitespace and line endings within `lines` given `pointer`
-*   Let `labelBeforeEnd` be a copy of `pointer`
 *   If the character at `pointer` is not c:[, let `pointer` be `start` and
     return
+*   Let `labelBeforeEnd` be a copy of `pointer`
 *   Move `pointer` one place forward
 *   Let `labelOpenStart` be a copy of `pointer`
 *   Skip whitespace and line endings within `lines` given `pointer`
-*   If the character at `pointer` is c:], let `pointer` be `start` and
-    return
+*   If the character at `pointer` is c:], let `pointer` be `start` and return
 *   Let `labelOpenEnd` be a copy of `pointer`
 *   Let `backslash` be a copy of `pointer`
 *   Let `bracket` be a copy of `pointer`
 *   *Look for label end*: scan for c:] within `lines` given `bracket`
 *   *Look for label escape*: scan for c:\ within `lines` given `backslash`
-*   If `backslash` points to the place right before `bracket`, move `backslash`
-    one place forward, move `bracket` one place forward, and go the step labeled
-    *look for label end*
-*   Otherwise, if `backslash` is before `bracket`, move `backslash` one place
-    forward, and go the step labeled *look for label escape*
+*   If `backslash` points to one place before `bracket`:
+
+    *   Move `backslash` one place forward
+    *   Move `bracket` one place forward
+    *   Go the step labeled *look for label end*
+*   Otherwise, if `backslash` is before `bracket`:
+
+    *   Move `backslash` one place forward
+    *   Go the step labeled *look for label escape*
 *   Otherwise, if `bracket` is not a place, let `pointer` be `start` and return
 *   Let `pointer` be `bracket`
 *   Let `labelCloseEnd` be a copy of `pointer`
@@ -1877,9 +1879,10 @@ pointer and lines:
 *   Let `destinationBeforeStart` be a copy of `pointer`
 *   Skip whitespace and line endings within `lines` given `pointer`
 *   Let `destinationBeforeEnd` be a copy of `pointer`
-*   Let `quoted` be `false`, and perform either of the following substeps:
+*   Let `quoted` be `false`
+*   Perform the following substeps:
 
-    *   If `pointer` is a c:<:
+    *   If `pointer` is c:<:
 
         *   Let `quoted` be `true`
         *   Move `pointer` one place forward
@@ -1923,9 +1926,9 @@ pointer and lines:
 *   Let `titleBeforeEnd` be a copy of `pointer`
 *   If the character at `pointer` is c:" or c:', let `marker` be that character
 *   Otherwise, if the character is c:(, let `marker` be c:)
-*   Otherwise, if `save` is a place, create a definition without a title, let
-    `pointer` be `save`, process as definitions with `lines` given `pointer`,
-    and return
+*   Otherwise, if `save` is a place, [create a definition][] without a title,
+    let `pointer` be `save`, process as definitions with `lines` given
+    `pointer`, and return
 *   Otherwise, let `pointer` be `start` and return
 *   Move `pointer` one place forward
 *   Let `titleStart` be a copy of `pointer`
@@ -1940,183 +1943,268 @@ pointer and lines:
 *   Let `titleAfterStart` be a copy of `pointer`
 *   Skip whitespace (not line endings) within `lines` given `pointer`
 *   Let `titleAfterEnd` be a copy of `pointer`
-*   If `pointer` is the end of the line, create a definition with a title,
+*   If `pointer` is the end of the line, [create a definition][] with a title,
     process as definitions with `lines` given `pointer`, and return
-*   Otherwise, if `save` is a place, create a definition without a title, let
-    `pointer` be `save`, process as definitions with `lines` given `pointer`,
-    and return
+*   Otherwise, if `save` is a place, [create a definition][] without a title,
+    let `pointer` be `save`, process as definitions with `lines` given
+    `pointer`, and return
 *   Otherwise, let `pointer` be `start`, and return
 
-#### Create a definition
+To [create a definition](#) is to perform the following steps:
 
-Open a g:definition.
-If `labelBeforeStart` is not `labelBeforeEnd`, emit the whitespace between both
-points.
-Open a g:definition-label.
-Emit a t:marker with the character at `labelBeforeEnd`.
-If `labelOpenStart` is not `labelOpenEnd`, emit the whitespace and line
-endings between both points.
+*   Open a g:definition
+*   If `labelBeforeStart` is not `labelBeforeEnd`, emit the whitespace between
+    both points
+*   Open a g:definition-label
+*   Emit a t:marker with the character at `labelBeforeEnd`
+*   If `labelOpenStart` is not `labelOpenEnd`, emit the whitespace and line
+    endings between both points
+*   Let `label` be a slice of the lines between `labelOpenEnd` and
+    `labelCloseStart`
+*   Open a g:definition-label-content
+*   [Process as Raw text][] with `lines` set to `label`
+*   Close
+*   If `labelCloseStart` is not `labelCloseEnd`, emit the whitespace and line
+    endings between both points
+*   Close
+*   Emit a t:marker with the character at `labelCloseEnd`
+*   Close
+*   Emit a t:marker with the character after `labelCloseEnd`
+*   If `destinationBeforeStart` is not `destinationBeforeEnd`, emit the
+    whitespace and line endings between both points
+*   If `quoted` is `true`:
 
-Let `label` be a slice of the lines between `labelOpenEnd` and
-`labelCloseStart`, open a g:definition-label-content, [process as Raw text][]
-with `lines` set to `label`, and close.
+    *   Emit a t:marker with the character at `destinationBeforeEnd`
+    *   Let `destination` be a line without an ending where `start` is
+        `destinationStart` and `end` is `destinationEnd`
+    *   Open a g:definition-destination-quoted
+    *   [Process as Raw text][] with `lines` set to a list with a single entry
+        `destination`
+    *   Emit a t:marker with the character at `destinationEnd`
+    *   Close
+*   Otherwise:
 
-If `labelCloseStart` is not `labelCloseEnd`, emit the whitespace and line
-endings between both points.
+    *   Let `destination` be a line without an ending where `start` is
+        `destinationStart` and `end` is `destinationEnd`
+    *   Open a g:definition-destination-quoted
+    *   [Process as Raw text][] with `lines` set to a list with a single entry
+        `destination`
+    *   Close
+*   If `destinationAfterStart` is not `destinationAfterEnd`, emit the whitespace
+    between both points
+*   If the destination is to be created with a title:
 
-Close.
-
-Emit a t:marker with the character at `labelCloseEnd`.
-Close.
-Emit a t:marker with the character after `labelCloseEnd`.
-
-If `destinationBeforeStart` is not `destinationBeforeEnd`, emit the whitespace
-and line endings between both points.
-
-If `quoted` is `true`, emit a t:marker with the character at
-`destinationBeforeEnd`, let `destination` be a line where `start` is
-`destinationStart`, `end` is `destinationEnd`, and without an ending, open a
-g:definition-destination-quoted, [process as Raw text][] with `lines` set to a
-list with a single entry `destination`, emit a t:marker with the character at
-`destinationEnd`, and close.
-
-Otherwise, let `destination` be a line where `start` is `destinationStart`,
-`end` is `destinationEnd`, and without an ending, open a
-g:definition-destination-quoted, [process as Raw text][] with `lines` set to a
-list with a single entry `destination`, and close.
-
-If `destinationAfterStart` is not `destinationAfterEnd`, emit the whitespace
-between both points.
-
-If the destination is to be created with a title, then if `destinationAfterEnd`
-is not `titleBeforeEnd`, emit the whitespace and line endings between both
-points, open a g:definition-title, emit a t:marker with the character at
-`titleBeforeEnd`, let `title` be a slice of the lines between `titleStart` and
-`titleEnd`, [process as Raw text][] with `lines` set to `title`, emit a t:marker
-with the character at `titleEnd`, then if `titleAfterStart` is not
-`titleAfterEnd`, emit the whitespace between both points, and close
-
-Finally, close.
-
-### Process as a Paragraph
+    *   If `destinationAfterEnd` is not `titleBeforeEnd`, emit the whitespace
+        and line endings between both points
+    *   Open a g:definition-title
+    *   Emit a t:marker with the character at `titleBeforeEnd`
+    *   Let `title` be a slice of the lines between `titleStart` and `titleEnd`
+    *   [Process as Raw text][] with `lines` set to `title`
+    *   Emit a t:marker with the character at `titleEnd`
+    *   If `titleAfterStart` is not `titleAfterEnd`, emit the whitespace between
+        both points
+    *   Close
+*   Close
 
 To [process as a Paragraph](#) is to perform the following steps with the given
-pointer, lines, and hint:
-
-Processing content can be given a hint, in which case the hint is either
-*setext primary heading* or *setext secondary heading*.
+pointer, lines, and optional hint:
 
 *   If a hint is given, open a g:setext-heading and open a
-    g:setext-heading-content
-*   Otherwise, open a g:paragraph
+    g:setext-heading-content, otherwise open a g:paragraph
 *   [Process as Phrasing][] given `lines`
 *   Close (once, because if there was a hint the place that hinted has to close
     the setext heading)
 
 ### Process as Raw text
 
-To [process as Raw text](#) is to perform the following steps with the given
-lines:
-
-*   Let `start` be a pointer to the first line (`0`) and the start of the
-    first line in lines
-*   Let `escape` be a copy of `start`
-*   Let `reference` be a copy of `start`
-*   *Look for reference*: scan for c:& within `lines` given `reference`
-*   *Look for escape*: scan for c:\ within `lines` given `escape`
-*   *Check*: if `escape` points to a place before `reference`:
-
-    *   If `start` is not `escape`, emit the content and line endings between
-        `start` and `escape`
-    *   Open a g:escape
-    *   Emit a t:marker with the character at `escape`
-    *   Move `escape` one place forward, and if the character at `escape` is
-        [ASCII punctuation][], emit a t:content with the character at `escape`
-    *   Close
-    *   Let `start` be a copy of `escape`
-    *   If `escape` is `reference`, go to the step labeled *look for reference*
-    *   Otherwise, go to the step labeled *look for escape*
-*   Otherwise, if `reference` points to a place:
-
-    *   Let `ampersand` be a copy of `reference`
-    *   Move `reference` one place forward
-    *   If the character at `reference` is [ASCII alphanumeric][]:
-
-        *   Let `referenceStart` be a copy of `reference`
-        *   Skip [ASCII alphanumeric][] characters within `lines` given
-            `reference`
-        *   If the character at `reference` is not c:;, go to the step labeled
-            *nonreference*
-        *   Otherwise, if the characters between `referenceStart` and
-            `reference` are not a [character reference name][], go to the step
-            labeled *nonreference*
-        *   If `start` is not `ampersand`, emit the content and line endings
-            between `start` and `ampersand`
-        *   Open a g:character-reference of kind `name`
-        *   Emit a t:marker with the character at `ampersand`
-        *   Emit a t:content with the characters between `referenceStart` and
-            `reference`
-        *   Emit a t:marker with the character at `reference`
-        *   Close
-        *   Let `start` be a copy of `reference`
-        *   Move `start` one place forward
-        *   Go to the step labeled *look for reference*
-    *   Otherwise, if the character at `reference` is c:#
-
-        *   Let `numberSign` be a copy of `reference`
-        *   Move `reference` one place forward
-        *   If the character at `reference` is c:X or c:x:
-
-            *   Let `hex` be a copy of `reference`
-            *   Move `reference` one place forward
-            *   If the character at `reference` is not [ASCII hex digit][], go
-                to the step labeled *nonreference*
-            *   Let `referenceStart` be a copy of `reference`
-            *   Skip [ASCII hex digit][] characters within `lines` given
-                `reference`
-            *   If the character at `reference` is not c:;, go to the step
-                labeled *nonreference*
-            *   If `start` is not `ampersand`, emit the content and line endings
-                between `start` and `ampersand`
-            *   Open a g:character-reference of kind `hexadecimal`
-            *   Emit a t:marker with the character at `ampersand`
-            *   Emit a t:marker with the character at `numberSign`
-            *   Emit a t:content with the character at `hex`
-            *   Emit a t:content with the characters between `referenceStart`
-                and `reference`
-            *   Emit a t:marker with the character at `reference`
-            *   Close
-            *   Let `start` be a copy of `reference`
-            *   Move `start` one place forward
-            *   Go to the step labeled *look for reference*
-        *   Otherwise, if the character at `reference` is an [ASCII digit][]:
-
-            *   Let `referenceStart` be a copy of `reference`
-            *   Skip [ASCII digit][] characters within `lines` given `reference`
-            *   If the character at `reference` is not c:;, go to the step
-                labeled *nonreference*
-            *   If `start` is not `ampersand`, emit the content and line endings
-                between `start` and `ampersand`
-            *   Open a g:character-reference of kind `decimal`
-            *   Emit a t:marker with the character at `ampersand`
-            *   Emit a t:marker with the character at `numberSign`
-            *   Emit a t:content with the characters between `referenceStart`
-                and `reference`
-            *   Emit a t:marker with the character at `reference`
-            *   Close
-            *   Let `start` be a copy of `reference`
-            *   Move `start` one place forward
-            *   Go to the step labeled *look for reference*
-        *   Otherwise, go to the step labeled *nonreference*
-    *   *Nonreference*: scan for c:& within `lines` given `reference`
-    *   Go to the step labeled *check*
-*   Otherwise, if `start` does not point to the last line or to the end of the
-    last line in lines, emit the content and line endings from `start`
+To [process as Raw text](#) is to [process as Text][] given `lines` and `kind`
+`raw`.
 
 ### Process as Phrasing
 
-To [process as Phrasing](#) is to perform the following steps with the given
-lines:
+To [process as Phrasing](#) is to [process as Text][] given `lines`.
+
+### Process as Text
+
+To [process as Text](#) is to perform the following steps with the given
+`lines` and optional `kind`, which when given is either `phrasing` or `raw`, and
+defaults to `phrasing`:
+
+*   Let `characters` be c:\ and c:&
+*   If `kind` is `phrasing`, let `characters` be c:!, c:&, c:*, c:<, c:\, c:],
+    c:[, c:_, and c:
+*   Let `pointer` be a pointer to the first line (`0`) and the start of the
+    first line in lines
+*   *Next*: Let `start` be a copy of `pointer`
+*   *Look*: scan for `characters` within `lines` given `pointer`
+*   If `pointer` does not point to a place, emit the content at `start` and
+    after
+*   Otherwise, if the character at `pointer` is:
+
+    *   ↪ **c:!**
+
+        *   Let `label` be a copy of `pointer`
+        *   Move `label` one place forward
+        *   If the character at `label` is not c:[, go to the step labeled
+            *look*
+        *   If `start` is not `pointer`, emit the content between both points
+        *   Open an g:image-opening
+        *   Emit a t:marker with the character at `pointer`
+        *   Emit a t:marker with the character at `label`
+        *   Close
+        *   Let `pointer` be `label`
+        *   Go to the step labeled *next*
+    *   ↪ **c:&**
+
+        *   Let `reference` be a copy of `pointer`
+        *   Let `ampersand` be a copy of `reference`
+        *   Move `reference` one place forward
+        *   If the character at `reference` is [ASCII alphanumeric][]:
+
+            *   Let `referenceStart` be a copy of `reference`
+            *   Skip [ASCII alphanumeric][] characters within `lines` given
+                `reference`
+            *   If the character at `reference` is not c:;, go to the step
+                labeled *look*
+            *   Otherwise, if the characters between `referenceStart` and
+                `reference` are not a [character reference name][], go to the
+                step labeled *look*
+            *   If `start` is not `ampersand`, emit the content and line endings
+                between `start` and `ampersand`
+            *   Open a g:character-reference of kind `name`
+            *   Emit a t:marker with the character at `ampersand`
+            *   Emit a t:content with the characters between `referenceStart` and
+                `reference`
+            *   Emit a t:marker with the character at `reference`
+            *   Close
+            *   Let `pointer` be `reference`
+            *   Go to the step labeled *next*
+        *   Otherwise, if the character at `reference` is c:#
+
+            *   Let `numberSign` be a copy of `reference`
+            *   Move `reference` one place forward
+            *   If the character at `reference` is c:X or c:x:
+
+                *   Let `hex` be a copy of `reference`
+                *   Move `reference` one place forward
+                *   If the character at `reference` is not [ASCII hex digit][],
+                    go to the step labeled *look*
+                *   Let `referenceStart` be a copy of `reference`
+                *   Skip [ASCII hex digit][] characters within `lines` given
+                    `reference`
+                *   If the character at `reference` is not c:;, go to the step
+                    labeled *look*
+                *   If `start` is not `ampersand`, emit the content and line
+                    endings between `start` and `ampersand`
+                *   Open a g:character-reference of kind `hexadecimal`
+                *   Emit a t:marker with the character at `ampersand`
+                *   Emit a t:marker with the character at `numberSign`
+                *   Emit a t:content with the character at `hex`
+                *   Emit a t:content with the characters between
+                    `referenceStart` and `reference`
+                *   Emit a t:marker with the character at `reference`
+                *   Close
+                *   Let `pointer` be `reference`
+                *   Go to the step labeled *next*
+            *   Otherwise, if the character at `reference` is an [ASCII
+                digit][]:
+
+                *   Let `referenceStart` be a copy of `reference`
+                *   Skip [ASCII digit][] characters within `lines` given
+                    `reference`
+                *   If the character at `reference` is not c:;, go to the step
+                    labeled *look*
+                *   If `start` is not `ampersand`, emit the content and line
+                    endings between `start` and `ampersand`
+                *   Open a g:character-reference of kind `decimal`
+                *   Emit a t:marker with the character at `ampersand`
+                *   Emit a t:marker with the character at `numberSign`
+                *   Emit a t:content with the characters between
+                    `referenceStart` and `reference`
+                *   Emit a t:marker with the character at `reference`
+                *   Close
+                *   Let `pointer` be `reference`
+                *   Go to the step labeled *next*
+            *   Otherwise, go to the step labeled *look*
+        *   Go to the step labeled *look*
+    *   ↪ **c:***\
+        ↪ **c:_**
+
+        *   If `start` is not `pointer`, emit the content between both points
+        *   Open a g:emphasis-or-strong
+        *   Let `last` be a copy of `pointer`
+        *   *Move*: if the character after `last` is the character at `pointer`,
+            move `last` one place forward, go to the step labeled *move*
+        *   Emit a t:sequence with the characters between `pointer` and `last`
+            (including)
+        *   Close
+        *   Let `pointer` be `last`
+        *   Go to the step labeled *next*
+    *   ↪ **c:<**
+
+        *   (todo: autolinks or inline html)
+    *   ↪ **c:[**
+
+        *   If `start` is not `pointer`, emit the content between both points
+        *   Open an g:link-opening
+        *   Emit a t:marker with the character at `pointer`
+        *   Close
+        *   Go to the step labeled *next*
+    *   ↪ **c:\ **
+
+        *   If `start` is not `pointer`, emit the content between both points
+        *   Let `escaped` be a copy of `pointer`
+        *   Move `escaped` one place forward
+        *   Open a g:escape
+        *   Emit a t:marker with the character at `pointer`
+        *   If the character at `escaped` is [ASCII punctuation][], emit a
+            t:content with the character at `escaped`, and let `pointer` be
+            `escaped`
+        *   Close
+        *   Go to the step labeled *next*
+    *   ↪ **c:]**
+
+        *   If `start` is not `pointer`, emit the content between both points
+        *   Open an g:link-or-image-closing
+        *   Emit a t:marker with the character at `pointer`
+        *   Close
+        *   Go to the step labeled *next*
+    *   ↪ **c:`**
+
+        *   Let `last` be a copy of `pointer`
+        *   Let `size` be `1`
+        *   *Move*: if the character after `last` is the character at `pointer`,
+            move `last` one place forward, increment `size` by `1`, and go to
+            the step labeled *move*
+        *   Let `next` be a copy of `last`
+        *   *look*: scan for c:` within `lines` given `next`
+        *   If `next` points to a place:
+
+            *   Let `nextLast` be a copy of `next`
+            *   Let `nextSize` be `1`
+            *   *Move next*: if the character after `nextLast` is the character
+                at `next`, move `nextLast` one place forward, increment
+                `nextSize` by `1`, and go to the step labeled *move next*
+            *   If `nextSize` is not `size`, go to the step labeled *look*
+            *   Let `contentStart` be `last`
+            *   Move `contentStart` one place forward
+            *   If `start` is not `pointer`, emit the content between both
+                points
+            *   Open a g:phrasing-code
+            *   Emit a t:sequence with the characters between `pointer` and
+                `last`
+            *   Emit the content and line endings between `contentStart` and
+                `next`
+            *   Emit a t:sequence with the characters between `next` and
+                `nextLast`
+            *   Close
+            *   Let `pointer` be `last`
+            *   Go to the step labeled *next*
+        *   Let `pointer` be `last`
+        *   Go to the step labeled *next*
+    *   ↪ **Anything else**
+
+        > ❗️ Note: Impossible!
 
 > ❗️ Todo: escapes, character references, code, emphasis, importance, links,
 > link references, images, image references, autolinks, HTML, hard line breaks,
