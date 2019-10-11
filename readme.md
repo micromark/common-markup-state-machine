@@ -124,6 +124,8 @@ Common Markup parser.
     *   [9.32 Link or image closing group](#932-link-or-image-closing-group)
     *   [9.33 Emphasis or strong group](#933-emphasis-or-strong-group)
     *   [9.34 Phrasing code group](#934-phrasing-code-group)
+    *   [9.35 Automatic link group](#935-automatic-link-group)
+    *   [9.36 HTML inline group](#936-html-inline-group)
 *   [10 Processing](#10-processing)
     *   [10.1 Process as an ATX heading](#101-process-as-an-atx-heading)
     *   [10.2 Process as a Setext primary heading](#102-process-as-a-setext-primary-heading)
@@ -269,6 +271,10 @@ Connector), `Pd` (Punctuation, Dash), `Pe` (Punctuation, Close), `Pf`
 (Punctuation, Final quote), `Pi` (Punctuation, Initial quote), `Po`
 (Punctuation, Other), or `Ps` (Punctuation, Open) categories, or an [ASCII
 punctuation][ascii-punctuation] (**\[UNICODE]**).
+
+An <a id="atext" href="#atext">**atext**</a> is an [ASCII alphanumeric][ascii-alphanumeric], or a character in the inclusive
+ranges U+0023 NUMBER SIGN (`#`) to U+0027 APOSTROPHE (`'`), U+002A ASTERISK (`*`), U+002B PLUS SIGN (`+`), U+002D DASH (`-`), U+002F SLASH (`/`), U+003D EQUALS TO (`=`), U+003F QUESTION MARK (`?`), U+005E CARET (`^`) to U+0060 GRAVE ACCENT (`` ` ``), or U+007B LEFT CURLY BRACE (`{`) to U+007E TILDE (`~`)
+(**\[RFC5322]**).
 
 > ❗️ Todo:
 >
@@ -1820,6 +1826,27 @@ interface CharacterReference <: Group {
 
 ### 9.34 Phrasing code group
 
+### 9.35 Automatic link group
+
+A [*Automatic link group*][g-automatic-link] represents a literal URL or email address.
+
+```idl
+interface AutomaticLink <: Group {
+  kind: email | uri
+  children: [Marker | Content]
+}
+```
+
+### 9.36 HTML inline group
+
+An [*HTML inline group*][g-html-inline] represents XML-like structures.
+
+```idl
+interface HTMLInline <: Group {
+  children: [Marker | Content | LineEnding]
+}
+```
+
 ## 10 Processing
 
 ### 10.1 Process as an ATX heading
@@ -2151,8 +2178,8 @@ To <a id="process-as-text" href="#process-as-text">**process as Text**</a> is to
 defaults to `phrasing`:
 
 *   Let `characters` be U+005C BACKSLASH (`\`) and U+0026 AMPERSAND (`&`)
-*   If `kind` is `phrasing`, let `characters` be U+0021 EXCLAMATION MARK (`!`), U+0026 AMPERSAND (`&`), U+002A ASTERISK (`*`), U+003C LESS THAN (`<`), c:, U+005D RIGHT SQUARE BRACKET (`]`),
-    U+005B LEFT SQUARE BRACKET (`[`), U+005F UNDERSCORE (`_`), and c:
+*   If `kind` is `phrasing`, let `characters` be U+0021 EXCLAMATION MARK (`!`), U+0026 AMPERSAND (`&`), U+002A ASTERISK (`*`), U+003C LESS THAN (`<`), U+005C
+    BACKSLASH (`\`), U+005D RIGHT SQUARE BRACKET (`]`), U+005B LEFT SQUARE BRACKET (`[`), U+005F UNDERSCORE (`_`), and U+0060 GRAVE ACCENT (`` ` ``)
 *   Let `pointer` be a pointer to the first line (`0`) and the start of the
     first line in lines
 *   *Next*: Let `start` be a copy of `pointer`
@@ -2262,7 +2289,710 @@ defaults to `phrasing`:
         *   Go to the step labeled *next*
     *   ↪ **U+003C LESS THAN (`<`)**
 
-        *   (todo: autolinks or inline html)
+        *   Let `end` be a copy of `pointer`
+        *   Move `end` one place forward
+        *   If the character at `end` is:
+
+            *   ↪ **U+0021 EXCLAMATION MARK (`!`)**:
+
+                Go to the step labeled *declaration or email atext*
+            *   ↪ **U+002F SLASH (`/`)**:
+
+                Go to the step labeled *closing tag or email atext*
+            *   ↪ **U+003F QUESTION MARK (`?`)**:
+
+                Go to the step labeled *instruction or email atext*
+            *   ↪ **[ASCII alpha][ascii-alpha]**:
+
+                Go to the step labeled *opening tag, scheme, or email atext*
+            *   ↪ **[atext][atext]**:\
+                ↪ **U+002E DOT (`.`)**:
+
+                Go to the step labeled *email atext*
+            *   ↪ **Anything else**
+
+                Go to the step labeled *look*
+        *   *Instruction or email atext*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+003F QUESTION MARK (`?`)**:
+
+                    Go to the step labeled *instruction close or email atext*
+                *   ↪ **U+0040 AT SIGN (`@`)**:
+
+                    Go to the step labeled *instruction or email at sign or dot*
+                *   ↪ **[atext][atext]**:\
+                    ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *instruction or email atext*
+                *   ↪ **Not a place**:
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *instruction*
+        *   *Instruction close or email atext*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    Go to the step labeled *HTML end*
+                *   ↪ **U+003F QUESTION MARK (`?`)**:
+
+                    Go to the step labeled *instruction close or email atext*
+                *   ↪ **U+0040 AT SIGN (`@`)**:
+
+                    Go to the step labeled *instruction or email at sign or dot*
+                *   ↪ **[atext][atext]**:\
+                    ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *instruction or email atext*
+                *   ↪ **Not a place**:
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *instruction*
+        *   *Instruction or email at sign or dot*
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+003F QUESTION MARK (`?`)**:
+
+                    Go to the step labeled *instruction close*
+                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
+
+                    Go to the step labeled *instruction or email label*
+                *   ↪ **Not a place**:
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *instruction*
+        *   *Instruction or email label*
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002D DASH (`-`)**:
+
+                    Go to the step labeled *instruction or email dash*
+                *   ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *instruction or email at sign or dot*
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    > ❗️ Todo: Size between `@` and `>` can be at most 63 total.
+
+                    Go to the step labeled *email end*
+                *   ↪ **U+003F QUESTION MARK (`?`)**:
+
+                    Go to the step labeled *instruction close*
+                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
+
+                    Go to the step labeled *instruction or email label*
+                *   ↪ **Not a place**:
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *instruction*
+        *   *Instruction or email dash*
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002D DASH (`-`)**:
+
+                    Go to the step labeled *instruction or email dash*
+                *   ↪ **U+003F QUESTION MARK (`?`)**:
+
+                    Go to the step labeled *instruction close*
+                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
+
+                    Go to the step labeled *instruction or email label*
+                *   ↪ **Not a place**:
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *instruction*
+        *   *Instruction*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+003F QUESTION MARK (`?`)**:
+
+                    Go to the step labeled *instruction close*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *instruction*
+        *   *Instruction close*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    Go to the step labeled *HTML end*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *instruction*
+        *   *Declaration or email atext*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002D DASH (`-`)**:
+
+                    Go to the step labeled *comment open inside or email atext*
+                *   ↪ **U+0040 AT SIGN (`@`)**:
+
+                    Go to the step labeled *email at sign or dot*
+                *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**:
+
+                    *   If the next few characters are `CDATA[`, move `end` to
+                        that last U+005B LEFT SQUARE BRACKET (`[`), and go to the step labeled *CDATA*
+                    *   Otherwise, go to the step labeled *look*
+                *   ↪ **[ASCII upper alpha][ascii-upper-alpha]**:
+
+                    Go to the step labeled *declaration name or email atext*
+                *   ↪ **[atext][atext]**:\
+                    ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *email atext*
+                *   ↪ **Anything else**:
+
+                    Go to the step labeled *look*
+        *   *Comment open inside or email atext*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002D DASH (`-`)**:
+
+                    Go to the step labeled *comment or email atext*
+                *   ↪ **U+0040 AT SIGN (`@`)**:
+
+                    Go to the step labeled *email at sign or dot*
+                *   ↪ **[atext][atext]**:\
+                    ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *email atext*
+                *   ↪ **Anything else**:
+
+                    Go to the step labeled *look*
+        *   *Comment or email atext*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002D DASH (`-`)**:
+
+                    Go to the step labeled *comment close inside or email atext*
+                *   ↪ **U+0040 AT SIGN (`@`)**:
+
+                    Go to the step labeled *comment or email at sign or dot*
+                *   ↪ **[atext][atext]**:\
+                    ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *comment or email atext*
+                *   ↪ **Not a place**:
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**:
+
+                    Go to the step labeled *comment*
+        *   *Comment close inside or email atext*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002D DASH (`-`)**:
+
+                    Go to the step labeled *comment close or email atext*
+                *   ↪ **U+0040 AT SIGN (`@`)**:
+
+                    Go to the step labeled *comment or email at sign or dot*
+                *   ↪ **[atext][atext]**:\
+                    ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *comment or email atext*
+                *   ↪ **Not a place**:
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**:
+
+                    Go to the step labeled *comment*
+        *   *Comment close or email atext*
+
+            > **Note**: a comment may not contain two dashes (`--`), and
+            > may not end in a dash (which would result in `--->`).
+            > Here we have seen two dashes, so we can either be at the end of a
+            > comment, or no longer in a comment.
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    Go to the step labeled *HTML end*
+                *   ↪ **U+0040 AT SIGN (`@`)**:
+
+                    Go to the step labeled *email at sign or dot*
+                *   ↪ **[atext][atext]**:\
+                    ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *email atext*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *look*
+        *   *Comment or email at sign or dot*
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002D DASH (`-`)**:
+
+                    Go to the step labeled *comment close inside*
+                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
+
+                    Go to the step labeled *comment or email label*
+                *   ↪ **Not a place**:
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *comment*
+        *   *Comment or email label*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002D DASH (`-`)**:
+
+                    Go to the step labeled *comment close inside or email label
+                    dash*
+                *   ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *comment or email at sign or dot*
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    > ❗️ Todo: Size between `@` and `>` can be at most 63 total.
+
+                    Go to the step labeled *email end*
+                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
+
+                    Go to the step labeled *comment or email label*
+                *   ↪ **Not a place**:
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *comment*
+        *   *Comment close inside or email label dash*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002D DASH (`-`)**:
+
+                    Go to the step labeled *comment close or email label dash*
+                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
+
+                    Go to the step labeled *comment or email label*
+                *   ↪ **U+003E GREATER THAN (`>`)**:\
+                    ↪ **Not a place**:
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *comment*
+        *   *Comment close or email label dash*:
+
+            > **Note**: a comment may not contain two dashes (`--`), and
+            > may not end in a dash (which would result in `--->`).
+            > Here we have seen two dashes, so we can either be at the end of a
+            > comment, or no longer in a comment.
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    Go to the step labeled *HTML end*
+                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
+
+                    Go to the step labeled *email label*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *look*
+        *   *Comment*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002D DASH (`-`)**:
+
+                    Go to the step labeled *comment close inside*
+                *   ↪ **Not a place**:
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *comment*
+        *   *Comment close inside*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002D DASH (`-`)**:
+
+                    Go to the step labeled *comment close*
+                *   ↪ **Not a place**:
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *comment*
+        *   *Comment close*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    Go to the step labeled *HTML end*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *look*
+        *   *CDATA*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**:
+
+                    *   If the next few characters are `]>`, move `end` to
+                        that last U+003E GREATER THAN (`>`), and go to the step labeled *HTML end*
+                    *   Otherwise, go to the step labeled *CDATA*
+                *   ↪ **Not a place**:
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *CDATA*
+        *   *Declaration name or email atext*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **[*Line ending token*][t-line-ending]**:\
+                    ↪ **U+0009 CHARACTER TABULATION (HT)**:\
+                    ↪ **U+0020 SPACE (SP)**:
+
+                    > ❗️ Todo: Support line endings somehow here?
+
+                    Go to the step labeled *declaration whitespace*
+                *   ↪ **U+0040 AT SIGN (`@`)**:
+
+                    Go to the step labeled *email at sign or dot*
+                *   ↪ **[ASCII upper alpha][ascii-upper-alpha]**:
+
+                    *   Go to the step labeled *declaration name or email atext*
+                *   ↪ **[atext][atext]**:\
+                    ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *email atext*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *look*
+        *   *Declaration whitespace*:
+
+            *   Skip whitespace and line endings within `lines` given `end`
+            *   If the character at `end` is:
+
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    Go to the step labeled *HTML end*
+                *   ↪ **Not a place**
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *declaration content*
+        *   *Declaration content*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    Go to the step labeled *HTML end*
+                *   ↪ **Not a place**
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *declaration content*
+        *   *Closing tag or email atext*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+0040 AT SIGN (`@`)**:
+
+                    Go to the step labeled *email at sign or dot*
+                *   ↪ **[ASCII alpha][ascii-alpha]**:
+
+                    Go to the step labeled *closing tag inside or email atext*
+                *   ↪ **[atext][atext]**:\
+                    ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *email atext*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *look*
+        *   *Closing tag inside or email atext*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **[*Line ending token*][t-line-ending]**:\
+                    ↪ **U+0009 CHARACTER TABULATION (HT)**:\
+                    ↪ **U+0020 SPACE (SP)**:
+
+                    > ❗️ Todo: Support line endings somehow here?
+
+                    Go to the step labeled *closing tag whitespace*
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    Go to the step labeled *HTML end*
+                *   ↪ **U+0040 AT SIGN (`@`)**:
+
+                    Go to the step labeled *email at sign or dot*
+                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:\
+                    ↪ **U+002D DASH (`-`)**:
+
+                    Go to the step labeled *closing tag inside or email atext*
+                *   ↪ **[atext][atext]**:\
+                    ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *email atext*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *look*
+        *   *Closing tag whitespace*:
+
+            *   Skip whitespace and line endings within `lines` given `end`
+            *   If the character at `end` is:
+
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    Go to the step labeled *HTML end*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *look*
+        *   *Opening tag, scheme, or email atext*:
+
+            > ❗️ Todo: Support whitespace, attributes, etc in HTML.
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002B PLUS SIGN (`+`)**:\
+                    ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *scheme inside or email atext*
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    Go to the step labeled *HTML end*
+                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:\
+                    ↪ **U+002D DASH (`-`)**:\\
+
+                    Go to the step labeled *opening tag inside, scheme inside, or email atext*
+                *   ↪ **[atext][atext]**:
+
+                    Go to the step labeled *email atext*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *look*
+        *   *Opening tag inside, scheme inside, or email atext*:
+
+            > ❗️ Todo: Support whitespace, attributes, etc in HTML.
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002B PLUS SIGN (`+`)**:\
+                    ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *scheme inside or email atext*
+                *   ↪ **U+003A COLON (`:`)**:
+
+                    Go to the step labeled *URI inside*
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    Go to the step labeled *HTML end*
+                *   ↪ **U+0040 AT SIGN (`@`)**:
+
+                    Go to the step labeled *email at sign or dot*
+                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:\
+                    ↪ **U+002D DASH (`-`)**:\\
+
+                    Go to the step labeled *opening tag inside, scheme inside, or email atext*
+                *   ↪ **[atext][atext]**:
+
+                    Go to the step labeled *email atext*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *look*
+        *   *Scheme inside or email atext*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+003A COLON (`:`)**:
+
+                    Go to the step labeled *URI inside*
+                *   ↪ **U+0040 AT SIGN (`@`)**:
+
+                    Go to the step labeled *email at sign or dot*
+                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:\
+                    ↪ **U+002B PLUS SIGN (`+`)**:\
+                    ↪ **U+002D DASH (`-`)**:\
+                    ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *scheme inside or email atext*
+                *   ↪ **[atext][atext]**:
+
+                    Go to the step labeled *email atext*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *look*
+        *   *URI inside*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    Go to the step labeled *URI end*
+                *   ↪ **[*Line ending token*][t-line-ending]**:\
+                    ↪ **[ASCII control][ascii-control]**:\
+                    ↪ **U+003C LESS THAN (`<`)**:\
+                    ↪ **Not a place**
+
+                    > ❗️ Todo: Support line endings somehow here?
+
+                    Go to the step labeled *look*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *URI inside*
+        *   *Email atext*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+0040 AT SIGN (`@`)**:
+
+                    Go to the step labeled *email at sign or dot*
+                *   ↪ **[atext][atext]**:\
+                    ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *email atext*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *look*
+        *   *Email label*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002D DASH (`-`)**:
+
+                    Go to the step labeled *email dash*
+                *   ↪ **U+002E DOT (`.`)**:
+
+                    Go to the step labeled *email at sign or dot*
+                *   ↪ **U+003E GREATER THAN (`>`)**:
+
+                    > ❗️ Todo: Size between `@` and `>` can be at most 63 total.
+
+                    Go to the step labeled *email end*
+                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
+
+                    Go to the step labeled *email label*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *look*
+        *   *Email at sign or dot*:
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
+
+                    Go to the step labeled *email label*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *look*
+        *   *Email dash*
+
+            *   Move `end` one place forward
+            *   If the character at `end` is:
+
+                *   ↪ **U+002D DASH (`-`)**:
+
+                    Go to the step labeled *email dash*
+                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
+
+                    Go to the step labeled *email label*
+                *   ↪ **Anything else**
+
+                    Go to the step labeled *look*
+        *   *Email end*:
+
+            *   If `start` is not `pointer`, emit the content between both
+                points
+            *   Open an [*Automatic link group*][g-automatic-link] of kind `email`
+            *   Emit a [*Marker token*][t-marker] with the character at `pointer`
+            *   Move `pointer` one place forward
+            *   Emit a [*Content token*][t-content] with the characters between `pointer` and `end`
+            *   Emit a [*Marker token*][t-marker] with the character at `end`
+            *   Close
+            *   Let `pointer` be `end`
+            *   Go to the step labeled *next*
+        *   *URI end*:
+
+            *   If `start` is not `pointer`, emit the content between both
+                points
+            *   Open an [*Automatic link group*][g-automatic-link] of kind `uri`
+            *   Emit a [*Marker token*][t-marker] with the character at `pointer`
+            *   Move `pointer` one place forward
+            *   Emit a [*Content token*][t-content] with the characters between `pointer` and `end`
+            *   Emit a [*Marker token*][t-marker] with the character at `end`
+            *   Close
+            *   Let `pointer` be `end`
+            *   Go to the step labeled *next*
+        *   *HTML end*:
+
+            *   If `start` is not `pointer`, emit the content between both
+                points
+            *   Open an [*HTML inline group*][g-html-inline] of kind `uri`
+            *   Emit a [*Marker token*][t-marker] with the character at `pointer`
+            *   Move `pointer` one place forward
+            *   Emit the content and line endings between `pointer` and `end`
+            *   Emit a [*Marker token*][t-marker] with the character at `end`
+            *   Close
+            *   Let `pointer` be `end`
+            *   Go to the step labeled *next*
     *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
         *   If `start` is not `pointer`, emit the content between both points
@@ -2270,7 +3000,7 @@ defaults to `phrasing`:
         *   Emit a [*Marker token*][t-marker] with the character at `pointer`
         *   Close
         *   Go to the step labeled *next*
-    *   ↪ **U+005C BACKSLASH (`\`) **
+    *   ↪ **U+005C BACKSLASH (`\`)**
 
         *   If `start` is not `pointer`, emit the content between both points
         *   Let `escaped` be a copy of `pointer`
@@ -2340,7 +3070,11 @@ defaults to `phrasing`:
     [ASCII format for network interchange](https://tools.ietf.org/html/rfc20).
     V.G. Cerf.
     October 1969.
-    Internet Standard.
+    IETF.
+*   **\[RFC5322]**
+    [Internet Message Format](https://tools.ietf.org/html/rfc5322).
+    P. Resnick.
+    IETF.
 *   **\[UNICODE]**:
     [The Unicode Standard](https://www.unicode.org/versions/).
     Unicode Consortium.
@@ -2723,6 +3457,8 @@ This work is licensed under a
 
 [unicode-punctuation]: #unicode-punctuation
 
+[atext]: #atext
+
 [input-stream]: #input-stream
 
 [input-character]: #input-character
@@ -2938,3 +3674,7 @@ This work is licensed under a
 [g-emphasis-or-strong]: #933-emphasis-or-strong-group
 
 [g-phrasing-code]: #934-phrasing-code-group
+
+[g-automatic-link]: #935-automatic-link-group
+
+[g-html-inline]: #936-html-inline-group
