@@ -6,17 +6,18 @@ Together, the parsing rules described below define what is referred to as a
 Common Markup parser.
 
 > This document is currently in progress.
-> Some parts are still in progress:
->
-> *   [Stack of continuation](#) (`>` and `␠␠` for blockquote and list items)
-> *   Extensions
-> *   Emphasis, strong, links, images in text
-> *   Lots of infra algorithms
 >
 > It is developed jointly with a reference parser:
 > [`micromark`](https://github.com/micromark/micromark).
 >
 > Contributions are welcome.
+>
+> Some parts are still in progress:
+>
+> *   [Stack of continuation](#) (`>` and `␠␠` for blockquote and list items)
+> *   Extensions
+> *   Emphasis, strong, links, images, hard line breaks
+> *   Lots of infra algorithms
 
 ## Table of contents
 
@@ -1314,417 +1315,6 @@ If the next few characters are:
 
     Consume
 
-## Tokens
-
-### Whitespace token
-
-A t:whitespace represents inline whitespace that is part of syntax instead
-of content.
-
-```idl
-interface Whitespace <: Token {
-  size: number
-  used: number
-  characters: [Character]
-}
-```
-
-```js
-{
-  type: 'whitespace',
-  characters: [9],
-  size: 3,
-  used: 0
-}
-```
-
-### Line ending token
-
-A t:line-ending represents a line break in the syntax.
-
-```idl
-interface LineEnding <: Token {}
-```
-
-```js
-{type: 'lineEnding'}
-```
-
-### End-of-file token
-
-An t:end-of-file represents the end of the syntax.
-
-```idl
-interface EndOfFile <: Token {}
-```
-
-```js
-{type: 'endOfFile'}
-```
-
-### Marker token
-
-A t:marker represents one punctuation character that is part of syntax instead
-of content.
-
-```idl
-interface Marker <: Token {}
-```
-
-```js
-{type: 'marker'}
-```
-
-
-### Sequence token
-
-A t:sequence represents one or more of the same punctuation characters that are
-part of syntax instead of content.
-
-
-```idl
-interface Sequence <: Token {
-  size: number
-}
-```
-
-```js
-{type: 'sequence', size: 3}
-```
-
-### Content token
-
-A t:content represents content.
-
-```idl
-interface Content <: Token {
-  prefix: string
-}
-```
-
-```js
-{type: 'content', prefix: '  '}
-```
-
-## Groups
-
-Groups are named groups of tokens and other blocks.
-
-### Blank line group
-
-A g:blank-line represents an empty line.
-
-```idl
-interface BlankLine <: Group {
-  children: [Whitespace]
-}
-```
-
-### ATX heading group
-
-An g:atx-heading represents a heading for a section.
-
-```idl
-interface AtxHeading <: Group {
-  children: [ATXHeadingFenceGroup | ATXHeadingContentGroup]
-}
-```
-
-### ATX heading fence group
-
-An g:atx-heading-fence represents a fence of a heading.
-
-```idl
-interface AtxHeadingFence <: Group {
-  children: [Whitespace | Sequence]
-}
-```
-
-### ATX heading content group
-
-An g:atx-heading-content represents the phrasing of a heading.
-
-```idl
-interface AtxHeadingContent <: Group {
-  children: [Phrasing]
-}
-```
-
-### Thematic break group
-
-A g:thematic-break represents a thematic break in a section.
-
-```idl
-interface ThematicBreak <: Group {
-  children: [Sequence | Whitespace]
-}
-```
-
-### HTML group
-
-An g:html represents embedded HTML.
-
-```idl
-interface HTML <: Group {
-  children: [HTMLineGroup | BlankLineGroup | LineEnding]
-}
-```
-
-### HTML line group
-
-An g:html-line represents a line of HTML.
-
-```idl
-interface HTMLLine <: Group {
-  children: [Whitespace | Content]
-}
-```
-
-### Indented code group
-
-An g:indented-code represents preformatted text.
-
-```idl
-interface IndentedCode <: Group {
-  children: [IndentedCodeLineGroup | BlankLineGroup | LineEnding]
-}
-```
-
-### Indented code line group
-
-An g:indented-code-line represents a line of indented code.
-
-```idl
-interface IndentedCodeLine <: Group {
-  children: [Whitespace | Content]
-}
-```
-
-### Blockquote group
-
-A g:blockquote represents paraphrased text.
-
-```idl
-interface Blockquote <: Group {
-  children: [FencedCodeGroup | IndentedCodeGroup | ATXHeadingGroup | SetextHeadingGroup | ThematicBreakGroup | HTMLGroup | ContentGroup | LineEnding]
-}
-```
-
-### Fenced code group
-
-A g:fenced-code represents preformatted text.
-
-```idl
-interface FencedCode <: Group {
-  children: [FencedCodeFenceGroup | FencedCodeLineGroup | BlankLineGroup | LineEnding]
-}
-```
-
-### Fenced code fence group
-
-A g:fenced-code-fence represents a fence of fenced code.
-
-```idl
-interface FencedCodeFence <: Group {
-  children: [Whitespace | Sequence | FencedCodeLanguageGroup | FencedCodeMetadataGroup]
-}
-```
-
-### Fenced code language group
-
-A g:fenced-code-language represents the programming language of fenced code.
-
-```idl
-interface FencedCodeLanguage <: Group {
-  children: [EscapeGroup | CharacterReferenceGroup | Content]
-}
-```
-
-### Fenced code metadata group
-
-A g:fenced-code-metadata represents the metadata about fenced code.
-
-```idl
-interface FencedCodeMetadata <: Group {
-  children: [EscapeGroup | CharacterReferenceGroup | Content | Whitespace]
-}
-```
-
-### Fenced code line group
-
-A g:fenced-code-line represents a line of fenced code.
-
-```idl
-interface FencedCodeLine <: Group {
-  children: [Whitespace | Content]
-}
-```
-
-### Content group
-
-A g:content represents content: definitions, paragraphs, and sometimes heading
-content.
-
-```idl
-interface Content <: Group {
-  children: [ContentLineGroup | LineEnding]
-}
-```
-
-### Content line group
-
-A g:content-line represents a line of content.
-
-```idl
-interface ContentLine <: Group {
-  children: [Whitespace | Content]
-}
-```
-
-### Setext heading group
-
-An g:setext-heading represents a heading for a section.
-
-```idl
-interface SetextHeading <: Group {
-  children: [SetextHeadingContentGroup | SetextHeadingUnderlineGroup | LineEnding]
-}
-```
-
-### Setext heading content group
-
-> ❗️ Todo
-
-### Setext heading underline group
-
-A g:setext-heading-underline represents a fence of a heading.
-
-```idl
-interface SetextHeadingUnderline <: Group {
-  children: [Whitespace | Sequence]
-}
-```
-
-### Definition group
-
-A g:definition represents a link reference definition.
-
-```idl
-interface Definition <: Group {
-  children: [DefinitionLabelGroup | DefinitionLabelQuotedGroup | DefinitionLabelUnquotedGroup | DefinitionTitleGroup | Whitespace | LineEnding]
-}
-```
-
-### Definition label group
-
-A g:definition-label represents the label of a definition.
-
-```idl
-interface DefinitionLabel <: Group {
-  children: [DefinitionLabelContentGroup | Marker | Whitespace | LineEnding]
-}
-```
-
-### Definition label content group
-
-A g:definition-label-content represents the content of the label of a
-definition.
-
-```idl
-interface DefinitionLabelContent <: Group {
-  children: [EscapeGroup | CharacterReferenceGroup | Content | Whitespace | LineEnding]
-}
-```
-
-### Definition destination quoted group
-
-A g:definition-destination-quoted represents an enclosed destination of a
-definition.
-
-```idl
-interface DefinitionDestinationQuoted <: Group {
-  children: [EscapeGroup | CharacterReferenceGroup | Content | Marker]
-}
-```
-
-### Definition destination unquoted group
-
-A g:definition-destination-unquoted represents an unclosed destination of a
-definition.
-
-```idl
-interface DefinitionDestinationUnquoted <: Group {
-  children: [EscapeGroup | CharacterReferenceGroup | Content]
-}
-```
-
-### Definition title group
-
-A g:definition-title represents advisory information, such as a description of
-the destination of the definition.
-
-```idl
-interface DefinitionTitle <: Group {
-  children: [EscapeGroup | CharacterReferenceGroup | Content | Whitespace | LineEnding]
-}
-```
-
-### Escape group
-
-A g:escape represents an escaped marker or an empty escape.
-
-```idl
-interface Escape <: Group {
-  children: [Marker | Content]
-}
-```
-
-### Character reference group
-
-A g:character-reference represents an escaped character.
-
-```idl
-interface CharacterReference <: Group {
-  kind: name | hexadecimal | decimal
-  children: [Marker | Content]
-}
-```
-
-### Paragraph group
-
-> ❗️ Todo
-
-### Image opening group
-
-### Link opening group
-
-### Link or image closing group
-
-### Emphasis or strong group
-
-### Phrasing code group
-
-### Automatic link group
-
-A g:automatic-link represents a literal URL or email address.
-
-```idl
-interface AutomaticLink <: Group {
-  kind: email | uri
-  children: [Marker | Content]
-}
-```
-
-### HTML inline group
-
-An g:html-inline represents XML-like structures.
-
-```idl
-interface HTMLInline <: Group {
-  children: [Marker | Content | LineEnding]
-}
-```
-
 ## Processing
 
 ### Process as an ATX heading
@@ -2054,6 +1644,9 @@ To [process as Phrasing](#) is to [process as Text][] given `lines`.
 To [process as Text](#) is to perform the following steps with the given
 `lines` and optional `kind`, which when given is either `phrasing` or `raw`, and
 defaults to `phrasing`:
+
+> ❗️ Todo: emphasis, importance, links, link references, images, image
+> references, hard line breaks, soft line breaks.
 
 *   Let `characters` be U+005C BACKSLASH (`\`) and c:&
 *   If `kind` is `phrasing`, let `characters` be c:!, c:&, c:*, c:<, U+005C
@@ -2934,28 +2527,416 @@ defaults to `phrasing`:
 
         > ❗️ Note: Impossible!
 
-> ❗️ Todo: escapes, character references, code, emphasis, importance, links,
-> link references, images, image references, autolinks, HTML, hard line breaks,
-> soft line breaks.
+## Tokens
 
-## References
+### Whitespace token
 
-*   **\[HTML]**:
-    [HTML Standard](https://html.spec.whatwg.org/multipage/).
-    A. van Kesteren, et al.
-    WHATWG.
-*   **\[RFC20]**:
-    [ASCII format for network interchange](https://tools.ietf.org/html/rfc20).
-    V.G. Cerf.
-    October 1969.
-    IETF.
-*   **\[RFC5322]**
-    [Internet Message Format](https://tools.ietf.org/html/rfc5322).
-    P. Resnick.
-    IETF.
-*   **\[UNICODE]**:
-    [The Unicode Standard](https://www.unicode.org/versions/).
-    Unicode Consortium.
+A t:whitespace represents inline whitespace that is part of syntax instead
+of content.
+
+```idl
+interface Whitespace <: Token {
+  size: number
+  used: number
+  characters: [Character]
+}
+```
+
+```js
+{
+  type: 'whitespace',
+  characters: [9],
+  size: 3,
+  used: 0
+}
+```
+
+### Line ending token
+
+A t:line-ending represents a line break in the syntax.
+
+```idl
+interface LineEnding <: Token {}
+```
+
+```js
+{type: 'lineEnding'}
+```
+
+### End-of-file token
+
+An t:end-of-file represents the end of the syntax.
+
+```idl
+interface EndOfFile <: Token {}
+```
+
+```js
+{type: 'endOfFile'}
+```
+
+### Marker token
+
+A t:marker represents one punctuation character that is part of syntax instead
+of content.
+
+```idl
+interface Marker <: Token {}
+```
+
+```js
+{type: 'marker'}
+```
+
+
+### Sequence token
+
+A t:sequence represents one or more of the same punctuation characters that are
+part of syntax instead of content.
+
+
+```idl
+interface Sequence <: Token {
+  size: number
+}
+```
+
+```js
+{type: 'sequence', size: 3}
+```
+
+### Content token
+
+A t:content represents content.
+
+```idl
+interface Content <: Token {
+  prefix: string
+}
+```
+
+```js
+{type: 'content', prefix: '  '}
+```
+
+## Groups
+
+Groups are named groups of tokens and other blocks.
+
+### Blank line group
+
+A g:blank-line represents an empty line.
+
+```idl
+interface BlankLine <: Group {
+  children: [Whitespace]
+}
+```
+
+### ATX heading group
+
+An g:atx-heading represents a heading for a section.
+
+```idl
+interface AtxHeading <: Group {
+  children: [ATXHeadingFenceGroup | ATXHeadingContentGroup]
+}
+```
+
+### ATX heading fence group
+
+An g:atx-heading-fence represents a fence of a heading.
+
+```idl
+interface AtxHeadingFence <: Group {
+  children: [Whitespace | Sequence]
+}
+```
+
+### ATX heading content group
+
+An g:atx-heading-content represents the phrasing of a heading.
+
+```idl
+interface AtxHeadingContent <: Group {
+  children: [Phrasing]
+}
+```
+
+### Thematic break group
+
+A g:thematic-break represents a thematic break in a section.
+
+```idl
+interface ThematicBreak <: Group {
+  children: [Sequence | Whitespace]
+}
+```
+
+### HTML group
+
+An g:html represents embedded HTML.
+
+```idl
+interface HTML <: Group {
+  children: [HTMLineGroup | BlankLineGroup | LineEnding]
+}
+```
+
+### HTML line group
+
+An g:html-line represents a line of HTML.
+
+```idl
+interface HTMLLine <: Group {
+  children: [Whitespace | Content]
+}
+```
+
+### Indented code group
+
+An g:indented-code represents preformatted text.
+
+```idl
+interface IndentedCode <: Group {
+  children: [IndentedCodeLineGroup | BlankLineGroup | LineEnding]
+}
+```
+
+### Indented code line group
+
+An g:indented-code-line represents a line of indented code.
+
+```idl
+interface IndentedCodeLine <: Group {
+  children: [Whitespace | Content]
+}
+```
+
+### Blockquote group
+
+A g:blockquote represents paraphrased text.
+
+```idl
+interface Blockquote <: Group {
+  children: [FencedCodeGroup | IndentedCodeGroup | ATXHeadingGroup | SetextHeadingGroup | ThematicBreakGroup | HTMLGroup | ContentGroup | LineEnding]
+}
+```
+
+### Fenced code group
+
+A g:fenced-code represents preformatted text.
+
+```idl
+interface FencedCode <: Group {
+  children: [FencedCodeFenceGroup | FencedCodeLineGroup | BlankLineGroup | LineEnding]
+}
+```
+
+### Fenced code fence group
+
+A g:fenced-code-fence represents a fence of fenced code.
+
+```idl
+interface FencedCodeFence <: Group {
+  children: [Whitespace | Sequence | FencedCodeLanguageGroup | FencedCodeMetadataGroup]
+}
+```
+
+### Fenced code language group
+
+A g:fenced-code-language represents the programming language of fenced code.
+
+```idl
+interface FencedCodeLanguage <: Group {
+  children: [EscapeGroup | CharacterReferenceGroup | Content]
+}
+```
+
+### Fenced code metadata group
+
+A g:fenced-code-metadata represents the metadata about fenced code.
+
+```idl
+interface FencedCodeMetadata <: Group {
+  children: [EscapeGroup | CharacterReferenceGroup | Content | Whitespace]
+}
+```
+
+### Fenced code line group
+
+A g:fenced-code-line represents a line of fenced code.
+
+```idl
+interface FencedCodeLine <: Group {
+  children: [Whitespace | Content]
+}
+```
+
+### Content group
+
+A g:content represents content: definitions, paragraphs, and sometimes heading
+content.
+
+```idl
+interface Content <: Group {
+  children: [ContentLineGroup | LineEnding]
+}
+```
+
+### Content line group
+
+A g:content-line represents a line of content.
+
+```idl
+interface ContentLine <: Group {
+  children: [Whitespace | Content]
+}
+```
+
+### Setext heading group
+
+An g:setext-heading represents a heading for a section.
+
+```idl
+interface SetextHeading <: Group {
+  children: [SetextHeadingContentGroup | SetextHeadingUnderlineGroup | LineEnding]
+}
+```
+
+### Setext heading content group
+
+> ❗️ Todo
+
+### Setext heading underline group
+
+A g:setext-heading-underline represents a fence of a heading.
+
+```idl
+interface SetextHeadingUnderline <: Group {
+  children: [Whitespace | Sequence]
+}
+```
+
+### Definition group
+
+A g:definition represents a link reference definition.
+
+```idl
+interface Definition <: Group {
+  children: [DefinitionLabelGroup | DefinitionLabelQuotedGroup | DefinitionLabelUnquotedGroup | DefinitionTitleGroup | Whitespace | LineEnding]
+}
+```
+
+### Definition label group
+
+A g:definition-label represents the label of a definition.
+
+```idl
+interface DefinitionLabel <: Group {
+  children: [DefinitionLabelContentGroup | Marker | Whitespace | LineEnding]
+}
+```
+
+### Definition label content group
+
+A g:definition-label-content represents the content of the label of a
+definition.
+
+```idl
+interface DefinitionLabelContent <: Group {
+  children: [EscapeGroup | CharacterReferenceGroup | Content | Whitespace | LineEnding]
+}
+```
+
+### Definition destination quoted group
+
+A g:definition-destination-quoted represents an enclosed destination of a
+definition.
+
+```idl
+interface DefinitionDestinationQuoted <: Group {
+  children: [EscapeGroup | CharacterReferenceGroup | Content | Marker]
+}
+```
+
+### Definition destination unquoted group
+
+A g:definition-destination-unquoted represents an unclosed destination of a
+definition.
+
+```idl
+interface DefinitionDestinationUnquoted <: Group {
+  children: [EscapeGroup | CharacterReferenceGroup | Content]
+}
+```
+
+### Definition title group
+
+A g:definition-title represents advisory information, such as a description of
+the destination of the definition.
+
+```idl
+interface DefinitionTitle <: Group {
+  children: [EscapeGroup | CharacterReferenceGroup | Content | Whitespace | LineEnding]
+}
+```
+
+### Escape group
+
+A g:escape represents an escaped marker or an empty escape.
+
+```idl
+interface Escape <: Group {
+  children: [Marker | Content]
+}
+```
+
+### Character reference group
+
+A g:character-reference represents an escaped character.
+
+```idl
+interface CharacterReference <: Group {
+  kind: name | hexadecimal | decimal
+  children: [Marker | Content]
+}
+```
+
+### Paragraph group
+
+> ❗️ Todo
+
+### Image opening group
+
+### Link opening group
+
+### Link or image closing group
+
+### Emphasis or strong group
+
+### Phrasing code group
+
+### Automatic link group
+
+A g:automatic-link represents a literal URL or email address.
+
+```idl
+interface AutomaticLink <: Group {
+  kind: email | uri
+  children: [Marker | Content]
+}
+```
+
+### HTML inline group
+
+An g:html-inline represents XML-like structures.
+
+```idl
+interface HTMLInline <: Group {
+  children: [Marker | Content | LineEnding]
+}
+```
 
 ## Appendix
 
@@ -3286,6 +3267,25 @@ A [character reference name](#) is one of:
 `yacy`, `ycirc`, `ycy`, `ye`, `yen`, `yfr`, `yicy`, `yopf`, `yscr`, `yucy`,
 `yum`, `yuml`, `zacute`, `zcaron`, `zcy`, `zdot`, `zeetrf`, `zeta`, `zfr`,
 `zhcy`, `zigrarr`, `zopf`, `zscr`, `zwj`, or `zwnj`.
+
+## References
+
+*   **\[HTML]**:
+    [HTML Standard](https://html.spec.whatwg.org/multipage/).
+    A. van Kesteren, et al.
+    WHATWG.
+*   **\[RFC20]**:
+    [ASCII format for network interchange](https://tools.ietf.org/html/rfc20).
+    V.G. Cerf.
+    October 1969.
+    IETF.
+*   **\[RFC5322]**
+    [Internet Message Format](https://tools.ietf.org/html/rfc5322).
+    P. Resnick.
+    IETF.
+*   **\[UNICODE]**:
+    [The Unicode Standard](https://www.unicode.org/versions/).
+    Unicode Consortium.
 
 ## Acknowledgments
 
