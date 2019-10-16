@@ -83,11 +83,15 @@ hexadecimal number, prefixed with `U+` (**\[UNICODE]**).
 An [c:EOF](#) character is a conceptual character representing the end of the
 input.
 
+An [c:EOL](#) character is a conceptual character representing a break between
+two runs of text.
+
 A [c:VS](#) character is a conceptual character representing an expanded column
 size of a c:HT.
 
-c:EOF and c:VS are not real characters, but rather represent the lack of any
-further characters, or a character increase the size of a character.
+c:EOF, c:EOL, and c:VS are not real characters, but rather represent the lack of
+any further characters, a break between characters, or a character increase the
+size of a character.
 
 ### Tabs
 
@@ -150,7 +154,7 @@ ranges c:# to c:', c:*, c:+, c:-, c:/, c:=, c:?, c:^ to c:`, or c:{ to c:~
 > *   [Unicode whitespace][] and [Unicode punctuation][] are used by emphasis
 >     and importance
 
-## Preprocessing the input stream
+## Input stream
 
 The [input stream](#) consists of the characters pushed into it.
 
@@ -161,6 +165,20 @@ Finally, when all character are consumed, the input character is an [c:EOF][].
 
 Any occurrences of c:HT in the [input stream][] is represented by that character
 and 0-3 [c:VS][] characters.
+
+## Text stream
+
+The [text stream](#) is similar to the [input stream][], but is used to parse
+text.
+
+The [text character](#) is the first character in the [text stream][] that has
+not yet been consumed.
+When a run of text is consumed and there is a next run of text, the text
+character is an [c:EOL][].
+Finally, when all character are consumed, the text character is an [c:EOF][].
+
+Any occurrences of c:HT in the [text stream][] is represented *only* by that
+character.
 
 ## State
 

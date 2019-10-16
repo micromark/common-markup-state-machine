@@ -27,123 +27,124 @@ Common Markup parser.
     *   [3.1 Conceptual characters](#31-conceptual-characters)
     *   [3.2 Tabs](#32-tabs)
     *   [3.3 Character groups](#33-character-groups)
-*   [4 Preprocessing the input stream](#4-preprocessing-the-input-stream)
-*   [5 State](#5-state)
-*   [6 Actions](#6-actions)
-    *   [6.1 Consuming](#61-consuming)
-    *   [6.2 Queueing](#62-queueing)
-    *   [6.3 Emitting](#63-emitting)
-    *   [6.4 Opening](#64-opening)
-    *   [6.5 Closing](#65-closing)
-*   [7 Tokenization](#7-tokenization)
-    *   [7.1 Initial state](#71-initial-state)
-    *   [7.2 Initial whitespace state](#72-initial-whitespace-state)
-    *   [7.3 Line ending state](#73-line-ending-state)
-    *   [7.4 Carriage return state](#74-carriage-return-state)
-    *   [7.5 In line state](#75-in-line-state)
-    *   [7.6 ATX heading opening sequence state](#76-atx-heading-opening-sequence-state)
-    *   [7.7 ATX heading opening sequence after state](#77-atx-heading-opening-sequence-after-state)
-    *   [7.8 ATX heading content state](#78-atx-heading-content-state)
-    *   [7.9 ATX heading whitespace state](#79-atx-heading-whitespace-state)
-    *   [7.10 ATX heading number sign sequence state](#710-atx-heading-number-sign-sequence-state)
-    *   [7.11 Asterisk line asterisk after state](#711-asterisk-line-asterisk-after-state)
-    *   [7.12 Asterisk line whitespace state](#712-asterisk-line-whitespace-state)
-    *   [7.13 HTML block open state](#713-html-block-open-state)
-    *   [7.14 HTML block open markup declaration state](#714-html-block-open-markup-declaration-state)
-    *   [7.15 HTML block open comment inside state](#715-html-block-open-comment-inside-state)
-    *   [7.16 HTML block open character data inside state](#716-html-block-open-character-data-inside-state)
-    *   [7.17 HTML block open tag name inside state](#717-html-block-open-tag-name-inside-state)
-    *   [7.18 HTML block open simple self closing tag state](#718-html-block-open-simple-self-closing-tag-state)
-    *   [7.19 HTML block open complete attribute before state](#719-html-block-open-complete-attribute-before-state)
-    *   [7.20 HTML block open complete attribute name state](#720-html-block-open-complete-attribute-name-state)
-    *   [7.21 HTML block open complete attribute name after state](#721-html-block-open-complete-attribute-name-after-state)
-    *   [7.22 HTML block open complete attribute value before state](#722-html-block-open-complete-attribute-value-before-state)
-    *   [7.23 HTML block open complete double quoted attribute value state](#723-html-block-open-complete-double-quoted-attribute-value-state)
-    *   [7.24 HTML block open complete single quoted attribute value state](#724-html-block-open-complete-single-quoted-attribute-value-state)
-    *   [7.25 HTML block open complete unquoted attribute value state](#725-html-block-open-complete-unquoted-attribute-value-state)
-    *   [7.26 HTML block open complete self closing tag state](#726-html-block-open-complete-self-closing-tag-state)
-    *   [7.27 HTML block open complete tag after state](#727-html-block-open-complete-tag-after-state)
-    *   [7.28 HTML block continuation line state](#728-html-block-continuation-line-state)
-    *   [7.29 HTML block continuation close tag state](#729-html-block-continuation-close-tag-state)
-    *   [7.30 HTML block continuation close tag name inside state](#730-html-block-continuation-close-tag-name-inside-state)
-    *   [7.31 HTML block continuation comment inside state](#731-html-block-continuation-comment-inside-state)
-    *   [7.32 HTML block continuation character data inside state](#732-html-block-continuation-character-data-inside-state)
-    *   [7.33 HTML block continuation declaration before state](#733-html-block-continuation-declaration-before-state)
-    *   [7.34 HTML block close line state](#734-html-block-close-line-state)
-    *   [7.35 Setext heading underline equals to sequence state](#735-setext-heading-underline-equals-to-sequence-state)
-    *   [7.36 Setext heading underline equals to after state](#736-setext-heading-underline-equals-to-after-state)
-    *   [7.37 Fenced code grave accent opening fence state](#737-fenced-code-grave-accent-opening-fence-state)
-    *   [7.38 Fenced code grave accent opening fence whitespace state](#738-fenced-code-grave-accent-opening-fence-whitespace-state)
-    *   [7.39 Fenced code grave accent opening fence metadata state](#739-fenced-code-grave-accent-opening-fence-metadata-state)
-    *   [7.40 Fenced code tilde opening fence state](#740-fenced-code-tilde-opening-fence-state)
-    *   [7.41 Fenced code tilde opening fence whitespace state](#741-fenced-code-tilde-opening-fence-whitespace-state)
-    *   [7.42 Fenced code tilde opening fence metadata state](#742-fenced-code-tilde-opening-fence-metadata-state)
-    *   [7.43 Fenced code continuation line state](#743-fenced-code-continuation-line-state)
-    *   [7.44 Fenced code close sequence state](#744-fenced-code-close-sequence-state)
-    *   [7.45 Fenced code close whitespace state](#745-fenced-code-close-whitespace-state)
-    *   [7.46 Indented code line state](#746-indented-code-line-state)
-    *   [7.47 Content continuation state](#747-content-continuation-state)
-*   [8 Processing](#8-processing)
-    *   [8.1 Process as an ATX heading](#81-process-as-an-atx-heading)
-    *   [8.2 Process as a Setext primary heading](#82-process-as-a-setext-primary-heading)
-    *   [8.3 Process as an asterisk line](#83-process-as-an-asterisk-line)
-    *   [8.4 Process as an asterisk line opening](#84-process-as-an-asterisk-line-opening)
-    *   [8.5 Process as a Fenced code fence](#85-process-as-a-fenced-code-fence)
-    *   [8.6 Process as Content](#86-process-as-content)
-    *   [8.7 Process as Raw text](#87-process-as-raw-text)
-    *   [8.8 Process as Phrasing](#88-process-as-phrasing)
-    *   [8.9 Process as Text](#89-process-as-text)
-*   [9 Tokens](#9-tokens)
-    *   [9.1 Whitespace token](#91-whitespace-token)
-    *   [9.2 Line ending token](#92-line-ending-token)
-    *   [9.3 End-of-file token](#93-end-of-file-token)
-    *   [9.4 Marker token](#94-marker-token)
-    *   [9.5 Sequence token](#95-sequence-token)
-    *   [9.6 Content token](#96-content-token)
-*   [10 Groups](#10-groups)
-    *   [10.1 Blank line group](#101-blank-line-group)
-    *   [10.2 ATX heading group](#102-atx-heading-group)
-    *   [10.3 ATX heading fence group](#103-atx-heading-fence-group)
-    *   [10.4 ATX heading content group](#104-atx-heading-content-group)
-    *   [10.5 Thematic break group](#105-thematic-break-group)
-    *   [10.6 HTML group](#106-html-group)
-    *   [10.7 HTML line group](#107-html-line-group)
-    *   [10.8 Indented code group](#108-indented-code-group)
-    *   [10.9 Indented code line group](#109-indented-code-line-group)
-    *   [10.10 Blockquote group](#1010-blockquote-group)
-    *   [10.11 Fenced code group](#1011-fenced-code-group)
-    *   [10.12 Fenced code fence group](#1012-fenced-code-fence-group)
-    *   [10.13 Fenced code language group](#1013-fenced-code-language-group)
-    *   [10.14 Fenced code metadata group](#1014-fenced-code-metadata-group)
-    *   [10.15 Fenced code line group](#1015-fenced-code-line-group)
-    *   [10.16 Content group](#1016-content-group)
-    *   [10.17 Content line group](#1017-content-line-group)
-    *   [10.18 Setext heading group](#1018-setext-heading-group)
-    *   [10.19 Setext heading content group](#1019-setext-heading-content-group)
-    *   [10.20 Setext heading underline group](#1020-setext-heading-underline-group)
-    *   [10.21 Definition group](#1021-definition-group)
-    *   [10.22 Definition label group](#1022-definition-label-group)
-    *   [10.23 Definition label content group](#1023-definition-label-content-group)
-    *   [10.24 Definition destination quoted group](#1024-definition-destination-quoted-group)
-    *   [10.25 Definition destination unquoted group](#1025-definition-destination-unquoted-group)
-    *   [10.26 Definition title group](#1026-definition-title-group)
-    *   [10.27 Escape group](#1027-escape-group)
-    *   [10.28 Character reference group](#1028-character-reference-group)
-    *   [10.29 Paragraph group](#1029-paragraph-group)
-    *   [10.30 Image opening group](#1030-image-opening-group)
-    *   [10.31 Link opening group](#1031-link-opening-group)
-    *   [10.32 Link or image closing group](#1032-link-or-image-closing-group)
-    *   [10.33 Emphasis or strong group](#1033-emphasis-or-strong-group)
-    *   [10.34 Phrasing code group](#1034-phrasing-code-group)
-    *   [10.35 Automatic link group](#1035-automatic-link-group)
-    *   [10.36 HTML inline group](#1036-html-inline-group)
-*   [11 Appendix](#11-appendix)
-    *   [11.1 Raw tags](#111-raw-tags)
-    *   [11.2 Simple tags](#112-simple-tags)
-    *   [11.3 Named character references](#113-named-character-references)
-*   [12 References](#12-references)
-*   [13 Acknowledgments](#13-acknowledgments)
-*   [14 License](#14-license)
+*   [4 Input stream](#4-input-stream)
+*   [5 Text stream](#5-text-stream)
+*   [6 State](#6-state)
+*   [7 Actions](#7-actions)
+    *   [7.1 Consuming](#71-consuming)
+    *   [7.2 Queueing](#72-queueing)
+    *   [7.3 Emitting](#73-emitting)
+    *   [7.4 Opening](#74-opening)
+    *   [7.5 Closing](#75-closing)
+*   [8 Tokenization](#8-tokenization)
+    *   [8.1 Initial state](#81-initial-state)
+    *   [8.2 Initial whitespace state](#82-initial-whitespace-state)
+    *   [8.3 Line ending state](#83-line-ending-state)
+    *   [8.4 Carriage return state](#84-carriage-return-state)
+    *   [8.5 In line state](#85-in-line-state)
+    *   [8.6 ATX heading opening sequence state](#86-atx-heading-opening-sequence-state)
+    *   [8.7 ATX heading opening sequence after state](#87-atx-heading-opening-sequence-after-state)
+    *   [8.8 ATX heading content state](#88-atx-heading-content-state)
+    *   [8.9 ATX heading whitespace state](#89-atx-heading-whitespace-state)
+    *   [8.10 ATX heading number sign sequence state](#810-atx-heading-number-sign-sequence-state)
+    *   [8.11 Asterisk line asterisk after state](#811-asterisk-line-asterisk-after-state)
+    *   [8.12 Asterisk line whitespace state](#812-asterisk-line-whitespace-state)
+    *   [8.13 HTML block open state](#813-html-block-open-state)
+    *   [8.14 HTML block open markup declaration state](#814-html-block-open-markup-declaration-state)
+    *   [8.15 HTML block open comment inside state](#815-html-block-open-comment-inside-state)
+    *   [8.16 HTML block open character data inside state](#816-html-block-open-character-data-inside-state)
+    *   [8.17 HTML block open tag name inside state](#817-html-block-open-tag-name-inside-state)
+    *   [8.18 HTML block open simple self closing tag state](#818-html-block-open-simple-self-closing-tag-state)
+    *   [8.19 HTML block open complete attribute before state](#819-html-block-open-complete-attribute-before-state)
+    *   [8.20 HTML block open complete attribute name state](#820-html-block-open-complete-attribute-name-state)
+    *   [8.21 HTML block open complete attribute name after state](#821-html-block-open-complete-attribute-name-after-state)
+    *   [8.22 HTML block open complete attribute value before state](#822-html-block-open-complete-attribute-value-before-state)
+    *   [8.23 HTML block open complete double quoted attribute value state](#823-html-block-open-complete-double-quoted-attribute-value-state)
+    *   [8.24 HTML block open complete single quoted attribute value state](#824-html-block-open-complete-single-quoted-attribute-value-state)
+    *   [8.25 HTML block open complete unquoted attribute value state](#825-html-block-open-complete-unquoted-attribute-value-state)
+    *   [8.26 HTML block open complete self closing tag state](#826-html-block-open-complete-self-closing-tag-state)
+    *   [8.27 HTML block open complete tag after state](#827-html-block-open-complete-tag-after-state)
+    *   [8.28 HTML block continuation line state](#828-html-block-continuation-line-state)
+    *   [8.29 HTML block continuation close tag state](#829-html-block-continuation-close-tag-state)
+    *   [8.30 HTML block continuation close tag name inside state](#830-html-block-continuation-close-tag-name-inside-state)
+    *   [8.31 HTML block continuation comment inside state](#831-html-block-continuation-comment-inside-state)
+    *   [8.32 HTML block continuation character data inside state](#832-html-block-continuation-character-data-inside-state)
+    *   [8.33 HTML block continuation declaration before state](#833-html-block-continuation-declaration-before-state)
+    *   [8.34 HTML block close line state](#834-html-block-close-line-state)
+    *   [8.35 Setext heading underline equals to sequence state](#835-setext-heading-underline-equals-to-sequence-state)
+    *   [8.36 Setext heading underline equals to after state](#836-setext-heading-underline-equals-to-after-state)
+    *   [8.37 Fenced code grave accent opening fence state](#837-fenced-code-grave-accent-opening-fence-state)
+    *   [8.38 Fenced code grave accent opening fence whitespace state](#838-fenced-code-grave-accent-opening-fence-whitespace-state)
+    *   [8.39 Fenced code grave accent opening fence metadata state](#839-fenced-code-grave-accent-opening-fence-metadata-state)
+    *   [8.40 Fenced code tilde opening fence state](#840-fenced-code-tilde-opening-fence-state)
+    *   [8.41 Fenced code tilde opening fence whitespace state](#841-fenced-code-tilde-opening-fence-whitespace-state)
+    *   [8.42 Fenced code tilde opening fence metadata state](#842-fenced-code-tilde-opening-fence-metadata-state)
+    *   [8.43 Fenced code continuation line state](#843-fenced-code-continuation-line-state)
+    *   [8.44 Fenced code close sequence state](#844-fenced-code-close-sequence-state)
+    *   [8.45 Fenced code close whitespace state](#845-fenced-code-close-whitespace-state)
+    *   [8.46 Indented code line state](#846-indented-code-line-state)
+    *   [8.47 Content continuation state](#847-content-continuation-state)
+*   [9 Processing](#9-processing)
+    *   [9.1 Process as an ATX heading](#91-process-as-an-atx-heading)
+    *   [9.2 Process as a Setext primary heading](#92-process-as-a-setext-primary-heading)
+    *   [9.3 Process as an asterisk line](#93-process-as-an-asterisk-line)
+    *   [9.4 Process as an asterisk line opening](#94-process-as-an-asterisk-line-opening)
+    *   [9.5 Process as a Fenced code fence](#95-process-as-a-fenced-code-fence)
+    *   [9.6 Process as Content](#96-process-as-content)
+    *   [9.7 Process as Raw text](#97-process-as-raw-text)
+    *   [9.8 Process as Phrasing](#98-process-as-phrasing)
+    *   [9.9 Process as Text](#99-process-as-text)
+*   [10 Tokens](#10-tokens)
+    *   [10.1 Whitespace token](#101-whitespace-token)
+    *   [10.2 Line ending token](#102-line-ending-token)
+    *   [10.3 End-of-file token](#103-end-of-file-token)
+    *   [10.4 Marker token](#104-marker-token)
+    *   [10.5 Sequence token](#105-sequence-token)
+    *   [10.6 Content token](#106-content-token)
+*   [11 Groups](#11-groups)
+    *   [11.1 Blank line group](#111-blank-line-group)
+    *   [11.2 ATX heading group](#112-atx-heading-group)
+    *   [11.3 ATX heading fence group](#113-atx-heading-fence-group)
+    *   [11.4 ATX heading content group](#114-atx-heading-content-group)
+    *   [11.5 Thematic break group](#115-thematic-break-group)
+    *   [11.6 HTML group](#116-html-group)
+    *   [11.7 HTML line group](#117-html-line-group)
+    *   [11.8 Indented code group](#118-indented-code-group)
+    *   [11.9 Indented code line group](#119-indented-code-line-group)
+    *   [11.10 Blockquote group](#1110-blockquote-group)
+    *   [11.11 Fenced code group](#1111-fenced-code-group)
+    *   [11.12 Fenced code fence group](#1112-fenced-code-fence-group)
+    *   [11.13 Fenced code language group](#1113-fenced-code-language-group)
+    *   [11.14 Fenced code metadata group](#1114-fenced-code-metadata-group)
+    *   [11.15 Fenced code line group](#1115-fenced-code-line-group)
+    *   [11.16 Content group](#1116-content-group)
+    *   [11.17 Content line group](#1117-content-line-group)
+    *   [11.18 Setext heading group](#1118-setext-heading-group)
+    *   [11.19 Setext heading content group](#1119-setext-heading-content-group)
+    *   [11.20 Setext heading underline group](#1120-setext-heading-underline-group)
+    *   [11.21 Definition group](#1121-definition-group)
+    *   [11.22 Definition label group](#1122-definition-label-group)
+    *   [11.23 Definition label content group](#1123-definition-label-content-group)
+    *   [11.24 Definition destination quoted group](#1124-definition-destination-quoted-group)
+    *   [11.25 Definition destination unquoted group](#1125-definition-destination-unquoted-group)
+    *   [11.26 Definition title group](#1126-definition-title-group)
+    *   [11.27 Escape group](#1127-escape-group)
+    *   [11.28 Character reference group](#1128-character-reference-group)
+    *   [11.29 Paragraph group](#1129-paragraph-group)
+    *   [11.30 Image opening group](#1130-image-opening-group)
+    *   [11.31 Link opening group](#1131-link-opening-group)
+    *   [11.32 Link or image closing group](#1132-link-or-image-closing-group)
+    *   [11.33 Emphasis or strong group](#1133-emphasis-or-strong-group)
+    *   [11.34 Phrasing code group](#1134-phrasing-code-group)
+    *   [11.35 Automatic link group](#1135-automatic-link-group)
+    *   [11.36 HTML inline group](#1136-html-inline-group)
+*   [12 Appendix](#12-appendix)
+    *   [12.1 Raw tags](#121-raw-tags)
+    *   [12.2 Simple tags](#122-simple-tags)
+    *   [12.3 Named character references](#123-named-character-references)
+*   [13 References](#13-references)
+*   [14 Acknowledgments](#14-acknowledgments)
+*   [15 License](#15-license)
 
 ## 1 Background
 
@@ -207,11 +208,15 @@ hexadecimal number, prefixed with `U+` (**\[UNICODE]**).
 An <a id="ceof" href="#ceof">**EOF**</a> character is a conceptual character representing the end of the
 input.
 
+An <a id="ceol" href="#ceol">**EOL**</a> character is a conceptual character representing a break between
+two runs of text.
+
 A <a id="cvs" href="#cvs">**VIRTUAL SPACE**</a> character is a conceptual character representing an expanded column
 size of a U+0009 CHARACTER TABULATION (HT).
 
-EOF and VIRTUAL SPACE are not real characters, but rather represent the lack of any
-further characters, or a character increase the size of a character.
+EOF, EOL, and VIRTUAL SPACE are not real characters, but rather represent the lack of
+any further characters, a break between characters, or a character increase the
+size of a character.
 
 ### 3.2 Tabs
 
@@ -275,7 +280,7 @@ ranges U+0023 NUMBER SIGN (`#`) to U+0027 APOSTROPHE (`'`), U+002A ASTERISK (`*`
 > *   [Unicode whitespace][unicode-whitespace] and [Unicode punctuation][unicode-punctuation] are used by emphasis
 >     and importance
 
-## 4 Preprocessing the input stream
+## 4 Input stream
 
 The <a id="input-stream" href="#input-stream">**input stream**</a> consists of the characters pushed into it.
 
@@ -287,7 +292,21 @@ Finally, when all character are consumed, the input character is an [EOF][ceof].
 Any occurrences of U+0009 CHARACTER TABULATION (HT) in the [input stream][input-stream] is represented by that character
 and 0-3 [VIRTUAL SPACE][cvs] characters.
 
-## 5 State
+## 5 Text stream
+
+The <a id="text-stream" href="#text-stream">**text stream**</a> is similar to the [input stream][input-stream], but is used to parse
+text.
+
+The <a id="text-character" href="#text-character">**text character**</a> is the first character in the [text stream][text-stream] that has
+not yet been consumed.
+When a run of text is consumed and there is a next run of text, the text
+character is an [EOL][ceol].
+Finally, when all character are consumed, the text character is an [EOF][ceof].
+
+Any occurrences of U+0009 CHARACTER TABULATION (HT) in the [text stream][text-stream] is represented *only* by that
+character.
+
+## 6 State
 
 Initially, the <a id="stack-of-open-groups" href="#stack-of-open-groups">**stack of open groups**</a> is empty.
 The stack grows downwards; the topmost group on the stack is the first one
@@ -298,9 +317,9 @@ The <a id="current-group" href="#current-group">**current group**</a> is the bot
 The <a id="queue" href="#queue">**queue**</a> is a list of tokens.
 The <a id="current-token" href="#current-token">**current token**</a> is the last token in the [queue][queue].
 
-## 6 Actions
+## 7 Actions
 
-### 6.1 Consuming
+### 7.1 Consuming
 
 To consume the [input character][input-character] affects the [current token][current-token].
 Due to the nature of the state machine, it is not possible to consume if there
@@ -323,7 +342,7 @@ type of the token:
 
     Do nothing
 
-### 6.2 Queueing
+### 7.2 Queueing
 
 To queue a token is to add it to the [queue][queue].
 
@@ -360,7 +379,7 @@ labelled parameters:
 
     Do nothing
 
-### 6.3 Emitting
+### 7.3 Emitting
 
 To emit a token is to add it to the [current group][current-group].
 It is possible to emit a token directly, but it is more common to emit the
@@ -376,7 +395,7 @@ Emitting tokens may have side effects, based on their types:
 
     Do nothing
 
-### 6.4 Opening
+### 7.4 Opening
 
 To open a group is to add it to the [current group][current-group] and the [stack of open
 groups][stack-of-open-groups].
@@ -400,7 +419,7 @@ Opening groups may have side effects, based on their type:
 
     Do nothing
 
-### 6.5 Closing
+### 7.5 Closing
 
 To close a group is to continue on in its parent group and to pop it off the
 [stack of open groups][stack-of-open-groups].
@@ -413,7 +432,7 @@ Closing groups may have side effects, based on their type:
 
     Do nothing
 
-## 7 Tokenization
+## 8 Tokenization
 
 Implementations must act as if they use the following state machine to tokenize
 common markup.
@@ -426,7 +445,7 @@ stays in the same state to consume the next character.
 The exact behavior of certain states depends on state, such as the [stack of
 open groups][stack-of-open-groups] and the [queue][queue].
 
-### 7.1 Initial state
+### 8.1 Initial state
 
 *   ↪ **[EOF][ceof]**
 
@@ -443,7 +462,7 @@ open groups][stack-of-open-groups] and the [queue][queue].
 
     Reconsume in the [*In line state*][s-in-line]
 
-### 7.2 Initial whitespace state
+### 8.2 Initial whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -459,7 +478,7 @@ open groups][stack-of-open-groups] and the [queue][queue].
 
     Reconsume in the [*In line state*][s-in-line]
 
-### 7.3 Line ending state
+### 8.3 Line ending state
 
 *   ↪ **[EOF][ceof]**
 
@@ -476,7 +495,7 @@ open groups][stack-of-open-groups] and the [queue][queue].
 
     Reconsume in the [*Initial state*][s-initial]
 
-### 7.4 Carriage return state
+### 8.4 Carriage return state
 
 *   ↪ **U+000A LINE FEED (LF)**
 
@@ -485,7 +504,7 @@ open groups][stack-of-open-groups] and the [queue][queue].
 
     Emit and reconsume in the [*Initial state*][s-initial]
 
-### 7.5 In line state
+### 8.5 In line state
 
 If the [stack of continuation][stack-of-continuation] matches all open groups:
 
@@ -555,7 +574,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     [*Whitespace token*][t-whitespace] if there is one, consume, and switch to the
     [*Content continuation state*][s-content-continuation]
 
-### 7.6 ATX heading opening sequence state
+### 8.6 ATX heading opening sequence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -578,7 +597,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     Change the [current token][current-token] into a [*Content token*][t-content], consume, and switch to the
     [*Content continuation state*][s-content-continuation]
 
-### 7.7 ATX heading opening sequence after state
+### 8.7 ATX heading opening sequence after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -600,7 +619,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     Open an [*ATX heading group*][g-atx-heading], open an [*ATX heading fence group*][g-atx-heading-fence], emit, close, queue a
     [*Content token*][t-content], consume, and switch to the [*ATX heading content state*][s-atx-heading-content]
 
-### 7.8 ATX heading content state
+### 8.8 ATX heading content state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -615,7 +634,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     Consume
 
-### 7.9 ATX heading whitespace state
+### 8.9 ATX heading whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -635,7 +654,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     Queue a [*Content token*][t-content], consume, and switch to the [*ATX heading content state*][s-atx-heading-content]
 
-### 7.10 ATX heading number sign sequence state
+### 8.10 ATX heading number sign sequence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -653,7 +672,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     Queue a [*Content token*][t-content], consume, and switch to the [*ATX heading content state*][s-atx-heading-content]
 
-### 7.11 Asterisk line asterisk after state
+### 8.11 Asterisk line asterisk after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -673,7 +692,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     [Process as an Asterisk line opening][process-as-an-asterisk-line-opening].
 
-### 7.12 Asterisk line whitespace state
+### 8.12 Asterisk line whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -694,7 +713,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     [Process as an Asterisk line opening][process-as-an-asterisk-line-opening].
 
-### 7.13 HTML block open state
+### 8.13 HTML block open state
 
 *   ↪ **U+0021 EXCLAMATION MARK (`!`)**
 
@@ -725,7 +744,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.14 HTML block open markup declaration state
+### 8.14 HTML block open markup declaration state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -744,7 +763,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.15 HTML block open comment inside state
+### 8.15 HTML block open comment inside state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -757,7 +776,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.16 HTML block open character data inside state
+### 8.16 HTML block open character data inside state
 
 If the next few characters are:
 
@@ -773,7 +792,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.17 HTML block open tag name inside state
+### 8.17 HTML block open tag name inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -841,7 +860,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.18 HTML block open simple self closing tag state
+### 8.18 HTML block open simple self closing tag state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -854,7 +873,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.19 HTML block open complete attribute before state
+### 8.19 HTML block open complete attribute before state
 
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**\
@@ -890,7 +909,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.20 HTML block open complete attribute name state
+### 8.20 HTML block open complete attribute name state
 
 *   ↪ **U+002D DASH (`-`)**\
     ↪ **U+002E DOT (`.`)**\
@@ -903,7 +922,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML block open complete attribute name after state*][s-html-block-open-complete-attribute-name-after]
 
-### 7.21 HTML block open complete attribute name after state
+### 8.21 HTML block open complete attribute name after state
 
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**\
@@ -929,7 +948,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.22 HTML block open complete attribute value before state
+### 8.22 HTML block open complete attribute value before state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -959,7 +978,7 @@ If the next few characters are:
     Consume and switch to the
     [*HTML block open complete unquoted attribute value state*][s-html-block-open-complete-unquoted-attribute-value]
 
-### 7.23 HTML block open complete double quoted attribute value state
+### 8.23 HTML block open complete double quoted attribute value state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -974,7 +993,7 @@ If the next few characters are:
 
     Consume
 
-### 7.24 HTML block open complete single quoted attribute value state
+### 8.24 HTML block open complete single quoted attribute value state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -989,7 +1008,7 @@ If the next few characters are:
 
     Consume
 
-### 7.25 HTML block open complete unquoted attribute value state
+### 8.25 HTML block open complete unquoted attribute value state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
@@ -1008,7 +1027,7 @@ If the next few characters are:
 
     Consume
 
-### 7.26 HTML block open complete self closing tag state
+### 8.26 HTML block open complete self closing tag state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -1018,7 +1037,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.27 HTML block open complete tag after state
+### 8.27 HTML block open complete tag after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
@@ -1034,7 +1053,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.28 HTML block continuation line state
+### 8.28 HTML block continuation line state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1085,7 +1104,7 @@ If the next few characters are:
 
     Consume
 
-### 7.29 HTML block continuation close tag state
+### 8.29 HTML block continuation close tag state
 
 *   ↪ **U+002F SLASH (`/`)**
 
@@ -1094,7 +1113,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line]
 
-### 7.30 HTML block continuation close tag name inside state
+### 8.30 HTML block continuation close tag name inside state
 
 *   ↪ **[ASCII alpha][ascii-alpha]**
 
@@ -1113,7 +1132,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line]
 
-### 7.31 HTML block continuation comment inside state
+### 8.31 HTML block continuation comment inside state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -1122,7 +1141,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line]
 
-### 7.32 HTML block continuation character data inside state
+### 8.32 HTML block continuation character data inside state
 
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
@@ -1131,7 +1150,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line]
 
-### 7.33 HTML block continuation declaration before state
+### 8.33 HTML block continuation declaration before state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -1140,7 +1159,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line]
 
-### 7.34 HTML block close line state
+### 8.34 HTML block close line state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1151,7 +1170,7 @@ If the next few characters are:
 
     Consume
 
-### 7.35 Setext heading underline equals to sequence state
+### 8.35 Setext heading underline equals to sequence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1171,7 +1190,7 @@ If the next few characters are:
     Turn the [current token][current-token] into a [*Content token*][t-content], consume, and switch to the
     [*Content continuation state*][s-content-continuation]
 
-### 7.36 Setext heading underline equals to after state
+### 8.36 Setext heading underline equals to after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1188,7 +1207,7 @@ If the next few characters are:
     Turn the previous and  [current token][current-token] into a [*Content token*][t-content], consume, and
     switch to the [*Content continuation state*][s-content-continuation]
 
-### 7.37 Fenced code grave accent opening fence state
+### 8.37 Fenced code grave accent opening fence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1224,7 +1243,7 @@ If the next few characters are:
     Turn the queue, except for the first token if it is a [*Whitespace token*][t-whitespace], into a
     [*Content token*][t-content] and reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 7.38 Fenced code grave accent opening fence whitespace state
+### 8.38 Fenced code grave accent opening fence whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1247,7 +1266,7 @@ If the next few characters are:
     Queue a [*Content token*][t-content], consume, and switch to the
     [*Fenced code grave accent opening fence metadata state*][s-fenced-code-grave-accent-opening-fence-metadata]
 
-### 7.39 Fenced code grave accent opening fence metadata state
+### 8.39 Fenced code grave accent opening fence metadata state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1269,7 +1288,7 @@ If the next few characters are:
 
     Consume
 
-### 7.40 Fenced code tilde opening fence state
+### 8.40 Fenced code tilde opening fence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1305,7 +1324,7 @@ If the next few characters are:
     Turn the [current token][current-token] into a [*Content token*][t-content] and reconsume in the
     [*Content continuation state*][s-content-continuation]
 
-### 7.41 Fenced code tilde opening fence whitespace state
+### 8.41 Fenced code tilde opening fence whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1323,7 +1342,7 @@ If the next few characters are:
     Queue a [*Content token*][t-content], consume, and switch to the
     [*Fenced code tilde opening fence metadata state*][s-fenced-code-tilde-opening-fence-metadata]
 
-### 7.42 Fenced code tilde opening fence metadata state
+### 8.42 Fenced code tilde opening fence metadata state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1340,7 +1359,7 @@ If the next few characters are:
 
     Consume
 
-### 7.43 Fenced code continuation line state
+### 8.43 Fenced code continuation line state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1352,7 +1371,7 @@ If the next few characters are:
 
     Consume
 
-### 7.44 Fenced code close sequence state
+### 8.44 Fenced code close sequence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1386,7 +1405,7 @@ If the next few characters are:
     Turn the [current token][current-token] into a [*Content token*][t-content] and reconsume in the
     [*Fenced code continuation line state*][s-fenced-code-continuation-line]
 
-### 7.45 Fenced code close whitespace state
+### 8.45 Fenced code close whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1404,7 +1423,7 @@ If the next few characters are:
     Turn the queue, except for the first token if it is a [*Whitespace token*][t-whitespace], into a
     [*Content token*][t-content] and reconsume in the [*Fenced code continuation line state*][s-fenced-code-continuation-line]
 
-### 7.46 Indented code line state
+### 8.46 Indented code line state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1419,7 +1438,7 @@ If the next few characters are:
 
     Consume
 
-### 7.47 Content continuation state
+### 8.47 Content continuation state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1432,9 +1451,9 @@ If the next few characters are:
 
     Consume
 
-## 8 Processing
+## 9 Processing
 
-### 8.1 Process as an ATX heading
+### 9.1 Process as an ATX heading
 
 To <a id="process-as-an-atx-heading" href="#process-as-an-atx-heading">**process as an ATX heading**</a> is to perform the following steps:
 
@@ -1462,7 +1481,7 @@ To <a id="process-as-an-atx-heading" href="#process-as-an-atx-heading">**process
     *   Close
 *   Close
 
-### 8.2 Process as a Setext primary heading
+### 9.2 Process as a Setext primary heading
 
 To <a id="process-as-a-setext-primary-heading" href="#process-as-a-setext-primary-heading">**process as a Setext primary heading**</a> is to perform the following steps:
 
@@ -1481,7 +1500,7 @@ To <a id="process-as-a-setext-primary-heading" href="#process-as-a-setext-primar
     *   Emit the tokens before `index`
     *   Emit the tokens in the queue from `index` as a [*Content token*][t-content]
 
-### 8.3 Process as an asterisk line
+### 9.3 Process as an asterisk line
 
 To <a id="process-as-an-asterisk-line" href="#process-as-an-asterisk-line">**process as an asterisk line**</a> is to perform the following steps:
 
@@ -1489,7 +1508,7 @@ To <a id="process-as-an-asterisk-line" href="#process-as-an-asterisk-line">**pro
 > code, or content.
 > It’s easier to figure this out with a reference parser that is tested.
 
-### 8.4 Process as an asterisk line opening
+### 9.4 Process as an asterisk line opening
 
 To <a id="process-as-an-asterisk-line-opening" href="#process-as-an-asterisk-line-opening">**process as an asterisk line opening**</a> is to perform the following steps:
 
@@ -1497,7 +1516,7 @@ To <a id="process-as-an-asterisk-line-opening" href="#process-as-an-asterisk-lin
 > code, or content.
 > It’s easier to figure this out with a reference parser that is tested.
 
-### 8.5 Process as a Fenced code fence
+### 9.5 Process as a Fenced code fence
 
 To <a id="process-as-a-fenced-code-fence" href="#process-as-a-fenced-code-fence">**process as a Fenced code fence**</a> is to perform the following steps:
 
@@ -1536,7 +1555,7 @@ To <a id="process-as-a-fenced-code-fence" href="#process-as-a-fenced-code-fence"
 *   If there is a token at `lineEnd`, emit it.
 *   Close
 
-### 8.6 Process as Content
+### 9.6 Process as Content
 
 To <a id="process-as-content" href="#process-as-content">**process as Content**</a> is to perform the following steps on the characters
 within the bounds of the tokens in the group.
@@ -1747,16 +1766,16 @@ pointer, lines, and optional hint:
 *   Close (once, because if there was a hint the place that hinted has to close
     the setext heading)
 
-### 8.7 Process as Raw text
+### 9.7 Process as Raw text
 
 To <a id="process-as-raw-text" href="#process-as-raw-text">**process as Raw text**</a> is to [process as Text][process-as-text] given `lines` and `kind`
 `raw`.
 
-### 8.8 Process as Phrasing
+### 9.8 Process as Phrasing
 
 To <a id="process-as-phrasing" href="#process-as-phrasing">**process as Phrasing**</a> is to [process as Text][process-as-text] given `lines`.
 
-### 8.9 Process as Text
+### 9.9 Process as Text
 
 To <a id="process-as-text" href="#process-as-text">**process as Text**</a> is to perform the following steps with the given
 `lines` and optional `kind`, which when given is either `phrasing` or `raw`, and
@@ -2644,9 +2663,9 @@ defaults to `phrasing`:
 
         > ❗️ Note: Impossible!
 
-## 9 Tokens
+## 10 Tokens
 
-### 9.1 Whitespace token
+### 10.1 Whitespace token
 
 A [*Whitespace token*][t-whitespace] represents inline whitespace that is part of syntax instead
 of content.
@@ -2668,7 +2687,7 @@ interface Whitespace <: Token {
 }
 ```
 
-### 9.2 Line ending token
+### 10.2 Line ending token
 
 A [*Line ending token*][t-line-ending] represents a line break in the syntax.
 
@@ -2680,7 +2699,7 @@ interface LineEnding <: Token {}
 {type: 'lineEnding'}
 ```
 
-### 9.3 End-of-file token
+### 10.3 End-of-file token
 
 An [*End-of-file token*][t-end-of-file] represents the end of the syntax.
 
@@ -2692,7 +2711,7 @@ interface EndOfFile <: Token {}
 {type: 'endOfFile'}
 ```
 
-### 9.4 Marker token
+### 10.4 Marker token
 
 A [*Marker token*][t-marker] represents one punctuation character that is part of syntax instead
 of content.
@@ -2705,7 +2724,7 @@ interface Marker <: Token {}
 {type: 'marker'}
 ```
 
-### 9.5 Sequence token
+### 10.5 Sequence token
 
 A [*Sequence token*][t-sequence] represents one or more of the same punctuation characters that are
 part of syntax instead of content.
@@ -2720,7 +2739,7 @@ interface Sequence <: Token {
 {type: 'sequence', size: 3}
 ```
 
-### 9.6 Content token
+### 10.6 Content token
 
 A [*Content token*][t-content] represents content.
 
@@ -2734,11 +2753,11 @@ interface Content <: Token {
 {type: 'content', prefix: '  '}
 ```
 
-## 10 Groups
+## 11 Groups
 
 Groups are named groups of tokens and other blocks.
 
-### 10.1 Blank line group
+### 11.1 Blank line group
 
 A [*Blank line group*][g-blank-line] represents an empty line.
 
@@ -2748,7 +2767,7 @@ interface BlankLine <: Group {
 }
 ```
 
-### 10.2 ATX heading group
+### 11.2 ATX heading group
 
 An [*ATX heading group*][g-atx-heading] represents a heading for a section.
 
@@ -2758,7 +2777,7 @@ interface AtxHeading <: Group {
 }
 ```
 
-### 10.3 ATX heading fence group
+### 11.3 ATX heading fence group
 
 An [*ATX heading fence group*][g-atx-heading-fence] represents a fence of a heading.
 
@@ -2768,7 +2787,7 @@ interface AtxHeadingFence <: Group {
 }
 ```
 
-### 10.4 ATX heading content group
+### 11.4 ATX heading content group
 
 An [*ATX heading content group*][g-atx-heading-content] represents the phrasing of a heading.
 
@@ -2778,7 +2797,7 @@ interface AtxHeadingContent <: Group {
 }
 ```
 
-### 10.5 Thematic break group
+### 11.5 Thematic break group
 
 A [*Thematic break group*][g-thematic-break] represents a thematic break in a section.
 
@@ -2788,7 +2807,7 @@ interface ThematicBreak <: Group {
 }
 ```
 
-### 10.6 HTML group
+### 11.6 HTML group
 
 An [*HTML group*][g-html] represents embedded HTML.
 
@@ -2798,7 +2817,7 @@ interface HTML <: Group {
 }
 ```
 
-### 10.7 HTML line group
+### 11.7 HTML line group
 
 An [*HTML line group*][g-html-line] represents a line of HTML.
 
@@ -2808,7 +2827,7 @@ interface HTMLLine <: Group {
 }
 ```
 
-### 10.8 Indented code group
+### 11.8 Indented code group
 
 An [*Indented code group*][g-indented-code] represents preformatted text.
 
@@ -2818,7 +2837,7 @@ interface IndentedCode <: Group {
 }
 ```
 
-### 10.9 Indented code line group
+### 11.9 Indented code line group
 
 An [*Indented code line group*][g-indented-code-line] represents a line of indented code.
 
@@ -2828,7 +2847,7 @@ interface IndentedCodeLine <: Group {
 }
 ```
 
-### 10.10 Blockquote group
+### 11.10 Blockquote group
 
 A [*Blockquote group*][g-blockquote] represents paraphrased text.
 
@@ -2838,7 +2857,7 @@ interface Blockquote <: Group {
 }
 ```
 
-### 10.11 Fenced code group
+### 11.11 Fenced code group
 
 A [*Fenced code group*][g-fenced-code] represents preformatted text.
 
@@ -2848,7 +2867,7 @@ interface FencedCode <: Group {
 }
 ```
 
-### 10.12 Fenced code fence group
+### 11.12 Fenced code fence group
 
 A [*Fenced code fence group*][g-fenced-code-fence] represents a fence of fenced code.
 
@@ -2858,7 +2877,7 @@ interface FencedCodeFence <: Group {
 }
 ```
 
-### 10.13 Fenced code language group
+### 11.13 Fenced code language group
 
 A [*Fenced code language group*][g-fenced-code-language] represents the programming language of fenced code.
 
@@ -2868,7 +2887,7 @@ interface FencedCodeLanguage <: Group {
 }
 ```
 
-### 10.14 Fenced code metadata group
+### 11.14 Fenced code metadata group
 
 A [*Fenced code metadata group*][g-fenced-code-metadata] represents the metadata about fenced code.
 
@@ -2878,7 +2897,7 @@ interface FencedCodeMetadata <: Group {
 }
 ```
 
-### 10.15 Fenced code line group
+### 11.15 Fenced code line group
 
 A [*Fenced code line group*][g-fenced-code-line] represents a line of fenced code.
 
@@ -2888,7 +2907,7 @@ interface FencedCodeLine <: Group {
 }
 ```
 
-### 10.16 Content group
+### 11.16 Content group
 
 A [*Content group*][g-content] represents content: definitions, paragraphs, and sometimes heading
 content.
@@ -2899,7 +2918,7 @@ interface Content <: Group {
 }
 ```
 
-### 10.17 Content line group
+### 11.17 Content line group
 
 A [*Content line group*][g-content-line] represents a line of content.
 
@@ -2909,7 +2928,7 @@ interface ContentLine <: Group {
 }
 ```
 
-### 10.18 Setext heading group
+### 11.18 Setext heading group
 
 An [*Setext heading group*][g-setext-heading] represents a heading for a section.
 
@@ -2919,11 +2938,11 @@ interface SetextHeading <: Group {
 }
 ```
 
-### 10.19 Setext heading content group
+### 11.19 Setext heading content group
 
 > ❗️ Todo
 
-### 10.20 Setext heading underline group
+### 11.20 Setext heading underline group
 
 A [*Setext heading underline group*][g-setext-heading-underline] represents a fence of a heading.
 
@@ -2933,7 +2952,7 @@ interface SetextHeadingUnderline <: Group {
 }
 ```
 
-### 10.21 Definition group
+### 11.21 Definition group
 
 A [*Definition group*][g-definition] represents a link reference definition.
 
@@ -2943,7 +2962,7 @@ interface Definition <: Group {
 }
 ```
 
-### 10.22 Definition label group
+### 11.22 Definition label group
 
 A [*Definition label group*][g-definition-label] represents the label of a definition.
 
@@ -2953,7 +2972,7 @@ interface DefinitionLabel <: Group {
 }
 ```
 
-### 10.23 Definition label content group
+### 11.23 Definition label content group
 
 A [*Definition label content group*][g-definition-label-content] represents the content of the label of a
 definition.
@@ -2964,7 +2983,7 @@ interface DefinitionLabelContent <: Group {
 }
 ```
 
-### 10.24 Definition destination quoted group
+### 11.24 Definition destination quoted group
 
 A [*Definition destination quoted group*][g-definition-destination-quoted] represents an enclosed destination of a
 definition.
@@ -2975,7 +2994,7 @@ interface DefinitionDestinationQuoted <: Group {
 }
 ```
 
-### 10.25 Definition destination unquoted group
+### 11.25 Definition destination unquoted group
 
 A [*Definition destination unquoted group*][g-definition-destination-unquoted] represents an unclosed destination of a
 definition.
@@ -2986,7 +3005,7 @@ interface DefinitionDestinationUnquoted <: Group {
 }
 ```
 
-### 10.26 Definition title group
+### 11.26 Definition title group
 
 A [*Definition title group*][g-definition-title] represents advisory information, such as a description of
 the destination of the definition.
@@ -2997,7 +3016,7 @@ interface DefinitionTitle <: Group {
 }
 ```
 
-### 10.27 Escape group
+### 11.27 Escape group
 
 A [*Escape group*][g-escape] represents an escaped marker or an empty escape.
 
@@ -3007,7 +3026,7 @@ interface Escape <: Group {
 }
 ```
 
-### 10.28 Character reference group
+### 11.28 Character reference group
 
 A [*Character reference group*][g-character-reference] represents an escaped character.
 
@@ -3018,21 +3037,21 @@ interface CharacterReference <: Group {
 }
 ```
 
-### 10.29 Paragraph group
+### 11.29 Paragraph group
 
 > ❗️ Todo
 
-### 10.30 Image opening group
+### 11.30 Image opening group
 
-### 10.31 Link opening group
+### 11.31 Link opening group
 
-### 10.32 Link or image closing group
+### 11.32 Link or image closing group
 
-### 10.33 Emphasis or strong group
+### 11.33 Emphasis or strong group
 
-### 10.34 Phrasing code group
+### 11.34 Phrasing code group
 
-### 10.35 Automatic link group
+### 11.35 Automatic link group
 
 A [*Automatic link group*][g-automatic-link] represents a literal URL or email address.
 
@@ -3043,7 +3062,7 @@ interface AutomaticLink <: Group {
 }
 ```
 
-### 10.36 HTML inline group
+### 11.36 HTML inline group
 
 An [*HTML inline group*][g-html-inline] represents XML-like structures.
 
@@ -3053,13 +3072,13 @@ interface HTMLInline <: Group {
 }
 ```
 
-## 11 Appendix
+## 12 Appendix
 
-### 11.1 Raw tags
+### 12.1 Raw tags
 
 A <a id="raw-tag" href="#raw-tag">**raw tag**</a> is one of: `script`, `pre`, and `style`.
 
-### 11.2 Simple tags
+### 12.2 Simple tags
 
 A <a id="simple-tag" href="#simple-tag">**simple tag**</a> is one of: `address`, `article`, `aside`, `base`, `basefont`,
 `blockquote`, `body`, `caption`, `center`, `col`, `colgroup`, `dd`, `details`,
@@ -3070,7 +3089,7 @@ A <a id="simple-tag" href="#simple-tag">**simple tag**</a> is one of: `address`,
 `param`, `section`, `source`, `summary`, `table`, `tbody`, `td`, `tfoot`, `th`,
 `thead`, `title`, `tr`, `track`, and `ul`.
 
-### 11.3 Named character references
+### 12.3 Named character references
 
 A <a id="character-reference-name" href="#character-reference-name">**character reference name**</a> is one of:
 `AEli`, `AElig`, `AM`, `AMP`, `Aacut`, `Aacute`,
@@ -3383,7 +3402,7 @@ A <a id="character-reference-name" href="#character-reference-name">**character 
 `yum`, `yuml`, `zacute`, `zcaron`, `zcy`, `zdot`, `zeetrf`, `zeta`, `zfr`,
 `zhcy`, `zigrarr`, `zopf`, `zscr`, `zwj`, or `zwnj`.
 
-## 12 References
+## 13 References
 
 *   **\[HTML]**:
     [HTML Standard](https://html.spec.whatwg.org/multipage/).
@@ -3402,7 +3421,7 @@ A <a id="character-reference-name" href="#character-reference-name">**character 
     [The Unicode Standard](https://www.unicode.org/versions/).
     Unicode Consortium.
 
-## 13 Acknowledgments
+## 14 Acknowledgments
 
 Thanks to John Gruber for inventing Markdown.
 
@@ -3412,7 +3431,7 @@ Thanks to ZEIT, Inc., Gatsby, Inc., Netlify, Inc., Holloway, Inc., and the many
 organizations and individuals for financial support through
 [OpenCollective](https://opencollective.com/unified)
 
-## 14 License
+## 15 License
 
 Copyright © 2019 Titus Wormer.
 This work is licensed under a
@@ -3421,6 +3440,8 @@ This work is licensed under a
 [stack-of-continuation]: #stack-of-continuation
 
 [ceof]: #ceof
+
+[ceol]: #ceol
 
 [cvs]: #cvs
 
@@ -3451,6 +3472,10 @@ This work is licensed under a
 [input-stream]: #input-stream
 
 [input-character]: #input-character
+
+[text-stream]: #text-stream
+
+[text-character]: #text-character
 
 [stack-of-open-groups]: #stack-of-open-groups
 
@@ -3490,180 +3515,180 @@ This work is licensed under a
 
 [character-reference-name]: #character-reference-name
 
-[s-initial]: #71-initial-state
+[s-initial]: #81-initial-state
 
-[s-initial-whitespace]: #72-initial-whitespace-state
+[s-initial-whitespace]: #82-initial-whitespace-state
 
-[s-line-ending]: #73-line-ending-state
+[s-line-ending]: #83-line-ending-state
 
-[s-carriage-return]: #74-carriage-return-state
+[s-carriage-return]: #84-carriage-return-state
 
-[s-in-line]: #75-in-line-state
+[s-in-line]: #85-in-line-state
 
-[s-atx-heading-opening-sequence]: #76-atx-heading-opening-sequence-state
+[s-atx-heading-opening-sequence]: #86-atx-heading-opening-sequence-state
 
-[s-atx-heading-opening-sequence-after]: #77-atx-heading-opening-sequence-after-state
+[s-atx-heading-opening-sequence-after]: #87-atx-heading-opening-sequence-after-state
 
-[s-atx-heading-content]: #78-atx-heading-content-state
+[s-atx-heading-content]: #88-atx-heading-content-state
 
-[s-atx-heading-whitespace]: #79-atx-heading-whitespace-state
+[s-atx-heading-whitespace]: #89-atx-heading-whitespace-state
 
-[s-atx-heading-number-sign-sequence]: #710-atx-heading-number-sign-sequence-state
+[s-atx-heading-number-sign-sequence]: #810-atx-heading-number-sign-sequence-state
 
-[s-asterisk-line-asterisk-after]: #711-asterisk-line-asterisk-after-state
+[s-asterisk-line-asterisk-after]: #811-asterisk-line-asterisk-after-state
 
-[s-asterisk-line-whitespace]: #712-asterisk-line-whitespace-state
+[s-asterisk-line-whitespace]: #812-asterisk-line-whitespace-state
 
-[s-html-block-open]: #713-html-block-open-state
+[s-html-block-open]: #813-html-block-open-state
 
-[s-html-block-open-markup-declaration]: #714-html-block-open-markup-declaration-state
+[s-html-block-open-markup-declaration]: #814-html-block-open-markup-declaration-state
 
-[s-html-block-open-comment-inside]: #715-html-block-open-comment-inside-state
+[s-html-block-open-comment-inside]: #815-html-block-open-comment-inside-state
 
-[s-html-block-open-character-data-inside]: #716-html-block-open-character-data-inside-state
+[s-html-block-open-character-data-inside]: #816-html-block-open-character-data-inside-state
 
-[s-html-block-open-tag-name-inside]: #717-html-block-open-tag-name-inside-state
+[s-html-block-open-tag-name-inside]: #817-html-block-open-tag-name-inside-state
 
-[s-html-block-open-simple-self-closing-tag]: #718-html-block-open-simple-self-closing-tag-state
+[s-html-block-open-simple-self-closing-tag]: #818-html-block-open-simple-self-closing-tag-state
 
-[s-html-block-open-complete-attribute-before]: #719-html-block-open-complete-attribute-before-state
+[s-html-block-open-complete-attribute-before]: #819-html-block-open-complete-attribute-before-state
 
-[s-html-block-open-complete-attribute-name]: #720-html-block-open-complete-attribute-name-state
+[s-html-block-open-complete-attribute-name]: #820-html-block-open-complete-attribute-name-state
 
-[s-html-block-open-complete-attribute-name-after]: #721-html-block-open-complete-attribute-name-after-state
+[s-html-block-open-complete-attribute-name-after]: #821-html-block-open-complete-attribute-name-after-state
 
-[s-html-block-open-complete-attribute-value-before]: #722-html-block-open-complete-attribute-value-before-state
+[s-html-block-open-complete-attribute-value-before]: #822-html-block-open-complete-attribute-value-before-state
 
-[s-html-block-open-complete-double-quoted-attribute-value]: #723-html-block-open-complete-double-quoted-attribute-value-state
+[s-html-block-open-complete-double-quoted-attribute-value]: #823-html-block-open-complete-double-quoted-attribute-value-state
 
-[s-html-block-open-complete-single-quoted-attribute-value]: #724-html-block-open-complete-single-quoted-attribute-value-state
+[s-html-block-open-complete-single-quoted-attribute-value]: #824-html-block-open-complete-single-quoted-attribute-value-state
 
-[s-html-block-open-complete-unquoted-attribute-value]: #725-html-block-open-complete-unquoted-attribute-value-state
+[s-html-block-open-complete-unquoted-attribute-value]: #825-html-block-open-complete-unquoted-attribute-value-state
 
-[s-html-block-open-complete-self-closing-tag]: #726-html-block-open-complete-self-closing-tag-state
+[s-html-block-open-complete-self-closing-tag]: #826-html-block-open-complete-self-closing-tag-state
 
-[s-html-block-open-complete-tag-after]: #727-html-block-open-complete-tag-after-state
+[s-html-block-open-complete-tag-after]: #827-html-block-open-complete-tag-after-state
 
-[s-html-block-continuation-line]: #728-html-block-continuation-line-state
+[s-html-block-continuation-line]: #828-html-block-continuation-line-state
 
-[s-html-block-continuation-close-tag]: #729-html-block-continuation-close-tag-state
+[s-html-block-continuation-close-tag]: #829-html-block-continuation-close-tag-state
 
-[s-html-block-continuation-close-tag-name-inside]: #730-html-block-continuation-close-tag-name-inside-state
+[s-html-block-continuation-close-tag-name-inside]: #830-html-block-continuation-close-tag-name-inside-state
 
-[s-html-block-continuation-comment-inside]: #731-html-block-continuation-comment-inside-state
+[s-html-block-continuation-comment-inside]: #831-html-block-continuation-comment-inside-state
 
-[s-html-block-continuation-character-data-inside]: #732-html-block-continuation-character-data-inside-state
+[s-html-block-continuation-character-data-inside]: #832-html-block-continuation-character-data-inside-state
 
-[s-html-block-continuation-declaration-before]: #733-html-block-continuation-declaration-before-state
+[s-html-block-continuation-declaration-before]: #833-html-block-continuation-declaration-before-state
 
-[s-html-block-close-line]: #734-html-block-close-line-state
+[s-html-block-close-line]: #834-html-block-close-line-state
 
-[s-setext-heading-underline-equals-to-sequence]: #735-setext-heading-underline-equals-to-sequence-state
+[s-setext-heading-underline-equals-to-sequence]: #835-setext-heading-underline-equals-to-sequence-state
 
-[s-setext-heading-underline-equals-to-after]: #736-setext-heading-underline-equals-to-after-state
+[s-setext-heading-underline-equals-to-after]: #836-setext-heading-underline-equals-to-after-state
 
-[s-fenced-code-grave-accent-opening-fence]: #737-fenced-code-grave-accent-opening-fence-state
+[s-fenced-code-grave-accent-opening-fence]: #837-fenced-code-grave-accent-opening-fence-state
 
-[s-fenced-code-grave-accent-opening-fence-whitespace]: #738-fenced-code-grave-accent-opening-fence-whitespace-state
+[s-fenced-code-grave-accent-opening-fence-whitespace]: #838-fenced-code-grave-accent-opening-fence-whitespace-state
 
-[s-fenced-code-grave-accent-opening-fence-metadata]: #739-fenced-code-grave-accent-opening-fence-metadata-state
+[s-fenced-code-grave-accent-opening-fence-metadata]: #839-fenced-code-grave-accent-opening-fence-metadata-state
 
-[s-fenced-code-tilde-opening-fence]: #740-fenced-code-tilde-opening-fence-state
+[s-fenced-code-tilde-opening-fence]: #840-fenced-code-tilde-opening-fence-state
 
-[s-fenced-code-tilde-opening-fence-whitespace]: #741-fenced-code-tilde-opening-fence-whitespace-state
+[s-fenced-code-tilde-opening-fence-whitespace]: #841-fenced-code-tilde-opening-fence-whitespace-state
 
-[s-fenced-code-tilde-opening-fence-metadata]: #742-fenced-code-tilde-opening-fence-metadata-state
+[s-fenced-code-tilde-opening-fence-metadata]: #842-fenced-code-tilde-opening-fence-metadata-state
 
-[s-fenced-code-continuation-line]: #743-fenced-code-continuation-line-state
+[s-fenced-code-continuation-line]: #843-fenced-code-continuation-line-state
 
-[s-fenced-code-close-sequence]: #744-fenced-code-close-sequence-state
+[s-fenced-code-close-sequence]: #844-fenced-code-close-sequence-state
 
-[s-fenced-code-close-whitespace]: #745-fenced-code-close-whitespace-state
+[s-fenced-code-close-whitespace]: #845-fenced-code-close-whitespace-state
 
-[s-indented-code-line]: #746-indented-code-line-state
+[s-indented-code-line]: #846-indented-code-line-state
 
-[s-content-continuation]: #747-content-continuation-state
+[s-content-continuation]: #847-content-continuation-state
 
-[t-whitespace]: #91-whitespace-token
+[t-whitespace]: #101-whitespace-token
 
-[t-line-ending]: #92-line-ending-token
+[t-line-ending]: #102-line-ending-token
 
-[t-end-of-file]: #93-end-of-file-token
+[t-end-of-file]: #103-end-of-file-token
 
-[t-marker]: #94-marker-token
+[t-marker]: #104-marker-token
 
-[t-sequence]: #95-sequence-token
+[t-sequence]: #105-sequence-token
 
-[t-content]: #96-content-token
+[t-content]: #106-content-token
 
-[g-blank-line]: #101-blank-line-group
+[g-blank-line]: #111-blank-line-group
 
-[g-atx-heading]: #102-atx-heading-group
+[g-atx-heading]: #112-atx-heading-group
 
-[g-atx-heading-fence]: #103-atx-heading-fence-group
+[g-atx-heading-fence]: #113-atx-heading-fence-group
 
-[g-atx-heading-content]: #104-atx-heading-content-group
+[g-atx-heading-content]: #114-atx-heading-content-group
 
-[g-thematic-break]: #105-thematic-break-group
+[g-thematic-break]: #115-thematic-break-group
 
-[g-html]: #106-html-group
+[g-html]: #116-html-group
 
-[g-html-line]: #107-html-line-group
+[g-html-line]: #117-html-line-group
 
-[g-indented-code]: #108-indented-code-group
+[g-indented-code]: #118-indented-code-group
 
-[g-indented-code-line]: #109-indented-code-line-group
+[g-indented-code-line]: #119-indented-code-line-group
 
-[g-blockquote]: #1010-blockquote-group
+[g-blockquote]: #1110-blockquote-group
 
-[g-fenced-code]: #1011-fenced-code-group
+[g-fenced-code]: #1111-fenced-code-group
 
-[g-fenced-code-fence]: #1012-fenced-code-fence-group
+[g-fenced-code-fence]: #1112-fenced-code-fence-group
 
-[g-fenced-code-language]: #1013-fenced-code-language-group
+[g-fenced-code-language]: #1113-fenced-code-language-group
 
-[g-fenced-code-metadata]: #1014-fenced-code-metadata-group
+[g-fenced-code-metadata]: #1114-fenced-code-metadata-group
 
-[g-fenced-code-line]: #1015-fenced-code-line-group
+[g-fenced-code-line]: #1115-fenced-code-line-group
 
-[g-content]: #1016-content-group
+[g-content]: #1116-content-group
 
-[g-content-line]: #1017-content-line-group
+[g-content-line]: #1117-content-line-group
 
-[g-setext-heading]: #1018-setext-heading-group
+[g-setext-heading]: #1118-setext-heading-group
 
-[g-setext-heading-content]: #1019-setext-heading-content-group
+[g-setext-heading-content]: #1119-setext-heading-content-group
 
-[g-setext-heading-underline]: #1020-setext-heading-underline-group
+[g-setext-heading-underline]: #1120-setext-heading-underline-group
 
-[g-definition]: #1021-definition-group
+[g-definition]: #1121-definition-group
 
-[g-definition-label]: #1022-definition-label-group
+[g-definition-label]: #1122-definition-label-group
 
-[g-definition-label-content]: #1023-definition-label-content-group
+[g-definition-label-content]: #1123-definition-label-content-group
 
-[g-definition-destination-quoted]: #1024-definition-destination-quoted-group
+[g-definition-destination-quoted]: #1124-definition-destination-quoted-group
 
-[g-definition-destination-unquoted]: #1025-definition-destination-unquoted-group
+[g-definition-destination-unquoted]: #1125-definition-destination-unquoted-group
 
-[g-definition-title]: #1026-definition-title-group
+[g-definition-title]: #1126-definition-title-group
 
-[g-escape]: #1027-escape-group
+[g-escape]: #1127-escape-group
 
-[g-character-reference]: #1028-character-reference-group
+[g-character-reference]: #1128-character-reference-group
 
-[g-paragraph]: #1029-paragraph-group
+[g-paragraph]: #1129-paragraph-group
 
-[g-image-opening]: #1030-image-opening-group
+[g-image-opening]: #1130-image-opening-group
 
-[g-link-opening]: #1031-link-opening-group
+[g-link-opening]: #1131-link-opening-group
 
-[g-link-or-image-closing]: #1032-link-or-image-closing-group
+[g-link-or-image-closing]: #1132-link-or-image-closing-group
 
-[g-emphasis-or-strong]: #1033-emphasis-or-strong-group
+[g-emphasis-or-strong]: #1133-emphasis-or-strong-group
 
-[g-phrasing-code]: #1034-phrasing-code-group
+[g-phrasing-code]: #1134-phrasing-code-group
 
-[g-automatic-link]: #1035-automatic-link-group
+[g-automatic-link]: #1135-automatic-link-group
 
-[g-html-inline]: #1036-html-inline-group
+[g-html-inline]: #1136-html-inline-group
