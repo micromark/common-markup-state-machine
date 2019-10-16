@@ -217,19 +217,18 @@ further characters, or a character increase the size of a character.
 
 Tabs (U+0009 CHARACTER TABULATION (HT)) are typically not expanded into spaces, but do behave as if they
 were replaced by spaces with a tab stop of 4 characters.
-These character increments are represented by a [VIRTUAL SPACE][cvs] characters.
+These character increments are represented by [VIRTUAL SPACE][cvs] characters.
 
-Say we’d have the following markup (where `␉` represent a tab):
+For the following markup (where `␉` represent a tab):
 
 ```markdown
 >␉␉a
 ```
 
-This is represented by the characters: U+003E GREATER THAN (`>`), U+0009 CHARACTER TABULATION (HT), VIRTUAL SPACE, VIRTUAL SPACE, U+0009 CHARACTER TABULATION (HT), VIRTUAL SPACE, VIRTUAL SPACE,
-VIRTUAL SPACE, and U+0061 (`a`).
+We have the characters: U+003E GREATER THAN (`>`), U+0009 CHARACTER TABULATION (HT), VIRTUAL SPACE, VIRTUAL SPACE, U+0009 CHARACTER TABULATION (HT), VIRTUAL SPACE, VIRTUAL SPACE, VIRTUAL SPACE, and U+0061 (`a`).
 
 When transforming to an output format, tab characters that are not part of
-syntax, should be present in the output format.
+syntax should be present in the output format.
 When the tab itself (and zero or more VIRTUAL SPACE characters) are part of syntax, but
 some VIRTUAL SPACE characters are not, the remaining VIRTUAL SPACE characters should be considered
 a prefix of the content.
@@ -238,14 +237,8 @@ a prefix of the content.
 
 An <a id="ascii-digit" href="#ascii-digit">**ASCII digit**</a> is a character in the inclusive range U+0030 (`0`) to U+0039 (`9`).
 
-An <a id="ascii-upper-hex-digit" href="#ascii-upper-hex-digit">**ASCII upper hex digit**</a> is an [ASCII digit][ascii-digit] or a character in the
-inclusive range U+0041 (`A`) to U+0046 (`F`).
-
-An <a id="ascii-lower-hex-digit" href="#ascii-lower-hex-digit">**ASCII lower hex digit**</a> is an [ASCII digit][ascii-digit] or a character in the
-inclusive range U+0061 (`a`) to U+0066 (`f`).
-
-An <a id="ascii-hex-digit" href="#ascii-hex-digit">**ASCII hex digit**</a> is an [ASCII upper hex digit][ascii-upper-hex-digit] or an [ASCII lower hex
-digit][ascii-lower-hex-digit]
+An <a id="ascii-hex-digit" href="#ascii-hex-digit">**ASCII hex digit**</a> is an [ASCII digit][ascii-digit] or a character in the
+inclusive ranges U+0041 (`A`) to U+0046 (`F`) or U+0061 (`a`) to U+0066 (`f`).
 
 An <a id="ascii-upper-alpha" href="#ascii-upper-alpha">**ASCII upper alpha**</a> is a character in the inclusive range U+0041 (`A`) to U+005A (`Z`).
 
@@ -289,7 +282,7 @@ The <a id="input-stream" href="#input-stream">**input stream**</a> consists of t
 The <a id="input-character" href="#input-character">**input character**</a> is the first character in the [input stream][input-stream] that has
 not yet been consumed.
 Initially, the input character is the first character in the input.
-Finally, if all character are consumed, the input character is an [EOF][ceof].
+Finally, when all character are consumed, the input character is an [EOF][ceof].
 
 Any occurrences of U+0009 CHARACTER TABULATION (HT) in the [input stream][input-stream] is represented by that character
 and 0-3 [VIRTUAL SPACE][cvs] characters.
@@ -3432,10 +3425,6 @@ This work is licensed under a
 [cvs]: #cvs
 
 [ascii-digit]: #ascii-digit
-
-[ascii-upper-hex-digit]: #ascii-upper-hex-digit
-
-[ascii-lower-hex-digit]: #ascii-lower-hex-digit
 
 [ascii-hex-digit]: #ascii-hex-digit
 

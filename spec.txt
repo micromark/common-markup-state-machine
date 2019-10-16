@@ -93,19 +93,18 @@ further characters, or a character increase the size of a character.
 
 Tabs (c:HT) are typically not expanded into spaces, but do behave as if they
 were replaced by spaces with a tab stop of 4 characters.
-These character increments are represented by a [c:VS] characters.
+These character increments are represented by [c:VS] characters.
 
-Say we’d have the following markup (where `␉` represent a tab):
+For the following markup (where `␉` represent a tab):
 
 ```markdown
 >␉␉a
 ```
 
-This is represented by the characters: c:>, c:HT, c:VS, c:VS, c:HT, c:VS, c:VS,
-c:VS, and c:a.
+We have the characters: c:>, c:HT, c:VS, c:VS, c:HT, c:VS, c:VS, c:VS, and c:a.
 
 When transforming to an output format, tab characters that are not part of
-syntax, should be present in the output format.
+syntax should be present in the output format.
 When the tab itself (and zero or more c:VS characters) are part of syntax, but
 some c:VS characters are not, the remaining c:VS characters should be considered
 a prefix of the content.
@@ -114,14 +113,8 @@ a prefix of the content.
 
 An [ASCII digit](#) is a character in the inclusive range c:0 to c:9.
 
-An [ASCII upper hex digit](#) is an [ASCII digit][] or a character in the
-inclusive range c:A to c:F.
-
-An [ASCII lower hex digit](#) is an [ASCII digit][] or a character in the
-inclusive range c:a to c:f.
-
-An [ASCII hex digit](#) is an [ASCII upper hex digit][] or an [ASCII lower hex
-digit][]
+An [ASCII hex digit](#) is an [ASCII digit][] or a character in the
+inclusive ranges c:A to c:F or c:a to c:f.
 
 An [ASCII upper alpha](#) is a character in the inclusive range c:A to c:Z.
 
@@ -164,7 +157,7 @@ The [input stream](#) consists of the characters pushed into it.
 The [input character](#) is the first character in the [input stream][] that has
 not yet been consumed.
 Initially, the input character is the first character in the input.
-Finally, if all character are consumed, the input character is an [c:EOF][].
+Finally, when all character are consumed, the input character is an [c:EOF][].
 
 Any occurrences of c:HT in the [input stream][] is represented by that character
 and 0-3 [c:VS][] characters.
