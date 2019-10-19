@@ -1565,7 +1565,7 @@ and must start in the [*Initial content state*][s-initial-content].
     ↪ **U+0020 SPACE (SP)**
 
     Queue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition label between state*][s-definition-label-between]
-*   ↪ \*\*c:\*\*
+*   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
@@ -1591,7 +1591,7 @@ and must start in the [*Initial content state*][s-initial-content].
     ↪ **U+0020 SPACE (SP)**
 
     Queue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition label between state*][s-definition-label-between]
-*   ↪ \*\*c:\*\*
+*   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
@@ -1615,7 +1615,7 @@ and must start in the [*Initial content state*][s-initial-content].
     ↪ **U+0020 SPACE (SP)**
 
     Consume
-*   ↪ \*\*c:\*\*
+*   ↪ **U+005C BACKSLASH (`\`)**
 
     Queue a [*Content token*][t-content], consume, and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
@@ -1629,7 +1629,7 @@ and must start in the [*Initial content state*][s-initial-content].
 ### 10.7 Definition label escape state
 
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**\
-    ↪ \*\*c:\*\*
+    ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition label inside state*][s-definition-label-inside]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
@@ -1707,7 +1707,7 @@ and must start in the [*Initial content state*][s-initial-content].
     ↪ **U+003C LESS THAN (`<`)**
 
     Signal **e:content-not-a-definition**
-*   ↪ \*\*c:\*\*
+*   ↪ **U+005C BACKSLASH (`\`)**
 
     Queue a [*Content token*][t-content], consume, and switch to the
     [*Definition destination quoted escape state*][s-definition-destination-quoted-escape]
@@ -1727,7 +1727,7 @@ and must start in the [*Initial content state*][s-initial-content].
     ↪ **U+003C LESS THAN (`<`)**
 
     Signal **e:content-not-a-definition**
-*   ↪ \*\*c:\*\*
+*   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition destination quoted escape state*][s-definition-destination-quoted-escape]
 *   ↪ **U+003E GREATER THAN (`>`)**
@@ -1742,7 +1742,7 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **U+003C LESS THAN (`<`)**\
     ↪ **U+003E GREATER THAN (`>`)**\
-    ↪ \*\*c:\*\*
+    ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition destination quoted inside state*][s-definition-destination-quoted-inside]
 *   ↪ **Anything else**
@@ -1794,7 +1794,7 @@ and must start in the [*Initial content state*][s-initial-content].
     If `balance` is `0`, signal **e:content-not-a-definition**.
 
     Otherwise, decrement `balance` by `1`, and consume
-*   ↪ \*\*c:\*\*
+*   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition destination unquoted escape state*][s-definition-destination-unquoted-escape]
 *   ↪ **Anything else**
@@ -1805,7 +1805,7 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**\
     ↪ **U+0029 RIGHT PARENTHESIS (`)`)**\
-    ↪ \*\*c:\*\*
+    ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 *   ↪ **Anything else**
@@ -1853,7 +1853,7 @@ and must start in the [*Initial content state*][s-initial-content].
 
     Queue a [*Marker token*][t-marker], consume, emit, and switch to the
     [*Definition title close after state*][s-definition-title-close-after]
-*   ↪ \*\*c:\*\*
+*   ↪ **U+005C BACKSLASH (`\`)**
 
     Queue a [*Content token*][t-content], consume, and switch to the [*Definition title double quoted escape state*][s-definition-title-double-quoted-escape]
 *   ↪ **Anything else**
@@ -1873,7 +1873,7 @@ and must start in the [*Initial content state*][s-initial-content].
 
     Queue a [*Marker token*][t-marker], consume, emit, and switch to the
     [*Definition title close after state*][s-definition-title-close-after]
-*   ↪ \*\*c:\*\*
+*   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title double quoted escape state*][s-definition-title-double-quoted-escape]
 *   ↪ **Anything else**
@@ -1883,7 +1883,7 @@ and must start in the [*Initial content state*][s-initial-content].
 ### 10.20 Definition title double quoted escape state
 
 *   ↪ **U+0022 QUOTATION MARK (`"`)**\
-    ↪ \*\*c:\*\*
+    ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
 *   ↪ **Anything else**
@@ -1902,7 +1902,7 @@ and must start in the [*Initial content state*][s-initial-content].
 
     Queue a [*Marker token*][t-marker], consume, emit, and switch to the
     [*Definition title close after state*][s-definition-title-close-after]
-*   ↪ \*\*c:\*\*
+*   ↪ **U+005C BACKSLASH (`\`)**
 
     Queue a [*Content token*][t-content], consume, and switch to the
     [*Definition title single quoted escape state*][s-definition-title-single-quoted-escape]
@@ -1924,7 +1924,7 @@ and must start in the [*Initial content state*][s-initial-content].
 
     Queue a [*Marker token*][t-marker], consume, emit, and switch to the
     [*Definition title close after state*][s-definition-title-close-after]
-*   ↪ \*\*c:\*\*
+*   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title single quoted escape state*][s-definition-title-single-quoted-escape]
 *   ↪ **Anything else**
@@ -1934,7 +1934,7 @@ and must start in the [*Initial content state*][s-initial-content].
 ### 10.23 Definition title single quoted escape state
 
 *   ↪ **U+0027 APOSTROPHE (`'`)**\
-    ↪ \*\*c:\*\*
+    ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
 *   ↪ **Anything else**
@@ -1953,7 +1953,7 @@ and must start in the [*Initial content state*][s-initial-content].
 
     Queue a [*Marker token*][t-marker], consume, emit, and switch to the
     [*Definition title close after state*][s-definition-title-close-after]
-*   ↪ \*\*c:\*\*
+*   ↪ **U+005C BACKSLASH (`\`)**
 
     Queue a [*Content token*][t-content], consume, and switch to the
     [*Definition title paren quoted escape state*][s-definition-title-paren-quoted-escape]
@@ -1975,7 +1975,7 @@ and must start in the [*Initial content state*][s-initial-content].
 
     Queue a [*Marker token*][t-marker], consume, emit, and switch to the
     [*Definition title close after state*][s-definition-title-close-after]
-*   ↪ \*\*c:\*\*
+*   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title paren quoted escape state*][s-definition-title-paren-quoted-escape]
 *   ↪ **Anything else**
@@ -1985,7 +1985,7 @@ and must start in the [*Initial content state*][s-initial-content].
 ### 10.26 Definition title paren quoted escape state
 
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**\
-    ↪ \*\*c:\*\*
+    ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
 *   ↪ **Anything else**
@@ -3009,7 +3009,8 @@ defaults to `phrasing`:
             move `last` one place forward, increment `size` by `1`, and go to
             the step labeled *move*
         *   Let `next` be a copy of `last`
-        *   *look*: scan for c:`within`lines`given`next\`
+        *   *look*: scan for U+0060 GRAVE ACCENT (\`) within `lines` given
+            `next`
         *   If `next` points to a place:
 
             *   Let `nextLast` be a copy of `next`
