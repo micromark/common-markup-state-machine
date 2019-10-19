@@ -8,6 +8,12 @@ var {characters, names} = init()
 // characters[0xfffd] = '�'
 // names['�'] = 'Replacement character'
 
+var conceptual = {
+  VS: 'Virtual space',
+  EOF: 'EOF',
+  EOL: 'EOL'
+}
+
 function expandCharacters() {
   return transform
 
@@ -22,7 +28,7 @@ function expandCharacters() {
     var name
 
     if (pos === -1) {
-      name = c === 'VS' ? 'Virtual space' : c === 'EOF' ? 'EOF' : null
+      name = conceptual[c]
 
       if (!name) {
         throw new Error('Cannot expand character `' + all + '`')
