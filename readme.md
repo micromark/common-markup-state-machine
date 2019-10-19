@@ -1501,7 +1501,7 @@ and must start in the [*Initial content state*][s-initial-content].
 ### 10.1 Initial content state
 
 *   ↪ **[EOF][ceof]**\
-    ↪ **[EOL][ceol]**
+    ↪ **[EOL][ceol]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -1628,14 +1628,14 @@ and must start in the [*Initial content state*][s-initial-content].
 
 ### 10.7 Definition label escape state
 
-*   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**\
-    ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the [*Definition label inside state*][s-definition-label-inside]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Queue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition label between state*][s-definition-label-between]
+*   ↪ **U+005C BACKSLASH (`\`)**\
+    ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
+
+    Consume and switch to the [*Definition label inside state*][s-definition-label-inside]
 *   ↪ **Anything else**
 
     Reconsume in the [*Definition label inside state*][s-definition-label-inside]
@@ -1688,13 +1688,13 @@ and must start in the [*Initial content state*][s-initial-content].
     ↪ **U+0020 SPACE (SP)**
 
     Consume
-*   ↪ **[ASCII control][ascii-control]**
-
-    Signal **e:content-not-a-definition**
 *   ↪ **U+003C LESS THAN (`<`)**
 
     Queue a [*Marker token*][t-marker], consume, emit, and switch to the
     [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
+*   ↪ **[ASCII control][ascii-control]**
+
+    Signal **e:content-not-a-definition**
 *   ↪ **Anything else**
 
     Queue a [*Content token*][t-content] and reconsume in the
@@ -1707,14 +1707,14 @@ and must start in the [*Initial content state*][s-initial-content].
     ↪ **U+003C LESS THAN (`<`)**
 
     Signal **e:content-not-a-definition**
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Queue a [*Content token*][t-content], consume, and switch to the
-    [*Definition destination quoted escape state*][s-definition-destination-quoted-escape]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     Queue a [*Marker token*][t-marker], consume, emit, and switch to the
     [*Definition destination quoted close after state*][s-definition-destination-quoted-close-after]
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Queue a [*Content token*][t-content], consume, and switch to the
+    [*Definition destination quoted escape state*][s-definition-destination-quoted-escape]
 *   ↪ **Anything else**
 
     Queue a [*Content token*][t-content], consume, and switch to the
@@ -1727,13 +1727,13 @@ and must start in the [*Initial content state*][s-initial-content].
     ↪ **U+003C LESS THAN (`<`)**
 
     Signal **e:content-not-a-definition**
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the [*Definition destination quoted escape state*][s-definition-destination-quoted-escape]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     Queue a [*Marker token*][t-marker], consume, emit, and switch to the
     [*Definition destination quoted close after state*][s-definition-destination-quoted-close-after]
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Consume and switch to the [*Definition destination quoted escape state*][s-definition-destination-quoted-escape]
 *   ↪ **Anything else**
 
     Consume
@@ -1783,9 +1783,6 @@ and must start in the [*Initial content state*][s-initial-content].
 
     Queue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Definition destination after state*][s-definition-destination-after]
-*   ↪ **[ASCII control][ascii-control]**
-
-    Signal **e:content-not-a-definition**
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
     Increment `balance` by `1` and consume
@@ -1797,6 +1794,9 @@ and must start in the [*Initial content state*][s-initial-content].
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition destination unquoted escape state*][s-definition-destination-unquoted-escape]
+*   ↪ **[ASCII control][ascii-control]**
+
+    Signal **e:content-not-a-definition**
 *   ↪ **Anything else**
 
     Consume

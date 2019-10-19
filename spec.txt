@@ -1342,7 +1342,7 @@ and must start in the s:initial-content.
 ### Initial content state
 
 *   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**
+    ↪ **[c:EOL][]**\
     ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1469,14 +1469,14 @@ and must start in the s:initial-content.
 
 ### Definition label escape state
 
-*   ↪ **c:]**\
-    ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the s:definition-label-inside
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Queue a t:whitespace, consume, and switch to the s:definition-label-between
+*   ↪ **U+005C BACKSLASH (`\`)**\
+    ↪ **c:]**
+
+    Consume and switch to the s:definition-label-inside
 *   ↪ **Anything else**
 
     Reconsume in the s:definition-label-inside
@@ -1529,13 +1529,13 @@ and must start in the s:initial-content.
     ↪ **c:SP**
 
     Consume
-*   ↪ **[ASCII control][]**
-
-    Signal **e:content-not-a-definition**
 *   ↪ **c:<**
 
     Queue a t:marker, consume, emit, and switch to the
     s:definition-destination-quoted-open-after
+*   ↪ **[ASCII control][]**
+
+    Signal **e:content-not-a-definition**
 *   ↪ **Anything else**
 
     Queue a t:content and reconsume in the
@@ -1548,14 +1548,14 @@ and must start in the s:initial-content.
     ↪ **c:<**
 
     Signal **e:content-not-a-definition**
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Queue a t:content, consume, and switch to the
-    s:definition-destination-quoted-escape
 *   ↪ **c:>**
 
     Queue a t:marker, consume, emit, and switch to the
     s:definition-destination-quoted-close-after
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Queue a t:content, consume, and switch to the
+    s:definition-destination-quoted-escape
 *   ↪ **Anything else**
 
     Queue a t:content, consume, and switch to the
@@ -1568,13 +1568,13 @@ and must start in the s:initial-content.
     ↪ **c:<**
 
     Signal **e:content-not-a-definition**
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the s:definition-destination-quoted-escape
 *   ↪ **c:>**
 
     Queue a t:marker, consume, emit, and switch to the
     s:definition-destination-quoted-close-after
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Consume and switch to the s:definition-destination-quoted-escape
 *   ↪ **Anything else**
 
     Consume
@@ -1624,9 +1624,6 @@ and must start in the s:initial-content.
 
     Queue a t:whitespace, consume, and switch to the
     s:definition-destination-after
-*   ↪ **[ASCII control][]**
-
-    Signal **e:content-not-a-definition**
 *   ↪ **c:(**
 
     Increment `balance` by `1` and consume
@@ -1638,6 +1635,9 @@ and must start in the s:initial-content.
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:definition-destination-unquoted-escape
+*   ↪ **[ASCII control][]**
+
+    Signal **e:content-not-a-definition**
 *   ↪ **Anything else**
 
     Consume
