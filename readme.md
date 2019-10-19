@@ -484,8 +484,8 @@ open groups][stack-of-open-groups] and the [queue][queue].
 
 ## 9 Block state machine
 
-The block state machine is used to tokenize the main structure of a document and
-must start in the [*Initial state*][s-initial].
+The <a id="block-state-machine" href="#block-state-machine">**block state machine**</a> is used to tokenize the main structure of a
+document and must start in the [*Initial state*][s-initial].
 
 ### 9.1 Initial state
 
@@ -1495,8 +1495,8 @@ If the next few characters are:
 
 ## 10 Content state machine
 
-The content state machine is used to tokenize content blocks of a document and
-must start in the [*Initial content state*][s-initial-content].
+The <a id="content-state-machine" href="#content-state-machine">**content state machine**</a> is used to tokenize content blocks of a document
+and must start in the [*Initial content state*][s-initial-content].
 
 ### 10.1 Initial content state
 
@@ -2030,7 +2030,7 @@ must start in the [*Initial content state*][s-initial-content].
 
 ## 11 Inline state machine
 
-The inline state machine is used to tokenize inline values (raw text or
+The <a id="inline-state-machine" href="#inline-state-machine">**inline state machine**</a> is used to tokenize inline values (raw text or
 phrasing) of a document and must start in the [*Initial inline state*][s-initial-inline].
 
 ### 11.1 Initial inline state
@@ -3871,6 +3871,12 @@ This work is licensed under a
 [queue]: #queue
 
 [current-token]: #current-token
+
+[block-state-machine]: #block-state-machine
+
+[content-state-machine]: #content-state-machine
+
+[inline-state-machine]: #inline-state-machine
 
 [process-as-an-atx-heading]: #process-as-an-atx-heading
 

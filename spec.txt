@@ -324,8 +324,8 @@ open groups][] and the [queue][].
 
 ## Block state machine
 
-The block state machine is used to tokenize the main structure of a document and
-must start in the s:initial.
+The [block state machine](#) is used to tokenize the main structure of a
+document and must start in the s:initial.
 
 ### Initial state
 
@@ -1336,8 +1336,8 @@ If the next few characters are:
 
 ## Content state machine
 
-The content state machine is used to tokenize content blocks of a document and
-must start in the s:initial-content.
+The [content state machine](#) is used to tokenize content blocks of a document
+and must start in the s:initial-content.
 
 ### Initial content state
 
@@ -1871,7 +1871,7 @@ must start in the s:initial-content.
 
 ## Inline state machine
 
-The inline state machine is used to tokenize inline values (raw text or
+The [inline state machine](#) is used to tokenize inline values (raw text or
 phrasing) of a document and must start in the s:initial-inline.
 
 ### Initial inline state
