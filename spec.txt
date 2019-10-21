@@ -1336,24 +1336,18 @@ If the next few characters are:
 
 ## Content state machine
 
-The [content state machine](#) is used to tokenize content blocks of a document
-and must start in the s:initial-content.
+The [content state machine](#) is used to tokenize the content blocks of a
+document and must start in the s:initial-content.
 
 ### Initial content state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**\
-    ↪ **c:HT**\
-    ↪ **c:SP**
-
-    > ❗️ Note: shouldn’t be possible
 *   ↪ **c:[**
 
     Queue a t:marker, consume, emit, and switch to the
     s:definition-label-open-after
 *   ↪ **Anything else**
 
-    Signal **e:content-not-a-definition**
+    Reconsume in the s:phrasing-content
 
 ### Definition label open after state
 
@@ -1869,12 +1863,938 @@ and must start in the s:initial-content.
 
 ### Phrasing content state
 
+> ❗️ Todo: define.
+
 ## Inline state machine
 
 The [inline state machine](#) is used to tokenize inline values (raw text or
 phrasing) of a document and must start in the s:initial-inline.
 
 ### Initial inline state
+
+> ❗️ Todo: Define shared space: `type`
+
+*   ↪ **[c:EOF][]**
+
+    Queue a t:end-of-file and emit
+*   ↪ **[c:EOL][]**
+
+    Queue an t:end-of-line, consume, and emit
+*   ↪ **c:!**
+
+    If `type` is a `rich`, queue a t:marker, consume, emit, and switch to the
+    s:image-exclamation-mark-after.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:&**
+
+    Queue a t:marker, consume, emit, and switch to the s:character-reference.
+*   ↪ **c:***
+
+    If `type` is a `rich`, queue a t:sequence, consume, and switch to the
+    s:emphasis-asterisk.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:<**
+
+    If `type` is a `rich`, queue a t:content, consume, and switch to the
+    s:html-or-autolink-less-than-after.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:[**
+
+    If `type` is a `rich`, queue a t:marker, consume, emit, signal and
+    **e:text-link-open**
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Queue a t:marker, consume, emit, and switch to the s:escape-backslash-after
+*   ↪ **c:[**
+
+    > ❗️ Todo: support references, inlines, etc
+
+    If `type` is a `rich`, queue a t:marker, consume, emit, signal and
+    **e:text-link-close**
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:_**
+
+    If `type` is a `rich`, queue a t:sequence, consume, and switch to the
+    s:emphasis-underscore.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:`**
+
+    If `type` is a `rich`, let `openingSize` be `1`, queue a t:sequence,
+    consume, and switch to the s:code-span-opening.
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **Anything else**
+
+    Signal?
+
+### Emphasis asterisk state
+
+*   ↪ **c:***
+
+    Consume
+*   ↪ **Anything else**
+
+    Signal **e:emphasis** and reconsume in the s:initial-inline
+
+### Character reference state
+
+*   ↪ **c:#**
+
+    Queue a t:marker, consume, and switch to the s:character-reference-numeric
+*   ↪ **[ASCII alphanumeric][]**
+
+    > ❗️ Todo: Define shared space: `entityName`
+
+    Queue a t:content, append the character to `entityName`, consume, and switch
+    to the s:character-reference-named
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Character reference named state
+
+> ❗️ Todo: Define shared space: `entityName`
+
+*   ↪ **[ASCII alphanumeric][]**
+
+    Append the character to `entityName` and consume
+*   ↪ **c:;**
+
+    If `entityName` is a [character reference name][], queue a t:marker,
+    consume, signal **e:character-reference**, and switch to the
+    s:initial-inline
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Character reference numeric state
+
+*   ↪ **c:X**\
+    ↪ **c:x**
+
+    Queue a t:marker, consume, and switch to the
+    s:character-reference-hexadecimal-start
+*   ↪ **[ASCII digit][]**
+
+    Queue a t:content and reconsume in the s:character-reference-decimal
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Character reference hexadecimal start state
+
+*   ↪ **[ASCII hex digit][]**
+
+    Queue a t:content and reconsume in the s:character-reference-hexadecimal
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Character reference hexadecimal state
+
+> ❗️ Todo: Define shared space: `characterReferenceCode`
+
+*   ↪ **[ASCII digit][]**
+
+    Multiply `characterReferenceCode` by `16`, add a numeric version of the
+    [content character][] (subtract `0x30` from the character) to
+    `characterReferenceCode`, and consume
+*   ↪ **[ASCII upper hex digit][]**
+
+    Multiply `characterReferenceCode` by `16`, add a numeric version of the
+    [content character][] (subtract `0x37` from the character) to
+    `characterReferenceCode`, and consume
+*   ↪ **[ASCII lower hex digit][]**
+
+    Multiply `characterReferenceCode` by `16`, add a numeric version of the
+    [content character][] (subtract `0x57` from the character) to
+    `characterReferenceCode`, and consume
+*   ↪ **c:;**
+
+    Queue a t:marker, consume, signal **e:character-reference**, and switch to
+    the s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Character reference decimal state
+
+> ❗️ Todo: Define shared space: `characterReferenceCode`
+
+*   ↪ **[ASCII digit][]**
+
+    Multiply `characterReferenceCode` by `10`, add a numeric version of the
+    [content character][] (subtract `0x30` from the character) to
+    `characterReferenceCode`, and consume
+*   ↪ **c:;**
+
+    Queue a t:marker, consume, signal **e:character-reference**, and switch to
+    the s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Code span opening state
+
+> ❗️ Todo: Define shared space: `openingSize`
+
+*   ↪ **c:`**
+
+    Increment `openingSize` by `1` and consume
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Queue an t:end-of-line, consume, emit, and switch to the
+    s:code-span-eol-after
+*   ↪ **Anything else**
+
+    Queue a t:content, consume, and switch to the s:code-span-inside
+
+### Code span eol after state
+
+> ❗️ Todo: Define shared space: `openingSize`
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Queue an t:end-of-line, consume, emit, and switch to the
+    s:code-span-eol-after
+*   ↪ **c:`**
+
+    Queue a t:sequence, let `closingSize` be `1`, consume, and switch to the
+    s:code-span-closing
+*   ↪ **Anything else**
+
+    Queue a t:content, consume, and switch to the s:code-span-inside
+
+### Code span inside state
+
+> ❗️ Todo: Define shared space: `closingSize`
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Queue an t:end-of-line, consume, emit, and switch to the
+    s:code-span-eol-after
+*   ↪ **c:`**
+
+    Queue a t:sequence, let `closingSize` be `1`, consume, and switch to the
+    s:code-span-closing
+*   ↪ **Anything else**
+
+    Consume
+
+### Code span closing state
+
+> ❗️ Todo: Define shared space: `openingSize`, `closingSize`
+
+*   ↪ **c:`**
+
+    Increment `closingSize` by `1` and consume
+*   ↪ **[c:EOF][]**
+
+    If `openingSize` is `closingSize`, signal **e:code-span** and reconsume in
+    the s:initial-inline
+
+    Otherwise, reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    If `openingSize` is `closingSize`, signal **e:code-span** and reconsume in
+    the s:initial-inline
+
+    Otherwise, queue an t:end-of-line, consume, emit, and switch to the
+    s:code-span-eol-after
+*   ↪ **Anything else**
+
+    If `openingSize` is `closingSize`, signal **e:code-span** and reconsume in
+    the s:initial-inline
+
+    Otherwise, consume and switch to the s:code-span-inside
+
+### Emphasis underscore state
+
+*   ↪ **c:_**
+
+    Consume
+*   ↪ **Anything else**
+
+    Signal **e:emphasis** and reconsume in the s:initial-inline
+
+### Escape backslash after state
+
+*   ↪ **[ASCII punctuation][]**
+
+    Queue a t:content, consume, emit, signal **e:escape**, and switch to the
+    s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Image exclamation mark after state
+
+*   ↪ **c:[**
+
+    Queue a t:marker, consume, emit, signal **e:text-image-open**, and switch to
+    the s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML or autolink less than after state
+
+*   ↪ **c:!**
+
+    Consume and switch to the s:html-declaration-or-email-atext
+*   ↪ **c:/**
+
+    Consume and switch to the s:html-closing-tag-or-email-atext
+*   ↪ **c:?**
+
+    Consume and switch to the s:html-instruction-or-email-atext
+*   ↪ **[ASCII alpha][]**
+
+    Consume and switch to the s:html-opening-tag-scheme-or-email-atext
+*   ↪ **[atext][]**\
+    ↪ **c:.**
+
+    Consume and switch to the s:autolink-email-atext
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML instruction or email atext state
+
+*   ↪ **c:?**
+
+    Consume and switch to the s:html-instruction-close-or-email-atext
+*   ↪ **c:@**
+
+    Consume and switch to the s:html-instruction-or-email-at-sign-or-dot
+*   ↪ **[atext][]**\
+    ↪ **c:.**
+
+    Consume
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Consume and switch to the s:html-instruction
+
+### HTML instruction close or email atext state
+
+*   ↪ **c:>**
+
+    Consume, emit, signal **e:html-instruction**, and switch to the
+    s:initial-inline
+*   ↪ **c:?**
+
+    Consume
+*   ↪ **c:@**
+
+    Consume and switch to the s:html-instruction-or-email-at-sign-or-dot
+*   ↪ **[atext][]**\
+    ↪ **c:.**
+
+    Consume and switch to the s:html-instruction-or-email-atext
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Consume and switch to the s:html-instruction
+
+### HTML instruction or email at sign or dot state
+
+*   ↪ **c:?**
+
+    Consume and switch to the s:html-instruction-close
+*   ↪ **[ASCII alphanumeric][]**
+
+    Consume and switch to the s:html-instruction-or-email-label
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Consume and switch to the s:html-instruction
+
+### HTML instruction or email label state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-instruction-or-email-dash
+*   ↪ **c:.**
+
+    Consume and switch to the s:html-instruction-or-email-at-sign-or-dot
+*   ↪ **c:>**
+
+    > ❗️ Todo: size between `@` and `>` can be at most 63 total.
+
+    Consume, emit, signal **e:autolink-email**, and switch to the
+    s:initial-inline
+*   ↪ **c:?**
+
+    Consume and switch to the s:html-instruction-close
+*   ↪ **[ASCII alphanumeric][]**
+
+    Consume and switch to the s:html-instruction-or-email-label
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Consume and switch to the s:html-instruction
+
+### HTML instruction or email dash state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-instruction-or-email-dash
+*   ↪ **c:?**
+
+    Consume and switch to the s:html-instruction-close
+*   ↪ **[ASCII alphanumeric][]**
+
+    Consume and switch to the s:html-instruction-or-email-label
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Consume and switch to the s:html-instruction
+
+### HTML instruction state
+
+*   ↪ **c:?**
+
+    Consume and switch to the s:html-instruction-close
+*   ↪ **[c:EOL][]**
+
+    Queue an t:end-of-line, consume, and emit
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Consume
+
+### HTML instruction close state
+
+*   ↪ **c:>**
+
+    Consume, emit, signal **e:html-instruction**, and switch to the
+    s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Queue an t:end-of-line, consume, queue a t:content, and switch to the
+    s:html-instruction
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Consume
+
+### HTML declaration or email atext state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-comment-open-inside-or-email-atext
+*   ↪ **c:@**
+
+    Consume and switch to the s:autolink-email-at-sign-or-dot
+*   ↪ **`[CDATA[` (the five upper letters “CDATA” with a c:[ before and
+    after)**
+
+    Consume and switch to the s:html-cdata
+*   ↪ **[ASCII upper alpha][]**
+
+    Consume and switch to the s:html-declaration-name-or-email-atext
+*   ↪ **[atext][]**\
+    ↪ **c:.**
+
+    Consume and switch to the s:autolink-email-atext
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML comment open inside or email atext state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-comment-or-email-atext
+*   ↪ **c:@**
+
+    Consume and switch to the s:autolink-email-at-sign-or-dot
+*   ↪ **[atext][]**\
+    ↪ **c:.**
+
+    Consume and switch to the s:autolink-email-atext
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML comment or email atext state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-comment-close-inside-or-email-atext
+*   ↪ **c:@**
+
+    Consume and switch to the s:html-comment-or-email-at-sign-or-dot
+*   ↪ **[atext][]**\
+    ↪ **c:.**
+
+    Consume and switch to the s:html-comment-or-email-atext
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-comment
+
+### HTML comment close inside or email atext state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-comment-close-or-email-atext
+*   ↪ **c:@**
+
+    Consume and switch to the s:html-comment-or-email-at-sign-or-dot
+*   ↪ **[atext][]**\
+    ↪ **c:.**
+
+    Consume and switch to the s:html-comment-or-email-atext
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-comment
+
+### HTML comment close or email atext state
+
+> **Note**: a comment may not contain two dashes (`--`), and may not end in a
+> dash (which would result in `--->`).
+> Here we have seen two dashes, so we can either be at the end of a comment, or
+> no longer in a comment.
+
+*   ↪ **c:>**
+
+    Consume, emit, signal **e:html-comment**, and switch to the s:initial-inline
+*   ↪ **c:@**
+
+    Consume and switch to the s:autolink-email-at-sign-or-dot
+*   ↪ **[atext][]**\
+    ↪ **c:.**
+
+    Consume and switch to the s:autolink-email-atext
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML comment or email at sign or dot state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-comment-close-inside
+*   ↪ **[ASCII alphanumeric][]**
+
+    Consume and switch to the s:html-comment-or-email-label
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-comment
+
+### HTML comment or email label state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-comment-close-inside-or-email-label-dash
+*   ↪ **c:.**
+
+    Consume and switch to the s:html-comment-or-email-at-sign-or-dot
+*   ↪ **c:>**
+
+    > ❗️ Todo: size between `@` and `>` can be at most 63 total.
+
+    Consume, emit, signal **e:autolink-email**, and switch to the
+    s:initial-inline
+*   ↪ **[ASCII alphanumeric][]**
+
+    Consume and switch to the s:html-comment-or-email-label
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-comment
+
+### HTML comment close inside or email label dash state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-comment-close-or-email-label-dash
+*   ↪ **[ASCII alphanumeric][]**
+
+    Consume and switch to the s:html-comment-or-email-label
+*   ↪ **c:>**\
+    ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-comment
+
+### HTML comment close or email label dash state
+
+> **Note**: a comment may not contain two dashes (`--`), and may not end in a
+> dash (which would result in `--->`).
+> Here we have seen two dashes, so we can either be at the end of a comment, or
+> no longer in a comment.
+
+*   ↪ **c:>**
+
+    Consume, emit, signal **e:html-comment**, and switch to the s:initial-inline
+*   ↪ **[ASCII alphanumeric][]**
+
+    Consume and switch to the s:autolink-email-label
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML comment state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-comment-close-inside
+*   ↪ **[c:EOL][]**
+
+    Queue an t:end-of-line, consume, and queue a t:content
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Consume
+
+### HTML comment close inside state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-comment-close
+*   ↪ **[c:EOL][]**
+
+    Queue an t:end-of-line, consume, queue a t:content, and switch to the
+    s:html-comment
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Consume
+
+### HTML comment close state
+
+> **Note**: a comment may not contain two dashes (`--`), and may not end in a
+> dash (which would result in `--->`).
+> Here we have seen two dashes, so we can either be at the end of a comment, or
+> no longer in a comment.
+
+*   ↪ **c:>**
+
+    Consume, emit, signal **e:html-comment**, and switch to the s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML CDATA state
+
+*   ↪ **`]]>` (two of c:], with a c:> after)**
+
+    Consume, emit, signal **e:html-cdata**, and switch to the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Queue an t:end-of-line, consume, and queue a t:content
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Consume
+
+### HTML declaration name or email atext state
+
+*   ↪ **[c:EOL][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Reconsume in the s:html-declaration-between
+*   ↪ **c:@**
+
+    Consume and switch to the s:autolink-email-at-sign-or-dot
+*   ↪ **[ASCII upper alpha][]**
+
+    Consume
+*   ↪ **[atext][]**\
+    ↪ **c:.**
+
+    Consume and switch to the s:autolink-email-atext
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML declaration between state
+
+*   ↪ **[c:EOL][]**
+
+    Queue an t:end-of-line, consume, and queue a t:content
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Consume
+*   ↪ **c:>**
+
+    Consume, emit, signal **e:html-declaration**, and switch to the
+    s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-declaration-content
+
+### HTML declaration content state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Queue an t:end-of-line, consume, and queue a t:content
+*   ↪ **c:>**
+
+    Consume, emit, signal **e:html-declaration**, and switch to the
+    s:initial-inline
+*   ↪ **Anything else**
+
+    Consume
+
+### HTML closing tag or email atext state
+
+*   ↪ **c:@**
+
+    Consume and switch to the s:autolink-email-at-sign-or-dot
+*   ↪ **[ASCII alpha][]**
+
+    Consume and switch to the s:html-closing-tag-inside-or-email-atext
+*   ↪ **[atext][]**\
+    ↪ **c:.**
+
+    Consume and switch to the s:autolink-email-atext
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML closing tag inside or email atext state
+
+*   ↪ **[c:EOL][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Reconsume in the s:html-closing-tag-between
+*   ↪ **c:>**
+
+    Consume, emit, signal **e:html-tag-close**, and switch to the
+    s:initial-inline
+*   ↪ **c:@**
+
+    Consume and switch to the s:autolink-email-at-sign-or-dot
+*   ↪ **[ASCII alphanumeric][]**\
+    ↪ **c:-**
+
+    Consume
+*   ↪ **[atext][]**\
+    ↪ **c:.**
+
+    Consume and switch to the s:autolink-email-atext
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML closing tag between state
+
+> **Note**: an EOL here would be technically allowed here, but anything else
+> isn’t, and as a `>` after an EOL would start a blockquote, practically it’s
+> not possible.
+
+*   ↪ **c:>**
+
+    Consume, emit, signal **e:html-tag-close**, and switch to the
+    s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML opening tag scheme or email atext state
+
+*   ↪ **c:+**:\
+    ↪ **c:.**:
+
+    Consume and switch to the s:autolink-scheme-inside-or-email-atext
+*   ↪ **c:>**
+
+    Consume, emit, signal **e:html-tag-open**, and switch to the
+    s:initial-inline
+*   ↪ **[ASCII alphanumeric][]**\
+    ↪ **c:-**
+
+    Consume and switch to the s:html-opening-tag-inside-scheme-inside-or-email-atext
+*   ↪ **[atext][]**
+
+    Consume and switch to the s:autolink-email-atext
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML opening tag inside scheme inside or email atext state
+
+> ❗️ Todo: support whitespace, attributes, etc in email
+
+*   ↪ **c:+**:\
+    ↪ **c:.**:
+
+    Consume and switch to the s:autolink-scheme-inside-or-email-atext
+*   ↪ **c::**:
+
+    Consume and switch to the s:autolink-uri-inside
+*   ↪ **c:@**
+
+    Consume and switch to the s:autolink-email-at-sign-or-dot
+*   ↪ **[ASCII alphanumeric][]**\
+    ↪ **c:-**
+
+    Consume and switch to the
+    s:html-opening-tag-inside-scheme-inside-or-email-atext
+*   ↪ **[atext][]**
+
+    Consume and switch to the s:autolink-email-atext
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Autolink scheme inside or email atext state
+
+*   ↪ **c::**:
+
+    Consume and switch to the s:autolink-uri-inside
+*   ↪ **c:@**
+
+    Consume and switch to the s:autolink-email-at-sign-or-dot
+*   ↪ **[ASCII alphanumeric][]**\
+    ↪ **c:+**\
+    ↪ **c:-**\
+    ↪ **c:.**
+
+    Consume
+*   ↪ **[atext][]**
+
+    Consume and switch to the s:autolink-email-atext
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Autolink URI inside state
+
+*   ↪ **c:>**
+
+    Consume, emit, signal **e:autolink-uri**, and switch to the
+    s:initial-inline
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **c:SP**:\
+    ↪ **c:<**:\
+    ↪ **[ASCII control][]**:
+
+    Queue an t:end-of-line, consume, and queue a t:content
+*   ↪ **Anything else**
+
+    Consume
+
+### Autolink email atext state
+
+*   ↪ **c:@**
+
+    Consume and switch to the s:autolink-email-at-sign-or-dot
+*   ↪ **[atext][]**\
+    ↪ **c:.**
+
+    Consume
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Autolink email label state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:autolink-email-dash
+*   ↪ **c:.**
+
+    Consume and switch to the s:autolink-email-at-sign-or-dot
+*   ↪ **c:>**
+
+    > ❗️ Todo: size between `@` and `>` can be at most 63 total.
+
+    Consume, emit, signal **e:autolink-email**, and switch to the
+    s:initial-inline
+*   ↪ **[ASCII alphanumeric][]**
+
+    Consume
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Autolink email at sign or dot state
+
+*   ↪ **[ASCII alphanumeric][]**
+
+    Consume and switch to the s:autolink-email-label
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Autolink email dash state
+
+*   ↪ **c:-**
+
+    Consume
+*   ↪ **[ASCII alphanumeric][]**
+
+    Consume and switch to the s:autolink-email-label
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
 
 ## Processing
 
@@ -1992,893 +2912,6 @@ To [process as Raw text](#) is to [process as Text][] given `lines` and `kind`
 To [process as Phrasing](#) is to [process as Text][] given `lines`.
 
 ### Process as Text
-
-To [process as Text](#) is to perform the following steps with the given
-`lines` and optional `kind`, which when given is either `phrasing` or `raw`, and
-defaults to `phrasing`:
-
-> ❗️ Todo: emphasis, importance, links, link references, images, image
-> references, hard line breaks, soft line breaks.
-
-*   Let `characters` be U+005C BACKSLASH (`\`) and c:&
-*   If `kind` is `phrasing`, let `characters` be c:!, c:&, c:*, c:<, U+005C
-    BACKSLASH (`\`), c:], c:[, c:_, and c:`
-*   Let `pointer` be a pointer to the first line (`0`) and the start of the
-    first line in lines
-*   *Next*: Let `start` be a copy of `pointer`
-*   *Look*: scan for `characters` within `lines` given `pointer`
-*   If `pointer` does not point to a place, emit the content at `start` and
-    after
-*   Otherwise, if the character at `pointer` is:
-
-    *   ↪ **c:!**
-
-        *   Let `label` be a copy of `pointer`
-        *   Move `label` one place forward
-        *   If the character at `label` is not c:[, go to the step labeled
-            *look*
-        *   If `start` is not `pointer`, emit the content between both points
-        *   Open an g:image-opening
-        *   Emit a t:marker with the character at `pointer`
-        *   Emit a t:marker with the character at `label`
-        *   Close
-        *   Let `pointer` be `label`
-        *   Go to the step labeled *next*
-    *   ↪ **c:&**
-
-        *   Let `reference` be a copy of `pointer`
-        *   Let `ampersand` be a copy of `reference`
-        *   Move `reference` one place forward
-        *   If the character at `reference` is [ASCII alphanumeric][]:
-
-            *   Let `referenceStart` be a copy of `reference`
-            *   Skip [ASCII alphanumeric][] characters within `lines` given
-                `reference`
-            *   If the character at `reference` is not c:;, go to the step
-                labeled *look*
-            *   Otherwise, if the characters between `referenceStart` and
-                `reference` are not a [character reference name][], go to the
-                step labeled *look*
-            *   If `start` is not `ampersand`, emit the content and line endings
-                between `start` and `ampersand`
-            *   Open a g:character-reference of kind `name`
-            *   Emit a t:marker with the character at `ampersand`
-            *   Emit a t:content with the characters between `referenceStart` and
-                `reference`
-            *   Emit a t:marker with the character at `reference`
-            *   Close
-            *   Let `pointer` be `reference`
-            *   Go to the step labeled *next*
-        *   Otherwise, if the character at `reference` is c:#
-
-            *   Let `numberSign` be a copy of `reference`
-            *   Move `reference` one place forward
-            *   If the character at `reference` is c:X or c:x:
-
-                *   Let `hex` be a copy of `reference`
-                *   Move `reference` one place forward
-                *   If the character at `reference` is not [ASCII hex digit][],
-                    go to the step labeled *look*
-                *   Let `referenceStart` be a copy of `reference`
-                *   Skip [ASCII hex digit][] characters within `lines` given
-                    `reference`
-                *   If the character at `reference` is not c:;, go to the step
-                    labeled *look*
-                *   If `start` is not `ampersand`, emit the content and line
-                    endings between `start` and `ampersand`
-                *   Open a g:character-reference of kind `hexadecimal`
-                *   Emit a t:marker with the character at `ampersand`
-                *   Emit a t:marker with the character at `numberSign`
-                *   Emit a t:content with the character at `hex`
-                *   Emit a t:content with the characters between
-                    `referenceStart` and `reference`
-                *   Emit a t:marker with the character at `reference`
-                *   Close
-                *   Let `pointer` be `reference`
-                *   Go to the step labeled *next*
-            *   Otherwise, if the character at `reference` is an [ASCII
-                digit][]:
-
-                *   Let `referenceStart` be a copy of `reference`
-                *   Skip [ASCII digit][] characters within `lines` given
-                    `reference`
-                *   If the character at `reference` is not c:;, go to the step
-                    labeled *look*
-                *   If `start` is not `ampersand`, emit the content and line
-                    endings between `start` and `ampersand`
-                *   Open a g:character-reference of kind `decimal`
-                *   Emit a t:marker with the character at `ampersand`
-                *   Emit a t:marker with the character at `numberSign`
-                *   Emit a t:content with the characters between
-                    `referenceStart` and `reference`
-                *   Emit a t:marker with the character at `reference`
-                *   Close
-                *   Let `pointer` be `reference`
-                *   Go to the step labeled *next*
-            *   Otherwise, go to the step labeled *look*
-        *   Go to the step labeled *look*
-    *   ↪ **c:***\
-        ↪ **c:_**
-
-        *   If `start` is not `pointer`, emit the content between both points
-        *   Open a g:emphasis-or-strong
-        *   Let `last` be a copy of `pointer`
-        *   *Move*: if the character after `last` is the character at `pointer`,
-            move `last` one place forward, go to the step labeled *move*
-        *   Emit a t:sequence with the characters between `pointer` and `last`
-            (including)
-        *   Close
-        *   Let `pointer` be `last`
-        *   Go to the step labeled *next*
-    *   ↪ **c:<**
-
-        *   Let `end` be a copy of `pointer`
-        *   Move `end` one place forward
-        *   If the character at `end` is:
-
-            *   ↪ **c:!**:
-
-                Go to the step labeled *declaration or email atext*
-            *   ↪ **c:/**:
-
-                Go to the step labeled *closing tag or email atext*
-            *   ↪ **c:?**:
-
-                Go to the step labeled *instruction or email atext*
-            *   ↪ **[ASCII alpha][]**:
-
-                Go to the step labeled *opening tag, scheme, or email atext*
-            *   ↪ **[atext][]**:\
-                ↪ **c:.**:
-
-                Go to the step labeled *email atext*
-            *   ↪ **Anything else**
-
-                Go to the step labeled *look*
-        *   *Instruction or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:?**:
-
-                    Go to the step labeled *instruction close or email atext*
-                *   ↪ **c:@**:
-
-                    Go to the step labeled *instruction or email at sign or dot*
-                *   ↪ **[atext][]**:\
-                    ↪ **c:.**:
-
-                    Go to the step labeled *instruction or email atext*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *instruction*
-        *   *Instruction close or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:>**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **c:?**:
-
-                    Go to the step labeled *instruction close or email atext*
-                *   ↪ **c:@**:
-
-                    Go to the step labeled *instruction or email at sign or dot*
-                *   ↪ **[atext][]**:\
-                    ↪ **c:.**:
-
-                    Go to the step labeled *instruction or email atext*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *instruction*
-        *   *Instruction or email at sign or dot*
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:?**:
-
-                    Go to the step labeled *instruction close*
-                *   ↪ **[ASCII alphanumeric]**:
-
-                    Go to the step labeled *instruction or email label*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *instruction*
-        *   *Instruction or email label*
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:-**:
-
-                    Go to the step labeled *instruction or email dash*
-                *   ↪ **c:.**:
-
-                    Go to the step labeled *instruction or email at sign or dot*
-                *   ↪ **c:>**:
-
-                    > ❗️ Todo: Size between `@` and `>` can be at most 63 total.
-
-                    Go to the step labeled *email end*
-                *   ↪ **c:?**:
-
-                    Go to the step labeled *instruction close*
-                *   ↪ **[ASCII alphanumeric]**:
-
-                    Go to the step labeled *instruction or email label*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *instruction*
-        *   *Instruction or email dash*
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:-**:
-
-                    Go to the step labeled *instruction or email dash*
-                *   ↪ **c:?**:
-
-                    Go to the step labeled *instruction close*
-                *   ↪ **[ASCII alphanumeric]**:
-
-                    Go to the step labeled *instruction or email label*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *instruction*
-        *   *Instruction*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:?**:
-
-                    Go to the step labeled *instruction close*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *instruction*
-        *   *Instruction close*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:>**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *instruction*
-        *   *Declaration or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:-**:
-
-                    Go to the step labeled *comment open inside or email atext*
-                *   ↪ **c:@**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **c:[**:
-
-                    *   If the next few characters are `CDATA[`, move `end` to
-                        that last c:[, and go to the step labeled *CDATA*
-                    *   Otherwise, go to the step labeled *look*
-                *   ↪ **[ASCII upper alpha]**:
-
-                    Go to the step labeled *declaration name or email atext*
-                *   ↪ **[atext][]**:\
-                    ↪ **c:.**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**:
-
-                    Go to the step labeled *look*
-        *   *Comment open inside or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:-**:
-
-                    Go to the step labeled *comment or email atext*
-                *   ↪ **c:@**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[atext][]**:\
-                    ↪ **c:.**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**:
-
-                    Go to the step labeled *look*
-        *   *Comment or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:-**:
-
-                    Go to the step labeled *comment close inside or email atext*
-                *   ↪ **c:@**:
-
-                    Go to the step labeled *comment or email at sign or dot*
-                *   ↪ **[atext][]**:\
-                    ↪ **c:.**:
-
-                    Go to the step labeled *comment or email atext*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**:
-
-                    Go to the step labeled *comment*
-        *   *Comment close inside or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:-**:
-
-                    Go to the step labeled *comment close or email atext*
-                *   ↪ **c:@**:
-
-                    Go to the step labeled *comment or email at sign or dot*
-                *   ↪ **[atext][]**:\
-                    ↪ **c:.**:
-
-                    Go to the step labeled *comment or email atext*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**:
-
-                    Go to the step labeled *comment*
-        *   *Comment close or email atext*
-
-            > **Note**: a comment may not contain two dashes (`--`), and
-            > may not end in a dash (which would result in `--->`).
-            > Here we have seen two dashes, so we can either be at the end of a
-            > comment, or no longer in a comment.
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:>**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **c:@**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[atext][]**:\
-                    ↪ **c:.**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Comment or email at sign or dot*
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:-**:
-
-                    Go to the step labeled *comment close inside*
-                *   ↪ **[ASCII alphanumeric]**:
-
-                    Go to the step labeled *comment or email label*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *comment*
-        *   *Comment or email label*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:-**:
-
-                    Go to the step labeled *comment close inside or email label
-                    dash*
-                *   ↪ **c:.**:
-
-                    Go to the step labeled *comment or email at sign or dot*
-                *   ↪ **c:>**:
-
-                    > ❗️ Todo: Size between `@` and `>` can be at most 63 total.
-
-                    Go to the step labeled *email end*
-                *   ↪ **[ASCII alphanumeric]**:
-
-                    Go to the step labeled *comment or email label*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *comment*
-        *   *Comment close inside or email label dash*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:-**:
-
-                    Go to the step labeled *comment close or email label dash*
-                *   ↪ **[ASCII alphanumeric]**:
-
-                    Go to the step labeled *comment or email label*
-                *   ↪ **c:>**:\
-                    ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *comment*
-        *   *Comment close or email label dash*:
-
-            > **Note**: a comment may not contain two dashes (`--`), and
-            > may not end in a dash (which would result in `--->`).
-            > Here we have seen two dashes, so we can either be at the end of a
-            > comment, or no longer in a comment.
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:>**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **[ASCII alphanumeric]**:
-
-                    Go to the step labeled *email label*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Comment*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:-**:
-
-                    Go to the step labeled *comment close inside*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *comment*
-        *   *Comment close inside*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:-**:
-
-                    Go to the step labeled *comment close*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *comment*
-        *   *Comment close*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:>**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *CDATA*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:]**:
-
-                    *   If the next few characters are `]>`, move `end` to
-                        that last c:>, and go to the step labeled *HTML end*
-                    *   Otherwise, go to the step labeled *CDATA*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *CDATA*
-        *   *Declaration name or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **t:line-ending**:\
-                    ↪ **c:HT**:\
-                    ↪ **c:SP**:
-
-                    > ❗️ Todo: Support line endings somehow here?
-
-                    Go to the step labeled *declaration whitespace*
-                *   ↪ **c:@**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[ASCII upper alpha]**:
-
-                    *   Go to the step labeled *declaration name or email atext*
-                *   ↪ **[atext][]**:\
-                    ↪ **c:.**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Declaration whitespace*:
-
-            *   Skip whitespace and line endings within `lines` given `end`
-            *   If the character at `end` is:
-
-                *   ↪ **c:>**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **Not a place**
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *declaration content*
-        *   *Declaration content*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:>**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **Not a place**
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *declaration content*
-        *   *Closing tag or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:@**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[ASCII alpha][]**:
-
-                    Go to the step labeled *closing tag inside or email atext*
-                *   ↪ **[atext][]**:\
-                    ↪ **c:.**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Closing tag inside or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **t:line-ending**:\
-                    ↪ **c:HT**:\
-                    ↪ **c:SP**:
-
-                    > ❗️ Todo: Support line endings somehow here?
-
-                    Go to the step labeled *closing tag whitespace*
-                *   ↪ **c:>**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **c:@**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[ASCII alphanumeric][]**:\
-                    ↪ **c:-**:
-
-                    Go to the step labeled *closing tag inside or email atext*
-                *   ↪ **[atext][]**:\
-                    ↪ **c:.**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Closing tag whitespace*:
-
-            *   Skip whitespace and line endings within `lines` given `end`
-            *   If the character at `end` is:
-
-                *   ↪ **c:>**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Opening tag, scheme, or email atext*:
-
-            > ❗️ Todo: Support whitespace, attributes, etc in HTML.
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:+**:\
-                    ↪ **c:.**:
-
-                    Go to the step labeled *scheme inside or email atext*
-                *   ↪ **c:>**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **[ASCII alphanumeric][]**:\
-                    ↪ **c:-**:\
-
-                    Go to the step labeled *opening tag inside, scheme inside, or email atext*
-                *   ↪ **[atext][]**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Opening tag inside, scheme inside, or email atext*:
-
-            > ❗️ Todo: Support whitespace, attributes, etc in HTML.
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:+**:\
-                    ↪ **c:.**:
-
-                    Go to the step labeled *scheme inside or email atext*
-                *   ↪ **c::**:
-
-                    Go to the step labeled *URI inside*
-                *   ↪ **c:>**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **c:@**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[ASCII alphanumeric][]**:\
-                    ↪ **c:-**:\
-
-                    Go to the step labeled *opening tag inside, scheme inside, or email atext*
-                *   ↪ **[atext][]**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Scheme inside or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c::**:
-
-                    Go to the step labeled *URI inside*
-                *   ↪ **c:@**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[ASCII alphanumeric][]**:\
-                    ↪ **c:+**:\
-                    ↪ **c:-**:\
-                    ↪ **c:.**:
-
-                    Go to the step labeled *scheme inside or email atext*
-                *   ↪ **[atext][]**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *URI inside*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:>**:
-
-                    Go to the step labeled *URI end*
-                *   ↪ **t:line-ending**:\
-                    ↪ **[ASCII control][]**:\
-                    ↪ **c:<**:\
-                    ↪ **Not a place**
-
-                    > ❗️ Todo: Support line endings somehow here?
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *URI inside*
-        *   *Email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:@**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[atext][]**:\
-                    ↪ **c:.**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Email label*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:-**:
-
-                    Go to the step labeled *email dash*
-                *   ↪ **c:.**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **c:>**:
-
-                    > ❗️ Todo: Size between `@` and `>` can be at most 63 total.
-
-                    Go to the step labeled *email end*
-                *   ↪ **[ASCII alphanumeric]**:
-
-                    Go to the step labeled *email label*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Email at sign or dot*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **[ASCII alphanumeric]**:
-
-                    Go to the step labeled *email label*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Email dash*
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **c:-**:
-
-                    Go to the step labeled *email dash*
-                *   ↪ **[ASCII alphanumeric]**:
-
-                    Go to the step labeled *email label*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Email end*:
-
-            *   If `start` is not `pointer`, emit the content between both
-                points
-            *   Open an g:automatic-link of kind `email`
-            *   Emit a t:marker with the character at `pointer`
-            *   Move `pointer` one place forward
-            *   Emit a t:content with the characters between `pointer` and `end`
-            *   Emit a t:marker with the character at `end`
-            *   Close
-            *   Let `pointer` be `end`
-            *   Go to the step labeled *next*
-        *   *URI end*:
-
-            *   If `start` is not `pointer`, emit the content between both
-                points
-            *   Open an g:automatic-link of kind `uri`
-            *   Emit a t:marker with the character at `pointer`
-            *   Move `pointer` one place forward
-            *   Emit a t:content with the characters between `pointer` and `end`
-            *   Emit a t:marker with the character at `end`
-            *   Close
-            *   Let `pointer` be `end`
-            *   Go to the step labeled *next*
-        *   *HTML end*:
-
-            *   If `start` is not `pointer`, emit the content between both
-                points
-            *   Open an g:html-inline of kind `uri`
-            *   Emit a t:marker with the character at `pointer`
-            *   Move `pointer` one place forward
-            *   Emit the content and line endings between `pointer` and `end`
-            *   Emit a t:marker with the character at `end`
-            *   Close
-            *   Let `pointer` be `end`
-            *   Go to the step labeled *next*
-    *   ↪ **c:[**
-
-        *   If `start` is not `pointer`, emit the content between both points
-        *   Open an g:link-opening
-        *   Emit a t:marker with the character at `pointer`
-        *   Close
-        *   Go to the step labeled *next*
-    *   ↪ **U+005C BACKSLASH (`\`)**
-
-        *   If `start` is not `pointer`, emit the content between both points
-        *   Let `escaped` be a copy of `pointer`
-        *   Move `escaped` one place forward
-        *   Open a g:escape
-        *   Emit a t:marker with the character at `pointer`
-        *   If the character at `escaped` is [ASCII punctuation][], emit a
-            t:content with the character at `escaped`, and let `pointer` be
-            `escaped`
-        *   Close
-        *   Go to the step labeled *next*
-    *   ↪ **c:]**
-
-        *   If `start` is not `pointer`, emit the content between both points
-        *   Open an g:link-or-image-closing
-        *   Emit a t:marker with the character at `pointer`
-        *   Close
-        *   Go to the step labeled *next*
-    *   ↪ **c:`**
-
-        *   Let `last` be a copy of `pointer`
-        *   Let `size` be `1`
-        *   *Move*: if the character after `last` is the character at `pointer`,
-            move `last` one place forward, increment `size` by `1`, and go to
-            the step labeled *move*
-        *   Let `next` be a copy of `last`
-        *   *look*: scan for U+0060 GRAVE ACCENT (\`) within `lines` given
-            `next`
-        *   If `next` points to a place:
-
-            *   Let `nextLast` be a copy of `next`
-            *   Let `nextSize` be `1`
-            *   *Move next*: if the character after `nextLast` is the character
-                at `next`, move `nextLast` one place forward, increment
-                `nextSize` by `1`, and go to the step labeled *move next*
-            *   If `nextSize` is not `size`, go to the step labeled *look*
-            *   Let `contentStart` be `last`
-            *   Move `contentStart` one place forward
-            *   If `start` is not `pointer`, emit the content between both
-                points
-            *   Open a g:phrasing-code
-            *   Emit a t:sequence with the characters between `pointer` and
-                `last`
-            *   Emit the content and line endings between `contentStart` and
-                `next`
-            *   Emit a t:sequence with the characters between `next` and
-                `nextLast`
-            *   Close
-            *   Let `pointer` be `last`
-            *   Go to the step labeled *next*
-        *   Let `pointer` be `last`
-        *   Go to the step labeled *next*
-    *   ↪ **Anything else**
-
-        > ❗️ Note: Impossible!
 
 ## Tokens
 

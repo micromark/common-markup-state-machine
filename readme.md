@@ -117,6 +117,55 @@ Common Markup parser.
     *   [10.29 Phrasing content state](#1029-phrasing-content-state)
 *   [11 Inline state machine](#11-inline-state-machine)
     *   [11.1 Initial inline state](#111-initial-inline-state)
+    *   [11.2 Emphasis asterisk state](#112-emphasis-asterisk-state)
+    *   [11.3 Character reference state](#113-character-reference-state)
+    *   [11.4 Character reference named state](#114-character-reference-named-state)
+    *   [11.5 Character reference numeric state](#115-character-reference-numeric-state)
+    *   [11.6 Character reference hexadecimal start state](#116-character-reference-hexadecimal-start-state)
+    *   [11.7 Character reference hexadecimal state](#117-character-reference-hexadecimal-state)
+    *   [11.8 Character reference decimal state](#118-character-reference-decimal-state)
+    *   [11.9 Code span opening state](#119-code-span-opening-state)
+    *   [11.10 Code span eol after state](#1110-code-span-eol-after-state)
+    *   [11.11 Code span inside state](#1111-code-span-inside-state)
+    *   [11.12 Code span closing state](#1112-code-span-closing-state)
+    *   [11.13 Emphasis underscore state](#1113-emphasis-underscore-state)
+    *   [11.14 Escape backslash after state](#1114-escape-backslash-after-state)
+    *   [11.15 Image exclamation mark after state](#1115-image-exclamation-mark-after-state)
+    *   [11.16 HTML or autolink less than after state](#1116-html-or-autolink-less-than-after-state)
+    *   [11.17 HTML instruction or email atext state](#1117-html-instruction-or-email-atext-state)
+    *   [11.18 HTML instruction close or email atext state](#1118-html-instruction-close-or-email-atext-state)
+    *   [11.19 HTML instruction or email at sign or dot state](#1119-html-instruction-or-email-at-sign-or-dot-state)
+    *   [11.20 HTML instruction or email label state](#1120-html-instruction-or-email-label-state)
+    *   [11.21 HTML instruction or email dash state](#1121-html-instruction-or-email-dash-state)
+    *   [11.22 HTML instruction state](#1122-html-instruction-state)
+    *   [11.23 HTML instruction close state](#1123-html-instruction-close-state)
+    *   [11.24 HTML declaration or email atext state](#1124-html-declaration-or-email-atext-state)
+    *   [11.25 HTML comment open inside or email atext state](#1125-html-comment-open-inside-or-email-atext-state)
+    *   [11.26 HTML comment or email atext state](#1126-html-comment-or-email-atext-state)
+    *   [11.27 HTML comment close inside or email atext state](#1127-html-comment-close-inside-or-email-atext-state)
+    *   [11.28 HTML comment close or email atext state](#1128-html-comment-close-or-email-atext-state)
+    *   [11.29 HTML comment or email at sign or dot state](#1129-html-comment-or-email-at-sign-or-dot-state)
+    *   [11.30 HTML comment or email label state](#1130-html-comment-or-email-label-state)
+    *   [11.31 HTML comment close inside or email label dash state](#1131-html-comment-close-inside-or-email-label-dash-state)
+    *   [11.32 HTML comment close or email label dash state](#1132-html-comment-close-or-email-label-dash-state)
+    *   [11.33 HTML comment state](#1133-html-comment-state)
+    *   [11.34 HTML comment close inside state](#1134-html-comment-close-inside-state)
+    *   [11.35 HTML comment close state](#1135-html-comment-close-state)
+    *   [11.36 HTML CDATA state](#1136-html-cdata-state)
+    *   [11.37 HTML declaration name or email atext state](#1137-html-declaration-name-or-email-atext-state)
+    *   [11.38 HTML declaration between state](#1138-html-declaration-between-state)
+    *   [11.39 HTML declaration content state](#1139-html-declaration-content-state)
+    *   [11.40 HTML closing tag or email atext state](#1140-html-closing-tag-or-email-atext-state)
+    *   [11.41 HTML closing tag inside or email atext state](#1141-html-closing-tag-inside-or-email-atext-state)
+    *   [11.42 HTML closing tag between state](#1142-html-closing-tag-between-state)
+    *   [11.43 HTML opening tag scheme or email atext state](#1143-html-opening-tag-scheme-or-email-atext-state)
+    *   [11.44 HTML opening tag inside scheme inside or email atext state](#1144-html-opening-tag-inside-scheme-inside-or-email-atext-state)
+    *   [11.45 Autolink scheme inside or email atext state](#1145-autolink-scheme-inside-or-email-atext-state)
+    *   [11.46 Autolink URI inside state](#1146-autolink-uri-inside-state)
+    *   [11.47 Autolink email atext state](#1147-autolink-email-atext-state)
+    *   [11.48 Autolink email label state](#1148-autolink-email-label-state)
+    *   [11.49 Autolink email at sign or dot state](#1149-autolink-email-at-sign-or-dot-state)
+    *   [11.50 Autolink email dash state](#1150-autolink-email-dash-state)
 *   [12 Processing](#12-processing)
     *   [12.1 Process as an ATX heading](#121-process-as-an-atx-heading)
     *   [12.2 Process as a Setext primary heading](#122-process-as-a-setext-primary-heading)
@@ -2028,12 +2077,938 @@ and must start in the [*Initial content state*][s-initial-content].
 
 ### 10.29 Phrasing content state
 
+> ❗️ Todo: define.
+
 ## 11 Inline state machine
 
 The <a id="inline-state-machine" href="#inline-state-machine">**inline state machine**</a> is used to tokenize inline values (raw text or
 phrasing) of a document and must start in the [*Initial inline state*][s-initial-inline].
 
 ### 11.1 Initial inline state
+
+> ❗️ Todo: Define shared space: `type`
+
+*   ↪ **[EOF][ceof]**
+
+    Queue a [*End-of-file token*][t-end-of-file] and emit
+*   ↪ **[EOL][ceol]**
+
+    Queue an [*End-of-line token*][t-end-of-line], consume, and emit
+*   ↪ **U+0021 EXCLAMATION MARK (`!`)**
+
+    If `type` is a `rich`, queue a [*Marker token*][t-marker], consume, emit, and switch to the
+    [*Image exclamation mark after state*][s-image-exclamation-mark-after].
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **U+0026 AMPERSAND (`&`)**
+
+    Queue a [*Marker token*][t-marker], consume, emit, and switch to the [*Character reference state*][s-character-reference].
+*   ↪ **U+002A ASTERISK (`*`)**
+
+    If `type` is a `rich`, queue a [*Sequence token*][t-sequence], consume, and switch to the
+    [*Emphasis asterisk state*][s-emphasis-asterisk].
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **U+003C LESS THAN (`<`)**
+
+    If `type` is a `rich`, queue a [*Content token*][t-content], consume, and switch to the
+    [*HTML or autolink less than after state*][s-html-or-autolink-less-than-after].
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
+
+    If `type` is a `rich`, queue a [*Marker token*][t-marker], consume, emit, signal and
+    **e:text-link-open**
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Queue a [*Marker token*][t-marker], consume, emit, and switch to the [*Escape backslash after state*][s-escape-backslash-after]
+*   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
+
+    > ❗️ Todo: support references, inlines, etc
+
+    If `type` is a `rich`, queue a [*Marker token*][t-marker], consume, emit, signal and
+    **e:text-link-close**
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **U+005F UNDERSCORE (`_`)**
+
+    If `type` is a `rich`, queue a [*Sequence token*][t-sequence], consume, and switch to the
+    [*Emphasis underscore state*][s-emphasis-underscore].
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
+
+    If `type` is a `rich`, let `openingSize` be `1`, queue a [*Sequence token*][t-sequence],
+    consume, and switch to the [*Code span opening state*][s-code-span-opening].
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **Anything else**
+
+    Signal?
+
+### 11.2 Emphasis asterisk state
+
+*   ↪ **U+002A ASTERISK (`*`)**
+
+    Consume
+*   ↪ **Anything else**
+
+    Signal **e:emphasis** and reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.3 Character reference state
+
+*   ↪ **U+0023 NUMBER SIGN (`#`)**
+
+    Queue a [*Marker token*][t-marker], consume, and switch to the [*Character reference numeric state*][s-character-reference-numeric]
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+
+    > ❗️ Todo: Define shared space: `entityName`
+
+    Queue a [*Content token*][t-content], append the character to `entityName`, consume, and switch
+    to the [*Character reference named state*][s-character-reference-named]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.4 Character reference named state
+
+> ❗️ Todo: Define shared space: `entityName`
+
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+
+    Append the character to `entityName` and consume
+*   ↪ **U+003B SEMICOLON (`;`)**
+
+    If `entityName` is a [character reference name][character-reference-name], queue a [*Marker token*][t-marker],
+    consume, signal **e:character-reference**, and switch to the
+    [*Initial inline state*][s-initial-inline]
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.5 Character reference numeric state
+
+*   ↪ **U+0058 (`X`)**\
+    ↪ **U+0078 (`x`)**
+
+    Queue a [*Marker token*][t-marker], consume, and switch to the
+    [*Character reference hexadecimal start state*][s-character-reference-hexadecimal-start]
+*   ↪ **[ASCII digit][ascii-digit]**
+
+    Queue a [*Content token*][t-content] and reconsume in the [*Character reference decimal state*][s-character-reference-decimal]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.6 Character reference hexadecimal start state
+
+*   ↪ **[ASCII hex digit][ascii-hex-digit]**
+
+    Queue a [*Content token*][t-content] and reconsume in the [*Character reference hexadecimal state*][s-character-reference-hexadecimal]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.7 Character reference hexadecimal state
+
+> ❗️ Todo: Define shared space: `characterReferenceCode`
+
+*   ↪ **[ASCII digit][ascii-digit]**
+
+    Multiply `characterReferenceCode` by `16`, add a numeric version of the
+    [content character][content-character] (subtract `0x30` from the character) to
+    `characterReferenceCode`, and consume
+*   ↪ **[ASCII upper hex digit][ascii-upper-hex-digit]**
+
+    Multiply `characterReferenceCode` by `16`, add a numeric version of the
+    [content character][content-character] (subtract `0x37` from the character) to
+    `characterReferenceCode`, and consume
+*   ↪ **[ASCII lower hex digit][ascii-lower-hex-digit]**
+
+    Multiply `characterReferenceCode` by `16`, add a numeric version of the
+    [content character][content-character] (subtract `0x57` from the character) to
+    `characterReferenceCode`, and consume
+*   ↪ **U+003B SEMICOLON (`;`)**
+
+    Queue a [*Marker token*][t-marker], consume, signal **e:character-reference**, and switch to
+    the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.8 Character reference decimal state
+
+> ❗️ Todo: Define shared space: `characterReferenceCode`
+
+*   ↪ **[ASCII digit][ascii-digit]**
+
+    Multiply `characterReferenceCode` by `10`, add a numeric version of the
+    [content character][content-character] (subtract `0x30` from the character) to
+    `characterReferenceCode`, and consume
+*   ↪ **U+003B SEMICOLON (`;`)**
+
+    Queue a [*Marker token*][t-marker], consume, signal **e:character-reference**, and switch to
+    the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.9 Code span opening state
+
+> ❗️ Todo: Define shared space: `openingSize`
+
+*   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
+
+    Increment `openingSize` by `1` and consume
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **[EOL][ceol]**
+
+    Queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
+    [*Code span eol after state*][s-code-span-eol-after]
+*   ↪ **Anything else**
+
+    Queue a [*Content token*][t-content], consume, and switch to the [*Code span inside state*][s-code-span-inside]
+
+### 11.10 Code span eol after state
+
+> ❗️ Todo: Define shared space: `openingSize`
+
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **[EOL][ceol]**
+
+    Queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
+    [*Code span eol after state*][s-code-span-eol-after]
+*   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
+
+    Queue a [*Sequence token*][t-sequence], let `closingSize` be `1`, consume, and switch to the
+    [*Code span closing state*][s-code-span-closing]
+*   ↪ **Anything else**
+
+    Queue a [*Content token*][t-content], consume, and switch to the [*Code span inside state*][s-code-span-inside]
+
+### 11.11 Code span inside state
+
+> ❗️ Todo: Define shared space: `closingSize`
+
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **[EOL][ceol]**
+
+    Queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
+    [*Code span eol after state*][s-code-span-eol-after]
+*   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
+
+    Queue a [*Sequence token*][t-sequence], let `closingSize` be `1`, consume, and switch to the
+    [*Code span closing state*][s-code-span-closing]
+*   ↪ **Anything else**
+
+    Consume
+
+### 11.12 Code span closing state
+
+> ❗️ Todo: Define shared space: `openingSize`, `closingSize`
+
+*   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
+
+    Increment `closingSize` by `1` and consume
+*   ↪ **[EOF][ceof]**
+
+    If `openingSize` is `closingSize`, signal **e:code-span** and reconsume in
+    the [*Initial inline state*][s-initial-inline]
+
+    Otherwise, reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **[EOL][ceol]**
+
+    If `openingSize` is `closingSize`, signal **e:code-span** and reconsume in
+    the [*Initial inline state*][s-initial-inline]
+
+    Otherwise, queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
+    [*Code span eol after state*][s-code-span-eol-after]
+*   ↪ **Anything else**
+
+    If `openingSize` is `closingSize`, signal **e:code-span** and reconsume in
+    the [*Initial inline state*][s-initial-inline]
+
+    Otherwise, consume and switch to the [*Code span inside state*][s-code-span-inside]
+
+### 11.13 Emphasis underscore state
+
+*   ↪ **U+005F UNDERSCORE (`_`)**
+
+    Consume
+*   ↪ **Anything else**
+
+    Signal **e:emphasis** and reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.14 Escape backslash after state
+
+*   ↪ **[ASCII punctuation][ascii-punctuation]**
+
+    Queue a [*Content token*][t-content], consume, emit, signal **e:escape**, and switch to the
+    [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.15 Image exclamation mark after state
+
+*   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
+
+    Queue a [*Marker token*][t-marker], consume, emit, signal **e:text-image-open**, and switch to
+    the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.16 HTML or autolink less than after state
+
+*   ↪ **U+0021 EXCLAMATION MARK (`!`)**
+
+    Consume and switch to the [*HTML declaration or email atext state*][s-html-declaration-or-email-atext]
+*   ↪ **U+002F SLASH (`/`)**
+
+    Consume and switch to the [*HTML closing tag or email atext state*][s-html-closing-tag-or-email-atext]
+*   ↪ **U+003F QUESTION MARK (`?`)**
+
+    Consume and switch to the [*HTML instruction or email atext state*][s-html-instruction-or-email-atext]
+*   ↪ **[ASCII alpha][ascii-alpha]**
+
+    Consume and switch to the [*HTML opening tag scheme or email atext state*][s-html-opening-tag-scheme-or-email-atext]
+*   ↪ **[atext][atext]**\
+    ↪ **U+002E DOT (`.`)**
+
+    Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.17 HTML instruction or email atext state
+
+*   ↪ **U+003F QUESTION MARK (`?`)**
+
+    Consume and switch to the [*HTML instruction close or email atext state*][s-html-instruction-close-or-email-atext]
+*   ↪ **U+0040 AT SIGN (`@`)**
+
+    Consume and switch to the [*HTML instruction or email at sign or dot state*][s-html-instruction-or-email-at-sign-or-dot]
+*   ↪ **[atext][atext]**\
+    ↪ **U+002E DOT (`.`)**
+
+    Consume
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Consume and switch to the [*HTML instruction state*][s-html-instruction]
+
+### 11.18 HTML instruction close or email atext state
+
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, emit, signal **e:html-instruction**, and switch to the
+    [*Initial inline state*][s-initial-inline]
+*   ↪ **U+003F QUESTION MARK (`?`)**
+
+    Consume
+*   ↪ **U+0040 AT SIGN (`@`)**
+
+    Consume and switch to the [*HTML instruction or email at sign or dot state*][s-html-instruction-or-email-at-sign-or-dot]
+*   ↪ **[atext][atext]**\
+    ↪ **U+002E DOT (`.`)**
+
+    Consume and switch to the [*HTML instruction or email atext state*][s-html-instruction-or-email-atext]
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Consume and switch to the [*HTML instruction state*][s-html-instruction]
+
+### 11.19 HTML instruction or email at sign or dot state
+
+*   ↪ **U+003F QUESTION MARK (`?`)**
+
+    Consume and switch to the [*HTML instruction close state*][s-html-instruction-close]
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+
+    Consume and switch to the [*HTML instruction or email label state*][s-html-instruction-or-email-label]
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Consume and switch to the [*HTML instruction state*][s-html-instruction]
+
+### 11.20 HTML instruction or email label state
+
+*   ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the [*HTML instruction or email dash state*][s-html-instruction-or-email-dash]
+*   ↪ **U+002E DOT (`.`)**
+
+    Consume and switch to the [*HTML instruction or email at sign or dot state*][s-html-instruction-or-email-at-sign-or-dot]
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    > ❗️ Todo: size between `@` and `>` can be at most 63 total.
+
+    Consume, emit, signal **e:autolink-email**, and switch to the
+    [*Initial inline state*][s-initial-inline]
+*   ↪ **U+003F QUESTION MARK (`?`)**
+
+    Consume and switch to the [*HTML instruction close state*][s-html-instruction-close]
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+
+    Consume and switch to the [*HTML instruction or email label state*][s-html-instruction-or-email-label]
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Consume and switch to the [*HTML instruction state*][s-html-instruction]
+
+### 11.21 HTML instruction or email dash state
+
+*   ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the [*HTML instruction or email dash state*][s-html-instruction-or-email-dash]
+*   ↪ **U+003F QUESTION MARK (`?`)**
+
+    Consume and switch to the [*HTML instruction close state*][s-html-instruction-close]
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+
+    Consume and switch to the [*HTML instruction or email label state*][s-html-instruction-or-email-label]
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Consume and switch to the [*HTML instruction state*][s-html-instruction]
+
+### 11.22 HTML instruction state
+
+*   ↪ **U+003F QUESTION MARK (`?`)**
+
+    Consume and switch to the [*HTML instruction close state*][s-html-instruction-close]
+*   ↪ **[EOL][ceol]**
+
+    Queue an [*End-of-line token*][t-end-of-line], consume, and emit
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Consume
+
+### 11.23 HTML instruction close state
+
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, emit, signal **e:html-instruction**, and switch to the
+    [*Initial inline state*][s-initial-inline]
+*   ↪ **[EOL][ceol]**
+
+    Queue an [*End-of-line token*][t-end-of-line], consume, queue a [*Content token*][t-content], and switch to the
+    [*HTML instruction state*][s-html-instruction]
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Consume
+
+### 11.24 HTML declaration or email atext state
+
+*   ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the [*HTML comment open inside or email atext state*][s-html-comment-open-inside-or-email-atext]
+*   ↪ **U+0040 AT SIGN (`@`)**
+
+    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+*   ↪ **`[CDATA[` (the five upper letters “CDATA” with a U+005B LEFT SQUARE BRACKET (`[`) before and
+    after)**
+
+    Consume and switch to the [*HTML CDATA state*][s-html-cdata]
+*   ↪ **[ASCII upper alpha][ascii-upper-alpha]**
+
+    Consume and switch to the [*HTML declaration name or email atext state*][s-html-declaration-name-or-email-atext]
+*   ↪ **[atext][atext]**\
+    ↪ **U+002E DOT (`.`)**
+
+    Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.25 HTML comment open inside or email atext state
+
+*   ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the [*HTML comment or email atext state*][s-html-comment-or-email-atext]
+*   ↪ **U+0040 AT SIGN (`@`)**
+
+    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+*   ↪ **[atext][atext]**\
+    ↪ **U+002E DOT (`.`)**
+
+    Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.26 HTML comment or email atext state
+
+*   ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the [*HTML comment close inside or email atext state*][s-html-comment-close-inside-or-email-atext]
+*   ↪ **U+0040 AT SIGN (`@`)**
+
+    Consume and switch to the [*HTML comment or email at sign or dot state*][s-html-comment-or-email-at-sign-or-dot]
+*   ↪ **[atext][atext]**\
+    ↪ **U+002E DOT (`.`)**
+
+    Consume and switch to the [*HTML comment or email atext state*][s-html-comment-or-email-atext]
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Reconsume in the [*HTML comment state*][s-html-comment]
+
+### 11.27 HTML comment close inside or email atext state
+
+*   ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the [*HTML comment close or email atext state*][s-html-comment-close-or-email-atext]
+*   ↪ **U+0040 AT SIGN (`@`)**
+
+    Consume and switch to the [*HTML comment or email at sign or dot state*][s-html-comment-or-email-at-sign-or-dot]
+*   ↪ **[atext][atext]**\
+    ↪ **U+002E DOT (`.`)**
+
+    Consume and switch to the [*HTML comment or email atext state*][s-html-comment-or-email-atext]
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Reconsume in the [*HTML comment state*][s-html-comment]
+
+### 11.28 HTML comment close or email atext state
+
+> **Note**: a comment may not contain two dashes (`--`), and may not end in a
+> dash (which would result in `--->`).
+> Here we have seen two dashes, so we can either be at the end of a comment, or
+> no longer in a comment.
+
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, emit, signal **e:html-comment**, and switch to the [*Initial inline state*][s-initial-inline]
+*   ↪ **U+0040 AT SIGN (`@`)**
+
+    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+*   ↪ **[atext][atext]**\
+    ↪ **U+002E DOT (`.`)**
+
+    Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.29 HTML comment or email at sign or dot state
+
+*   ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the [*HTML comment close inside state*][s-html-comment-close-inside]
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+
+    Consume and switch to the [*HTML comment or email label state*][s-html-comment-or-email-label]
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Reconsume in the [*HTML comment state*][s-html-comment]
+
+### 11.30 HTML comment or email label state
+
+*   ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the [*HTML comment close inside or email label dash state*][s-html-comment-close-inside-or-email-label-dash]
+*   ↪ **U+002E DOT (`.`)**
+
+    Consume and switch to the [*HTML comment or email at sign or dot state*][s-html-comment-or-email-at-sign-or-dot]
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    > ❗️ Todo: size between `@` and `>` can be at most 63 total.
+
+    Consume, emit, signal **e:autolink-email**, and switch to the
+    [*Initial inline state*][s-initial-inline]
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+
+    Consume and switch to the [*HTML comment or email label state*][s-html-comment-or-email-label]
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Reconsume in the [*HTML comment state*][s-html-comment]
+
+### 11.31 HTML comment close inside or email label dash state
+
+*   ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the [*HTML comment close or email label dash state*][s-html-comment-close-or-email-label-dash]
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+
+    Consume and switch to the [*HTML comment or email label state*][s-html-comment-or-email-label]
+*   ↪ **U+003E GREATER THAN (`>`)**\
+    ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Reconsume in the [*HTML comment state*][s-html-comment]
+
+### 11.32 HTML comment close or email label dash state
+
+> **Note**: a comment may not contain two dashes (`--`), and may not end in a
+> dash (which would result in `--->`).
+> Here we have seen two dashes, so we can either be at the end of a comment, or
+> no longer in a comment.
+
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, emit, signal **e:html-comment**, and switch to the [*Initial inline state*][s-initial-inline]
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+
+    Consume and switch to the [*Autolink email label state*][s-autolink-email-label]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.33 HTML comment state
+
+*   ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the [*HTML comment close inside state*][s-html-comment-close-inside]
+*   ↪ **[EOL][ceol]**
+
+    Queue an [*End-of-line token*][t-end-of-line], consume, and queue a [*Content token*][t-content]
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Consume
+
+### 11.34 HTML comment close inside state
+
+*   ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the [*HTML comment close state*][s-html-comment-close]
+*   ↪ **[EOL][ceol]**
+
+    Queue an [*End-of-line token*][t-end-of-line], consume, queue a [*Content token*][t-content], and switch to the
+    [*HTML comment state*][s-html-comment]
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Consume
+
+### 11.35 HTML comment close state
+
+> **Note**: a comment may not contain two dashes (`--`), and may not end in a
+> dash (which would result in `--->`).
+> Here we have seen two dashes, so we can either be at the end of a comment, or
+> no longer in a comment.
+
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, emit, signal **e:html-comment**, and switch to the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.36 HTML CDATA state
+
+*   ↪ **`]]>` (two of U+005D RIGHT SQUARE BRACKET (`]`), with a U+003E GREATER THAN (`>`) after)**
+
+    Consume, emit, signal **e:html-cdata**, and switch to the [*Initial inline state*][s-initial-inline]
+*   ↪ **[EOL][ceol]**
+
+    Queue an [*End-of-line token*][t-end-of-line], consume, and queue a [*Content token*][t-content]
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Consume
+
+### 11.37 HTML declaration name or email atext state
+
+*   ↪ **[EOL][ceol]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
+
+    Reconsume in the [*HTML declaration between state*][s-html-declaration-between]
+*   ↪ **U+0040 AT SIGN (`@`)**
+
+    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+*   ↪ **[ASCII upper alpha][ascii-upper-alpha]**
+
+    Consume
+*   ↪ **[atext][atext]**\
+    ↪ **U+002E DOT (`.`)**
+
+    Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.38 HTML declaration between state
+
+*   ↪ **[EOL][ceol]**
+
+    Queue an [*End-of-line token*][t-end-of-line], consume, and queue a [*Content token*][t-content]
+*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
+
+    Consume
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, emit, signal **e:html-declaration**, and switch to the
+    [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Reconsume in the [*HTML declaration content state*][s-html-declaration-content]
+
+### 11.39 HTML declaration content state
+
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **[EOL][ceol]**
+
+    Queue an [*End-of-line token*][t-end-of-line], consume, and queue a [*Content token*][t-content]
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, emit, signal **e:html-declaration**, and switch to the
+    [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Consume
+
+### 11.40 HTML closing tag or email atext state
+
+*   ↪ **U+0040 AT SIGN (`@`)**
+
+    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+*   ↪ **[ASCII alpha][ascii-alpha]**
+
+    Consume and switch to the [*HTML closing tag inside or email atext state*][s-html-closing-tag-inside-or-email-atext]
+*   ↪ **[atext][atext]**\
+    ↪ **U+002E DOT (`.`)**
+
+    Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.41 HTML closing tag inside or email atext state
+
+*   ↪ **[EOL][ceol]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
+
+    Reconsume in the [*HTML closing tag between state*][s-html-closing-tag-between]
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, emit, signal **e:html-tag-close**, and switch to the
+    [*Initial inline state*][s-initial-inline]
+*   ↪ **U+0040 AT SIGN (`@`)**
+
+    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
+    ↪ **U+002D DASH (`-`)**
+
+    Consume
+*   ↪ **[atext][atext]**\
+    ↪ **U+002E DOT (`.`)**
+
+    Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.42 HTML closing tag between state
+
+> **Note**: an EOL here would be technically allowed here, but anything else
+> isn’t, and as a `>` after an EOL would start a blockquote, practically it’s
+> not possible.
+
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, emit, signal **e:html-tag-close**, and switch to the
+    [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.43 HTML opening tag scheme or email atext state
+
+*   ↪ **U+002B PLUS SIGN (`+`)**:\
+    ↪ **U+002E DOT (`.`)**:
+
+    Consume and switch to the [*Autolink scheme inside or email atext state*][s-autolink-scheme-inside-or-email-atext]
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, emit, signal **e:html-tag-open**, and switch to the
+    [*Initial inline state*][s-initial-inline]
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
+    ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the [*HTML opening tag inside scheme inside or email atext state*][s-html-opening-tag-inside-scheme-inside-or-email-atext]
+*   ↪ **[atext][atext]**
+
+    Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.44 HTML opening tag inside scheme inside or email atext state
+
+> ❗️ Todo: support whitespace, attributes, etc in email
+
+*   ↪ **U+002B PLUS SIGN (`+`)**:\
+    ↪ **U+002E DOT (`.`)**:
+
+    Consume and switch to the [*Autolink scheme inside or email atext state*][s-autolink-scheme-inside-or-email-atext]
+*   ↪ **U+003A COLON (`:`)**:
+
+    Consume and switch to the [*Autolink URI inside state*][s-autolink-uri-inside]
+*   ↪ **U+0040 AT SIGN (`@`)**
+
+    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
+    ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the
+    [*HTML opening tag inside scheme inside or email atext state*][s-html-opening-tag-inside-scheme-inside-or-email-atext]
+*   ↪ **[atext][atext]**
+
+    Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.45 Autolink scheme inside or email atext state
+
+*   ↪ **U+003A COLON (`:`)**:
+
+    Consume and switch to the [*Autolink URI inside state*][s-autolink-uri-inside]
+*   ↪ **U+0040 AT SIGN (`@`)**
+
+    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
+    ↪ **U+002B PLUS SIGN (`+`)**\
+    ↪ **U+002D DASH (`-`)**\
+    ↪ **U+002E DOT (`.`)**
+
+    Consume
+*   ↪ **[atext][atext]**
+
+    Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.46 Autolink URI inside state
+
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, emit, signal **e:autolink-uri**, and switch to the
+    [*Initial inline state*][s-initial-inline]
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**\
+    ↪ **U+0020 SPACE (SP)**:\
+    ↪ **U+003C LESS THAN (`<`)**:\
+    ↪ **[ASCII control][ascii-control]**:
+
+    Queue an [*End-of-line token*][t-end-of-line], consume, and queue a [*Content token*][t-content]
+*   ↪ **Anything else**
+
+    Consume
+
+### 11.47 Autolink email atext state
+
+*   ↪ **U+0040 AT SIGN (`@`)**
+
+    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+*   ↪ **[atext][atext]**\
+    ↪ **U+002E DOT (`.`)**
+
+    Consume
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.48 Autolink email label state
+
+*   ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the [*Autolink email dash state*][s-autolink-email-dash]
+*   ↪ **U+002E DOT (`.`)**
+
+    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    > ❗️ Todo: size between `@` and `>` can be at most 63 total.
+
+    Consume, emit, signal **e:autolink-email**, and switch to the
+    [*Initial inline state*][s-initial-inline]
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+
+    Consume
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.49 Autolink email at sign or dot state
+
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+
+    Consume and switch to the [*Autolink email label state*][s-autolink-email-label]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.50 Autolink email dash state
+
+*   ↪ **U+002D DASH (`-`)**
+
+    Consume
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+
+    Consume and switch to the [*Autolink email label state*][s-autolink-email-label]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
 
 ## 12 Processing
 
@@ -2151,893 +3126,6 @@ To <a id="process-as-raw-text" href="#process-as-raw-text">**process as Raw text
 To <a id="process-as-phrasing" href="#process-as-phrasing">**process as Phrasing**</a> is to [process as Text][process-as-text] given `lines`.
 
 ### 12.9 Process as Text
-
-To <a id="process-as-text" href="#process-as-text">**process as Text**</a> is to perform the following steps with the given
-`lines` and optional `kind`, which when given is either `phrasing` or `raw`, and
-defaults to `phrasing`:
-
-> ❗️ Todo: emphasis, importance, links, link references, images, image
-> references, hard line breaks, soft line breaks.
-
-*   Let `characters` be U+005C BACKSLASH (`\`) and U+0026 AMPERSAND (`&`)
-*   If `kind` is `phrasing`, let `characters` be U+0021 EXCLAMATION MARK (`!`), U+0026 AMPERSAND (`&`), U+002A ASTERISK (`*`), U+003C LESS THAN (`<`), U+005C
-    BACKSLASH (`\`), U+005D RIGHT SQUARE BRACKET (`]`), U+005B LEFT SQUARE BRACKET (`[`), U+005F UNDERSCORE (`_`), and U+0060 GRAVE ACCENT (`` ` ``)
-*   Let `pointer` be a pointer to the first line (`0`) and the start of the
-    first line in lines
-*   *Next*: Let `start` be a copy of `pointer`
-*   *Look*: scan for `characters` within `lines` given `pointer`
-*   If `pointer` does not point to a place, emit the content at `start` and
-    after
-*   Otherwise, if the character at `pointer` is:
-
-    *   ↪ **U+0021 EXCLAMATION MARK (`!`)**
-
-        *   Let `label` be a copy of `pointer`
-        *   Move `label` one place forward
-        *   If the character at `label` is not U+005B LEFT SQUARE BRACKET (`[`), go to the step labeled
-            *look*
-        *   If `start` is not `pointer`, emit the content between both points
-        *   Open an [*Image opening group*][g-image-opening]
-        *   Emit a [*Marker token*][t-marker] with the character at `pointer`
-        *   Emit a [*Marker token*][t-marker] with the character at `label`
-        *   Close
-        *   Let `pointer` be `label`
-        *   Go to the step labeled *next*
-    *   ↪ **U+0026 AMPERSAND (`&`)**
-
-        *   Let `reference` be a copy of `pointer`
-        *   Let `ampersand` be a copy of `reference`
-        *   Move `reference` one place forward
-        *   If the character at `reference` is [ASCII alphanumeric][ascii-alphanumeric]:
-
-            *   Let `referenceStart` be a copy of `reference`
-            *   Skip [ASCII alphanumeric][ascii-alphanumeric] characters within `lines` given
-                `reference`
-            *   If the character at `reference` is not U+003B SEMICOLON (`;`), go to the step
-                labeled *look*
-            *   Otherwise, if the characters between `referenceStart` and
-                `reference` are not a [character reference name][character-reference-name], go to the
-                step labeled *look*
-            *   If `start` is not `ampersand`, emit the content and line endings
-                between `start` and `ampersand`
-            *   Open a [*Character reference group*][g-character-reference] of kind `name`
-            *   Emit a [*Marker token*][t-marker] with the character at `ampersand`
-            *   Emit a [*Content token*][t-content] with the characters between `referenceStart` and
-                `reference`
-            *   Emit a [*Marker token*][t-marker] with the character at `reference`
-            *   Close
-            *   Let `pointer` be `reference`
-            *   Go to the step labeled *next*
-        *   Otherwise, if the character at `reference` is U+0023 NUMBER SIGN (`#`)
-
-            *   Let `numberSign` be a copy of `reference`
-            *   Move `reference` one place forward
-            *   If the character at `reference` is U+0058 (`X`) or U+0078 (`x`):
-
-                *   Let `hex` be a copy of `reference`
-                *   Move `reference` one place forward
-                *   If the character at `reference` is not [ASCII hex digit][ascii-hex-digit],
-                    go to the step labeled *look*
-                *   Let `referenceStart` be a copy of `reference`
-                *   Skip [ASCII hex digit][ascii-hex-digit] characters within `lines` given
-                    `reference`
-                *   If the character at `reference` is not U+003B SEMICOLON (`;`), go to the step
-                    labeled *look*
-                *   If `start` is not `ampersand`, emit the content and line
-                    endings between `start` and `ampersand`
-                *   Open a [*Character reference group*][g-character-reference] of kind `hexadecimal`
-                *   Emit a [*Marker token*][t-marker] with the character at `ampersand`
-                *   Emit a [*Marker token*][t-marker] with the character at `numberSign`
-                *   Emit a [*Content token*][t-content] with the character at `hex`
-                *   Emit a [*Content token*][t-content] with the characters between
-                    `referenceStart` and `reference`
-                *   Emit a [*Marker token*][t-marker] with the character at `reference`
-                *   Close
-                *   Let `pointer` be `reference`
-                *   Go to the step labeled *next*
-            *   Otherwise, if the character at `reference` is an [ASCII
-                digit][ascii-digit]:
-
-                *   Let `referenceStart` be a copy of `reference`
-                *   Skip [ASCII digit][ascii-digit] characters within `lines` given
-                    `reference`
-                *   If the character at `reference` is not U+003B SEMICOLON (`;`), go to the step
-                    labeled *look*
-                *   If `start` is not `ampersand`, emit the content and line
-                    endings between `start` and `ampersand`
-                *   Open a [*Character reference group*][g-character-reference] of kind `decimal`
-                *   Emit a [*Marker token*][t-marker] with the character at `ampersand`
-                *   Emit a [*Marker token*][t-marker] with the character at `numberSign`
-                *   Emit a [*Content token*][t-content] with the characters between
-                    `referenceStart` and `reference`
-                *   Emit a [*Marker token*][t-marker] with the character at `reference`
-                *   Close
-                *   Let `pointer` be `reference`
-                *   Go to the step labeled *next*
-            *   Otherwise, go to the step labeled *look*
-        *   Go to the step labeled *look*
-    *   ↪ **U+002A ASTERISK (`*`)**\
-        ↪ **U+005F UNDERSCORE (`_`)**
-
-        *   If `start` is not `pointer`, emit the content between both points
-        *   Open a [*Emphasis or strong group*][g-emphasis-or-strong]
-        *   Let `last` be a copy of `pointer`
-        *   *Move*: if the character after `last` is the character at `pointer`,
-            move `last` one place forward, go to the step labeled *move*
-        *   Emit a [*Sequence token*][t-sequence] with the characters between `pointer` and `last`
-            (including)
-        *   Close
-        *   Let `pointer` be `last`
-        *   Go to the step labeled *next*
-    *   ↪ **U+003C LESS THAN (`<`)**
-
-        *   Let `end` be a copy of `pointer`
-        *   Move `end` one place forward
-        *   If the character at `end` is:
-
-            *   ↪ **U+0021 EXCLAMATION MARK (`!`)**:
-
-                Go to the step labeled *declaration or email atext*
-            *   ↪ **U+002F SLASH (`/`)**:
-
-                Go to the step labeled *closing tag or email atext*
-            *   ↪ **U+003F QUESTION MARK (`?`)**:
-
-                Go to the step labeled *instruction or email atext*
-            *   ↪ **[ASCII alpha][ascii-alpha]**:
-
-                Go to the step labeled *opening tag, scheme, or email atext*
-            *   ↪ **[atext][atext]**:\
-                ↪ **U+002E DOT (`.`)**:
-
-                Go to the step labeled *email atext*
-            *   ↪ **Anything else**
-
-                Go to the step labeled *look*
-        *   *Instruction or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+003F QUESTION MARK (`?`)**:
-
-                    Go to the step labeled *instruction close or email atext*
-                *   ↪ **U+0040 AT SIGN (`@`)**:
-
-                    Go to the step labeled *instruction or email at sign or dot*
-                *   ↪ **[atext][atext]**:\
-                    ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *instruction or email atext*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *instruction*
-        *   *Instruction close or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **U+003F QUESTION MARK (`?`)**:
-
-                    Go to the step labeled *instruction close or email atext*
-                *   ↪ **U+0040 AT SIGN (`@`)**:
-
-                    Go to the step labeled *instruction or email at sign or dot*
-                *   ↪ **[atext][atext]**:\
-                    ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *instruction or email atext*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *instruction*
-        *   *Instruction or email at sign or dot*
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+003F QUESTION MARK (`?`)**:
-
-                    Go to the step labeled *instruction close*
-                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
-
-                    Go to the step labeled *instruction or email label*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *instruction*
-        *   *Instruction or email label*
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002D DASH (`-`)**:
-
-                    Go to the step labeled *instruction or email dash*
-                *   ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *instruction or email at sign or dot*
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    > ❗️ Todo: Size between `@` and `>` can be at most 63 total.
-
-                    Go to the step labeled *email end*
-                *   ↪ **U+003F QUESTION MARK (`?`)**:
-
-                    Go to the step labeled *instruction close*
-                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
-
-                    Go to the step labeled *instruction or email label*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *instruction*
-        *   *Instruction or email dash*
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002D DASH (`-`)**:
-
-                    Go to the step labeled *instruction or email dash*
-                *   ↪ **U+003F QUESTION MARK (`?`)**:
-
-                    Go to the step labeled *instruction close*
-                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
-
-                    Go to the step labeled *instruction or email label*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *instruction*
-        *   *Instruction*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+003F QUESTION MARK (`?`)**:
-
-                    Go to the step labeled *instruction close*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *instruction*
-        *   *Instruction close*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *instruction*
-        *   *Declaration or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002D DASH (`-`)**:
-
-                    Go to the step labeled *comment open inside or email atext*
-                *   ↪ **U+0040 AT SIGN (`@`)**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**:
-
-                    *   If the next few characters are `CDATA[`, move `end` to
-                        that last U+005B LEFT SQUARE BRACKET (`[`), and go to the step labeled *CDATA*
-                    *   Otherwise, go to the step labeled *look*
-                *   ↪ **[ASCII upper alpha][ascii-upper-alpha]**:
-
-                    Go to the step labeled *declaration name or email atext*
-                *   ↪ **[atext][atext]**:\
-                    ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**:
-
-                    Go to the step labeled *look*
-        *   *Comment open inside or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002D DASH (`-`)**:
-
-                    Go to the step labeled *comment or email atext*
-                *   ↪ **U+0040 AT SIGN (`@`)**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[atext][atext]**:\
-                    ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**:
-
-                    Go to the step labeled *look*
-        *   *Comment or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002D DASH (`-`)**:
-
-                    Go to the step labeled *comment close inside or email atext*
-                *   ↪ **U+0040 AT SIGN (`@`)**:
-
-                    Go to the step labeled *comment or email at sign or dot*
-                *   ↪ **[atext][atext]**:\
-                    ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *comment or email atext*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**:
-
-                    Go to the step labeled *comment*
-        *   *Comment close inside or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002D DASH (`-`)**:
-
-                    Go to the step labeled *comment close or email atext*
-                *   ↪ **U+0040 AT SIGN (`@`)**:
-
-                    Go to the step labeled *comment or email at sign or dot*
-                *   ↪ **[atext][atext]**:\
-                    ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *comment or email atext*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**:
-
-                    Go to the step labeled *comment*
-        *   *Comment close or email atext*
-
-            > **Note**: a comment may not contain two dashes (`--`), and
-            > may not end in a dash (which would result in `--->`).
-            > Here we have seen two dashes, so we can either be at the end of a
-            > comment, or no longer in a comment.
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **U+0040 AT SIGN (`@`)**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[atext][atext]**:\
-                    ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Comment or email at sign or dot*
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002D DASH (`-`)**:
-
-                    Go to the step labeled *comment close inside*
-                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
-
-                    Go to the step labeled *comment or email label*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *comment*
-        *   *Comment or email label*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002D DASH (`-`)**:
-
-                    Go to the step labeled *comment close inside or email label
-                    dash*
-                *   ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *comment or email at sign or dot*
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    > ❗️ Todo: Size between `@` and `>` can be at most 63 total.
-
-                    Go to the step labeled *email end*
-                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
-
-                    Go to the step labeled *comment or email label*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *comment*
-        *   *Comment close inside or email label dash*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002D DASH (`-`)**:
-
-                    Go to the step labeled *comment close or email label dash*
-                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
-
-                    Go to the step labeled *comment or email label*
-                *   ↪ **U+003E GREATER THAN (`>`)**:\
-                    ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *comment*
-        *   *Comment close or email label dash*:
-
-            > **Note**: a comment may not contain two dashes (`--`), and
-            > may not end in a dash (which would result in `--->`).
-            > Here we have seen two dashes, so we can either be at the end of a
-            > comment, or no longer in a comment.
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
-
-                    Go to the step labeled *email label*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Comment*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002D DASH (`-`)**:
-
-                    Go to the step labeled *comment close inside*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *comment*
-        *   *Comment close inside*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002D DASH (`-`)**:
-
-                    Go to the step labeled *comment close*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *comment*
-        *   *Comment close*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *CDATA*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**:
-
-                    *   If the next few characters are `]>`, move `end` to
-                        that last U+003E GREATER THAN (`>`), and go to the step labeled *HTML end*
-                    *   Otherwise, go to the step labeled *CDATA*
-                *   ↪ **Not a place**:
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *CDATA*
-        *   *Declaration name or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **[*Line ending token*][t-line-ending]**:\
-                    ↪ **U+0009 CHARACTER TABULATION (HT)**:\
-                    ↪ **U+0020 SPACE (SP)**:
-
-                    > ❗️ Todo: Support line endings somehow here?
-
-                    Go to the step labeled *declaration whitespace*
-                *   ↪ **U+0040 AT SIGN (`@`)**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[ASCII upper alpha][ascii-upper-alpha]**:
-
-                    *   Go to the step labeled *declaration name or email atext*
-                *   ↪ **[atext][atext]**:\
-                    ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Declaration whitespace*:
-
-            *   Skip whitespace and line endings within `lines` given `end`
-            *   If the character at `end` is:
-
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **Not a place**
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *declaration content*
-        *   *Declaration content*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **Not a place**
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *declaration content*
-        *   *Closing tag or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+0040 AT SIGN (`@`)**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[ASCII alpha][ascii-alpha]**:
-
-                    Go to the step labeled *closing tag inside or email atext*
-                *   ↪ **[atext][atext]**:\
-                    ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Closing tag inside or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **[*Line ending token*][t-line-ending]**:\
-                    ↪ **U+0009 CHARACTER TABULATION (HT)**:\
-                    ↪ **U+0020 SPACE (SP)**:
-
-                    > ❗️ Todo: Support line endings somehow here?
-
-                    Go to the step labeled *closing tag whitespace*
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **U+0040 AT SIGN (`@`)**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:\
-                    ↪ **U+002D DASH (`-`)**:
-
-                    Go to the step labeled *closing tag inside or email atext*
-                *   ↪ **[atext][atext]**:\
-                    ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Closing tag whitespace*:
-
-            *   Skip whitespace and line endings within `lines` given `end`
-            *   If the character at `end` is:
-
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Opening tag, scheme, or email atext*:
-
-            > ❗️ Todo: Support whitespace, attributes, etc in HTML.
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002B PLUS SIGN (`+`)**:\
-                    ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *scheme inside or email atext*
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:\
-                    ↪ **U+002D DASH (`-`)**:\\
-
-                    Go to the step labeled *opening tag inside, scheme inside, or email atext*
-                *   ↪ **[atext][atext]**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Opening tag inside, scheme inside, or email atext*:
-
-            > ❗️ Todo: Support whitespace, attributes, etc in HTML.
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002B PLUS SIGN (`+`)**:\
-                    ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *scheme inside or email atext*
-                *   ↪ **U+003A COLON (`:`)**:
-
-                    Go to the step labeled *URI inside*
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    Go to the step labeled *HTML end*
-                *   ↪ **U+0040 AT SIGN (`@`)**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:\
-                    ↪ **U+002D DASH (`-`)**:\\
-
-                    Go to the step labeled *opening tag inside, scheme inside, or email atext*
-                *   ↪ **[atext][atext]**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Scheme inside or email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+003A COLON (`:`)**:
-
-                    Go to the step labeled *URI inside*
-                *   ↪ **U+0040 AT SIGN (`@`)**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:\
-                    ↪ **U+002B PLUS SIGN (`+`)**:\
-                    ↪ **U+002D DASH (`-`)**:\
-                    ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *scheme inside or email atext*
-                *   ↪ **[atext][atext]**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *URI inside*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    Go to the step labeled *URI end*
-                *   ↪ **[*Line ending token*][t-line-ending]**:\
-                    ↪ **[ASCII control][ascii-control]**:\
-                    ↪ **U+003C LESS THAN (`<`)**:\
-                    ↪ **Not a place**
-
-                    > ❗️ Todo: Support line endings somehow here?
-
-                    Go to the step labeled *look*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *URI inside*
-        *   *Email atext*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+0040 AT SIGN (`@`)**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **[atext][atext]**:\
-                    ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *email atext*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Email label*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002D DASH (`-`)**:
-
-                    Go to the step labeled *email dash*
-                *   ↪ **U+002E DOT (`.`)**:
-
-                    Go to the step labeled *email at sign or dot*
-                *   ↪ **U+003E GREATER THAN (`>`)**:
-
-                    > ❗️ Todo: Size between `@` and `>` can be at most 63 total.
-
-                    Go to the step labeled *email end*
-                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
-
-                    Go to the step labeled *email label*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Email at sign or dot*:
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
-
-                    Go to the step labeled *email label*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Email dash*
-
-            *   Move `end` one place forward
-            *   If the character at `end` is:
-
-                *   ↪ **U+002D DASH (`-`)**:
-
-                    Go to the step labeled *email dash*
-                *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**:
-
-                    Go to the step labeled *email label*
-                *   ↪ **Anything else**
-
-                    Go to the step labeled *look*
-        *   *Email end*:
-
-            *   If `start` is not `pointer`, emit the content between both
-                points
-            *   Open an [*Automatic link group*][g-automatic-link] of kind `email`
-            *   Emit a [*Marker token*][t-marker] with the character at `pointer`
-            *   Move `pointer` one place forward
-            *   Emit a [*Content token*][t-content] with the characters between `pointer` and `end`
-            *   Emit a [*Marker token*][t-marker] with the character at `end`
-            *   Close
-            *   Let `pointer` be `end`
-            *   Go to the step labeled *next*
-        *   *URI end*:
-
-            *   If `start` is not `pointer`, emit the content between both
-                points
-            *   Open an [*Automatic link group*][g-automatic-link] of kind `uri`
-            *   Emit a [*Marker token*][t-marker] with the character at `pointer`
-            *   Move `pointer` one place forward
-            *   Emit a [*Content token*][t-content] with the characters between `pointer` and `end`
-            *   Emit a [*Marker token*][t-marker] with the character at `end`
-            *   Close
-            *   Let `pointer` be `end`
-            *   Go to the step labeled *next*
-        *   *HTML end*:
-
-            *   If `start` is not `pointer`, emit the content between both
-                points
-            *   Open an [*HTML inline group*][g-html-inline] of kind `uri`
-            *   Emit a [*Marker token*][t-marker] with the character at `pointer`
-            *   Move `pointer` one place forward
-            *   Emit the content and line endings between `pointer` and `end`
-            *   Emit a [*Marker token*][t-marker] with the character at `end`
-            *   Close
-            *   Let `pointer` be `end`
-            *   Go to the step labeled *next*
-    *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
-
-        *   If `start` is not `pointer`, emit the content between both points
-        *   Open an [*Link opening group*][g-link-opening]
-        *   Emit a [*Marker token*][t-marker] with the character at `pointer`
-        *   Close
-        *   Go to the step labeled *next*
-    *   ↪ **U+005C BACKSLASH (`\`)**
-
-        *   If `start` is not `pointer`, emit the content between both points
-        *   Let `escaped` be a copy of `pointer`
-        *   Move `escaped` one place forward
-        *   Open a [*Escape group*][g-escape]
-        *   Emit a [*Marker token*][t-marker] with the character at `pointer`
-        *   If the character at `escaped` is [ASCII punctuation][ascii-punctuation], emit a
-            [*Content token*][t-content] with the character at `escaped`, and let `pointer` be
-            `escaped`
-        *   Close
-        *   Go to the step labeled *next*
-    *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
-
-        *   If `start` is not `pointer`, emit the content between both points
-        *   Open an [*Link or image closing group*][g-link-or-image-closing]
-        *   Emit a [*Marker token*][t-marker] with the character at `pointer`
-        *   Close
-        *   Go to the step labeled *next*
-    *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
-
-        *   Let `last` be a copy of `pointer`
-        *   Let `size` be `1`
-        *   *Move*: if the character after `last` is the character at `pointer`,
-            move `last` one place forward, increment `size` by `1`, and go to
-            the step labeled *move*
-        *   Let `next` be a copy of `last`
-        *   *look*: scan for U+0060 GRAVE ACCENT (\`) within `lines` given
-            `next`
-        *   If `next` points to a place:
-
-            *   Let `nextLast` be a copy of `next`
-            *   Let `nextSize` be `1`
-            *   *Move next*: if the character after `nextLast` is the character
-                at `next`, move `nextLast` one place forward, increment
-                `nextSize` by `1`, and go to the step labeled *move next*
-            *   If `nextSize` is not `size`, go to the step labeled *look*
-            *   Let `contentStart` be `last`
-            *   Move `contentStart` one place forward
-            *   If `start` is not `pointer`, emit the content between both
-                points
-            *   Open a [*Phrasing code group*][g-phrasing-code]
-            *   Emit a [*Sequence token*][t-sequence] with the characters between `pointer` and
-                `last`
-            *   Emit the content and line endings between `contentStart` and
-                `next`
-            *   Emit a [*Sequence token*][t-sequence] with the characters between `next` and
-                `nextLast`
-            *   Close
-            *   Let `pointer` be `last`
-            *   Go to the step labeled *next*
-        *   Let `pointer` be `last`
-        *   Go to the step labeled *next*
-    *   ↪ **Anything else**
-
-        > ❗️ Note: Impossible!
 
 ## 13 Tokens
 
@@ -3893,8 +3981,6 @@ This work is licensed under a
 
 [process-as-phrasing]: #process-as-phrasing
 
-[process-as-text]: #process-as-text
-
 [raw-tag]: #raw-tag
 
 [simple-tag]: #simple-tag
@@ -4054,6 +4140,104 @@ This work is licensed under a
 [s-phrasing-content]: #1029-phrasing-content-state
 
 [s-initial-inline]: #111-initial-inline-state
+
+[s-emphasis-asterisk]: #112-emphasis-asterisk-state
+
+[s-character-reference]: #113-character-reference-state
+
+[s-character-reference-named]: #114-character-reference-named-state
+
+[s-character-reference-numeric]: #115-character-reference-numeric-state
+
+[s-character-reference-hexadecimal-start]: #116-character-reference-hexadecimal-start-state
+
+[s-character-reference-hexadecimal]: #117-character-reference-hexadecimal-state
+
+[s-character-reference-decimal]: #118-character-reference-decimal-state
+
+[s-code-span-opening]: #119-code-span-opening-state
+
+[s-code-span-eol-after]: #1110-code-span-eol-after-state
+
+[s-code-span-inside]: #1111-code-span-inside-state
+
+[s-code-span-closing]: #1112-code-span-closing-state
+
+[s-emphasis-underscore]: #1113-emphasis-underscore-state
+
+[s-escape-backslash-after]: #1114-escape-backslash-after-state
+
+[s-image-exclamation-mark-after]: #1115-image-exclamation-mark-after-state
+
+[s-html-or-autolink-less-than-after]: #1116-html-or-autolink-less-than-after-state
+
+[s-html-instruction-or-email-atext]: #1117-html-instruction-or-email-atext-state
+
+[s-html-instruction-close-or-email-atext]: #1118-html-instruction-close-or-email-atext-state
+
+[s-html-instruction-or-email-at-sign-or-dot]: #1119-html-instruction-or-email-at-sign-or-dot-state
+
+[s-html-instruction-or-email-label]: #1120-html-instruction-or-email-label-state
+
+[s-html-instruction-or-email-dash]: #1121-html-instruction-or-email-dash-state
+
+[s-html-instruction]: #1122-html-instruction-state
+
+[s-html-instruction-close]: #1123-html-instruction-close-state
+
+[s-html-declaration-or-email-atext]: #1124-html-declaration-or-email-atext-state
+
+[s-html-comment-open-inside-or-email-atext]: #1125-html-comment-open-inside-or-email-atext-state
+
+[s-html-comment-or-email-atext]: #1126-html-comment-or-email-atext-state
+
+[s-html-comment-close-inside-or-email-atext]: #1127-html-comment-close-inside-or-email-atext-state
+
+[s-html-comment-close-or-email-atext]: #1128-html-comment-close-or-email-atext-state
+
+[s-html-comment-or-email-at-sign-or-dot]: #1129-html-comment-or-email-at-sign-or-dot-state
+
+[s-html-comment-or-email-label]: #1130-html-comment-or-email-label-state
+
+[s-html-comment-close-inside-or-email-label-dash]: #1131-html-comment-close-inside-or-email-label-dash-state
+
+[s-html-comment-close-or-email-label-dash]: #1132-html-comment-close-or-email-label-dash-state
+
+[s-html-comment]: #1133-html-comment-state
+
+[s-html-comment-close-inside]: #1134-html-comment-close-inside-state
+
+[s-html-comment-close]: #1135-html-comment-close-state
+
+[s-html-cdata]: #1136-html-cdata-state
+
+[s-html-declaration-name-or-email-atext]: #1137-html-declaration-name-or-email-atext-state
+
+[s-html-declaration-between]: #1138-html-declaration-between-state
+
+[s-html-declaration-content]: #1139-html-declaration-content-state
+
+[s-html-closing-tag-or-email-atext]: #1140-html-closing-tag-or-email-atext-state
+
+[s-html-closing-tag-inside-or-email-atext]: #1141-html-closing-tag-inside-or-email-atext-state
+
+[s-html-closing-tag-between]: #1142-html-closing-tag-between-state
+
+[s-html-opening-tag-scheme-or-email-atext]: #1143-html-opening-tag-scheme-or-email-atext-state
+
+[s-html-opening-tag-inside-scheme-inside-or-email-atext]: #1144-html-opening-tag-inside-scheme-inside-or-email-atext-state
+
+[s-autolink-scheme-inside-or-email-atext]: #1145-autolink-scheme-inside-or-email-atext-state
+
+[s-autolink-uri-inside]: #1146-autolink-uri-inside-state
+
+[s-autolink-email-atext]: #1147-autolink-email-atext-state
+
+[s-autolink-email-label]: #1148-autolink-email-label-state
+
+[s-autolink-email-at-sign-or-dot]: #1149-autolink-email-at-sign-or-dot-state
+
+[s-autolink-email-dash]: #1150-autolink-email-dash-state
 
 [t-whitespace]: #131-whitespace-token
 
