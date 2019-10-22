@@ -286,7 +286,7 @@ Opening groups may have side effects, based on their type:
     ↪ **g:html**\
     ↪ **g:thematic-break**
 
-    If the [current group][] is a g:content or a g:indented-code, close it.
+    If the [current group][] is a g:content or an g:indented-code, close it.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
@@ -331,7 +331,7 @@ document and must start in the s:initial.
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a t:end-of-file and emit
+    Enqueue an t:end-of-file and emit
 *   ↪ **c:LF**\
     ↪ **c:CR**
 
@@ -364,7 +364,7 @@ document and must start in the s:initial.
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a t:end-of-file and emit
+    Enqueue an t:end-of-file and emit
 *   ↪ **c:LF**
 
     Enqueue a t:line-ending, consume, emit, and switch to the s:initial
@@ -1357,7 +1357,7 @@ document and must start in the s:initial-content.
 *   ↪ **[c:EOF][]**\
     ↪ **c:]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1374,7 +1374,7 @@ document and must start in the s:initial-content.
 *   ↪ **[c:EOF][]**\
     ↪ **c:]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **[c:EOL][]**
 
     > ❗️ Note: shouldn’t be possible (trailing whitespace, which we are
@@ -1394,7 +1394,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -1419,7 +1419,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **[c:EOL][]**
 
     > ❗️ Note: shouldn’t be possible (an EOL after an EOL cannot be part of a
@@ -1446,7 +1446,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -1488,14 +1488,14 @@ document and must start in the s:initial-content.
     Enqueue a t:marker, consume, and switch to the s:definition-label-after
 *   ↪ **Anything else**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 
 ### Definition label after state
 
 *   ↪ **[c:EOF][]**\
     ↪ **[ASCII control][]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1517,7 +1517,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **[c:EOL][]**
 
     > ❗️ Note: shouldn’t be possible (an EOL after an EOL or whitespace cannot
@@ -1535,7 +1535,7 @@ document and must start in the s:initial-content.
     s:definition-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **Anything else**
 
     Enqueue a t:content and reconsume in the
@@ -1547,7 +1547,7 @@ document and must start in the s:initial-content.
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **c:>**
 
     Enqueue a t:marker, consume, and switch to the
@@ -1567,7 +1567,7 @@ document and must start in the s:initial-content.
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **c:>**
 
     Enqueue a t:marker, consume, and switch to the
@@ -1594,11 +1594,10 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-definition**
+    Signal e:content-definition
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition-partial**, enqueue an t:end-of-line, and
-    consume
+    Signal e:content-definition-partial, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1606,7 +1605,7 @@ document and must start in the s:initial-content.
     s:definition-destination-after
 *   ↪ **Anything else**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 
 ### Definition destination unquoted inside state
 
@@ -1614,11 +1613,10 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-definition**
+    Signal e:content-definition
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition-partial**, enqueue an t:end-of-line, and
-    consume
+    Signal e:content-definition-partial, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1629,7 +1627,7 @@ document and must start in the s:initial-content.
     Increment `balance` by `1` and consume
 *   ↪ **c:)**
 
-    If `balance` is `0`, signal **e:content-phrasing**.
+    If `balance` is `0`, signal e:content-phrasing
 
     Otherwise, decrement `balance` by `1`, and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -1637,7 +1635,7 @@ document and must start in the s:initial-content.
     Consume and switch to the s:definition-destination-unquoted-escape
 *   ↪ **[ASCII control][]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **Anything else**
 
     Consume
@@ -1657,11 +1655,10 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-definition**
+    Signal e:content-definition
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition-partial**, enqueue an t:end-of-line, and
-    consume
+    Signal e:content-definition-partial, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1680,13 +1677,13 @@ document and must start in the s:initial-content.
     s:definition-title-paren-quoted-open-after
 *   ↪ **Anything else**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 
 ### Definition title double quoted open after state
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1707,7 +1704,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -1737,7 +1734,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1758,7 +1755,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -1788,7 +1785,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1809,7 +1806,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -1839,35 +1836,35 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-definition**
+    Signal e:content-definition
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition**, enqueue an t:end-of-line, consume, and
-    switch to the s:initial-content
+    Signal e:content-definition, enqueue an t:end-of-line, consume, and switch
+    to the s:initial-content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Enqueue a t:whitespace, consume, and switch to the s:definition-after
 *   ↪ **Anything else**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 
 ### Definition after state
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-definition**
+    Signal e:content-definition
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition**, enqueue an t:end-of-line, consume, and
-    switch to the s:initial-content
+    Signal e:content-definition, enqueue an t:end-of-line, consume, and switch
+    to the s:initial-content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
 *   ↪ **Anything else**
 
-    Signal **e:content-phrasing**
+    Signal e:content-phrasing
 
 ### Phrasing content state
 
@@ -1884,19 +1881,19 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a t:end-of-file and emit
+    Enqueue an t:end-of-file and emit
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and emit
+    Enqueue an t:end-of-line and consume
 *   ↪ **c:!**
 
-    If `type` is a `rich`, enqueue a t:marker, consume, emit, and switch to the
+    If `type` is a `rich`, enqueue a t:marker, consume, and switch to the
     s:image-exclamation-mark-after.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:&**
 
-    Enqueue a t:marker, consume, emit, and switch to the s:character-reference.
+    Enqueue a t:marker, consume, and switch to the s:character-reference.
 *   ↪ **c:***
 
     If `type` is a `rich`, enqueue a t:sequence, consume, and switch to the
@@ -1911,20 +1908,18 @@ phrasing) of a document and must start in the s:initial-inline.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:[**
 
-    If `type` is a `rich`, enqueue a t:marker, consume, emit, signal a
-    **e:text-link-open**
+    If `type` is a `rich`, enqueue a t:marker, consume, signal e:text-link-open
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Enqueue a t:marker, consume, emit, and switch to the
-    s:escape-backslash-after
+    Enqueue a t:marker, consume, and switch to the s:escape-backslash-after
 *   ↪ **c:[**
 
     > ❗️ Todo: support references, inlines, etc
 
-    If `type` is a `rich`, enqueue a t:marker, consume, emit, signal a
-    **e:text-link-close**
+    If `type` is a `rich`, enqueue a t:marker, consume, and signal
+    e:text-link-close
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:_**
@@ -1941,7 +1936,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Signal?
+    > ❗️ Todo: handle
 
 ### Emphasis asterisk state
 
@@ -1950,7 +1945,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume
 *   ↪ **Anything else**
 
-    Signal **e:text-emphasis** and reconsume in the s:initial-inline
+    Signal e:text-emphasis and reconsume in the s:initial-inline
 
 ### Character reference state
 
@@ -1977,7 +1972,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:;**
 
     If `entityName` is a [character reference name][], enqueue a t:marker,
-    consume, signal **e:text-character-reference**, and switch to the
+    consume, signal e:text-character-reference, and switch to the
     s:initial-inline
 
     Otherwise, treat it as per the “anything else” entry below
@@ -2029,8 +2024,8 @@ phrasing) of a document and must start in the s:initial-inline.
     `characterReferenceCode`, and consume
 *   ↪ **c:;**
 
-    Enqueue a t:marker, consume, signal **e:text-character-reference**, and
-    switch to the s:initial-inline
+    Enqueue a t:marker, consume, signal e:text-character-reference, and switch
+    to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2046,8 +2041,8 @@ phrasing) of a document and must start in the s:initial-inline.
     `characterReferenceCode`, and consume
 *   ↪ **c:;**
 
-    Enqueue a t:marker, consume, signal **e:text-character-reference**, and
-    switch to the s:initial-inline
+    Enqueue a t:marker, consume, signal e:text-character-reference, and switch
+    to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2064,13 +2059,12 @@ phrasing) of a document and must start in the s:initial-inline.
     Reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, emit, and switch to the
-    s:code-span-eol-after
+    Enqueue an t:end-of-line, consume, and switch to the s:code-span-eol-after
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:code-span-inside
 
-### Code span eol after state
+### Code span EOL after state
 
 > ❗️ Todo: Define shared space: `sizeOpen`
 
@@ -2079,8 +2073,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, emit, and switch to the
-    s:code-span-eol-after
+    Enqueue an t:end-of-line, consume, and switch to the s:code-span-eol-after
 *   ↪ **c:`**
 
     Enqueue a t:sequence, let `sizeClose` be `1`, consume, and switch to the
@@ -2098,8 +2091,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, emit, and switch to the
-    s:code-span-eol-after
+    Enqueue an t:end-of-line, consume, and switch to the s:code-span-eol-after
 *   ↪ **c:`**
 
     Enqueue a t:sequence, let `sizeClose` be `1`, consume, and switch to the
@@ -2117,20 +2109,20 @@ phrasing) of a document and must start in the s:initial-inline.
     Increment `sizeClose` by `1` and consume
 *   ↪ **[c:EOF][]**
 
-    If `sizeOpen` is `sizeClose`, signal **e:text-code** and reconsume in the
+    If `sizeOpen` is `sizeClose`, signal e:text-code, and reconsume in the
     s:initial-inline
 
     Otherwise, reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    If `sizeOpen` is `sizeClose`, signal **e:text-code** and reconsume in the
+    If `sizeOpen` is `sizeClose`, signal e:text-code, and reconsume in the
     s:initial-inline
 
-    Otherwise, enqueue an t:end-of-line, consume, emit, and switch to the
+    Otherwise, enqueue an t:end-of-line, consume, and switch to the
     s:code-span-eol-after
 *   ↪ **Anything else**
 
-    If `sizeOpen` is `sizeClose`, signal **e:text-code** and reconsume in the
+    If `sizeOpen` is `sizeClose`, signal e:text-code, and reconsume in the
     s:initial-inline
 
     Otherwise, consume and switch to the s:code-span-inside
@@ -2142,14 +2134,14 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume
 *   ↪ **Anything else**
 
-    Signal **e:text-emphasis** and reconsume in the s:initial-inline
+    Signal e:text-emphasis and reconsume in the s:initial-inline
 
 ### Escape backslash after state
 
 *   ↪ **[ASCII punctuation][]**
 
-    Enqueue a t:content, consume, emit, signal **e:text-escape**, and switch to
-    the s:initial-inline
+    Enqueue a t:content, consume, signal e:text-escape, and switch to the
+    s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2158,8 +2150,8 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:[**
 
-    Enqueue a t:marker, consume, emit, signal **e:text-image-open**, and switch
-    to the s:initial-inline
+    Enqueue a t:marker, consume, signal e:text-image-open, and switch to the
+    s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2210,7 +2202,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
+    Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **c:?**
 
     Consume
@@ -2257,8 +2249,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
     > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
-    Consume, emit, signal **e:text-autolink-email**, and switch to the
-    s:initial-inline
+    Consume, signal e:text-autolink-email, and switch to the s:initial-inline
 *   ↪ **c:?**
 
     Consume and switch to the s:html-instruction-close
@@ -2299,7 +2290,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-instruction-close
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and emit
+    Enqueue an t:end-of-line and consume
 *   ↪ **[c:EOF][]**
 
     Reconsume in the s:initial-inline
@@ -2311,7 +2302,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
+    Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
@@ -2409,7 +2400,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
+    Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **c:@**
 
     Consume and switch to the s:autolink-email-at-sign-or-dot
@@ -2448,8 +2439,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
     > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
-    Consume, emit, signal **e:text-autolink-email**, and switch to the
-    s:initial-inline
+    Consume, signal e:text-autolink-email, and switch to the s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**
 
     Consume and switch to the s:html-comment-or-email-label
@@ -2485,7 +2475,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
+    Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**
 
     Consume and switch to the s:autolink-email-label
@@ -2533,7 +2523,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
+    Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2542,7 +2532,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **`]]>` (two of c:], with a c:> after)**
 
-    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
+    Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and enqueue a t:content
@@ -2585,7 +2575,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
+    Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:html-declaration-content
@@ -2600,7 +2590,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Enqueue an t:end-of-line, consume, and enqueue a t:content
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
+    Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Consume
@@ -2630,7 +2620,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Reconsume in the s:html-tag-close-between
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
+    Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **c:@**
 
     Consume and switch to the s:autolink-email-at-sign-or-dot
@@ -2654,7 +2644,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
+    Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2667,7 +2657,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:autolink-scheme-inside-or-email-atext
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
+    Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**\
     ↪ **c:-**
 
@@ -2730,7 +2720,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:text-autolink-uri**, and switch to the
+    Consume, signal e:text-autolink-uri, and switch to the
     s:initial-inline
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**\
@@ -2768,7 +2758,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
     > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
-    Consume, emit, signal **e:text-autolink-email**, and switch to the
+    Consume, signal e:text-autolink-email, and switch to the
     s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**
 
@@ -3256,7 +3246,7 @@ interface ContentLine <: Group {
 
 ### Setext heading group
 
-An g:setext-heading represents a heading for a section.
+A g:setext-heading represents a heading for a section.
 
 ```idl
 interface SetextHeading <: Group {
@@ -3344,7 +3334,7 @@ interface DefinitionTitle <: Group {
 
 ### Escape group
 
-A g:escape represents an escaped marker or an empty escape.
+An g:escape represents an escaped marker or an empty escape.
 
 ```idl
 interface Escape <: Group {
@@ -3379,7 +3369,7 @@ interface CharacterReference <: Group {
 
 ### Automatic link group
 
-A g:automatic-link represents a literal URL or email address.
+An g:automatic-link represents a literal URL or email address.
 
 ```idl
 interface AutomaticLink <: Group {
