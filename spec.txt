@@ -1343,8 +1343,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **c:[**
 
-    Queue a t:marker, consume, emit, and switch to the
-    s:definition-label-open-after
+    Queue a t:marker, consume, and switch to the s:definition-label-open-after
 *   ↪ **Anything else**
 
     Reconsume in the s:phrasing-content
@@ -1354,10 +1353,10 @@ document and must start in the s:initial-content.
 *   ↪ **[c:EOF][]**\
     ↪ **c:]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and emit
+    Queue an t:end-of-line and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1371,13 +1370,13 @@ document and must start in the s:initial-content.
 *   ↪ **[c:EOF][]**\
     ↪ **c:]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
     > ❗️ Note: shouldn’t be possible (trailing whitespace, which we are
     > apparently in, is part of the EOL)
 
-    Queue an t:end-of-line, consume, emit, and switch to the
+    Queue an t:end-of-line, consume, and switch to the
     s:definition-label-open-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
@@ -1391,10 +1390,10 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, emit, and switch to the
+    Queue an t:end-of-line, consume, and switch to the
     s:definition-label-eol-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
@@ -1405,8 +1404,7 @@ document and must start in the s:initial-content.
     Consume and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Queue a t:marker, consume, emit, and switch to the
-    s:definition-label-close-after
+    Queue a t:marker, consume, and switch to the s:definition-label-close-after
 *   ↪ **Anything else**
 
     Consume
@@ -1415,13 +1413,13 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
     > ❗️ Note: shouldn’t be possible (an EOL after an EOL cannot be part of a
     > content)
 
-    Queue an t:end-of-line, consume, and emit
+    Queue an t:end-of-line and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1431,8 +1429,7 @@ document and must start in the s:initial-content.
     Consume and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Queue a t:marker, consume, emit, and switch to the
-    s:definition-label-close-after
+    Queue a t:marker, consume, and switch to the s:definition-label-close-after
 *   ↪ **Anything else**
 
     Queue a t:content, consume, and switch to the s:definition-label-inside
@@ -1441,10 +1438,10 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, emit, and switch to the
+    Queue an t:end-of-line, consume, and switch to the
     s:definition-label-eol-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
@@ -1455,8 +1452,7 @@ document and must start in the s:initial-content.
     Queue a t:content, consume, and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Queue a t:marker, consume, emit, and switch to the
-    s:definition-label-close-after
+    Queue a t:marker, consume, and switch to the s:definition-label-close-after
 *   ↪ **Anything else**
 
     Queue a t:content, consume, and switch to the s:definition-label-inside
@@ -1479,20 +1475,20 @@ document and must start in the s:initial-content.
 
 *   ↪ **c::**
 
-    Queue a t:marker, consume, emit, and switch to the s:definition-label-after
+    Queue a t:marker, consume, and switch to the s:definition-label-after
 *   ↪ **Anything else**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 
 ### Definition label after state
 
 *   ↪ **[c:EOF][]**\
     ↪ **[ASCII control][]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and emit
+    Queue an t:end-of-line and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1500,7 +1496,7 @@ document and must start in the s:initial-content.
     s:definition-destination-before
 *   ↪ **c:<**
 
-    Queue a t:marker, consume, emit, and switch to the
+    Queue a t:marker, consume, and switch to the
     s:definition-destination-quoted-open-after
 *   ↪ **Anything else**
 
@@ -1511,25 +1507,24 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
     > ❗️ Note: shouldn’t be possible (an EOL after an EOL or whitespace cannot
     > be part of a content)
 
-    Queue an t:end-of-line, consume, emit, and switch to the
-    s:definition-label-after
+    Queue an t:end-of-line, consume, and switch to the s:definition-label-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
 *   ↪ **c:<**
 
-    Queue a t:marker, consume, emit, and switch to the
+    Queue a t:marker, consume, and switch to the
     s:definition-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **Anything else**
 
     Queue a t:content and reconsume in the
@@ -1541,10 +1536,10 @@ document and must start in the s:initial-content.
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **c:>**
 
-    Queue a t:marker, consume, emit, and switch to the
+    Queue a t:marker, consume, and switch to the
     s:definition-destination-quoted-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1561,10 +1556,10 @@ document and must start in the s:initial-content.
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **c:>**
 
-    Queue a t:marker, consume, emit, and switch to the
+    Queue a t:marker, consume, and switch to the
     s:definition-destination-quoted-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1591,8 +1586,7 @@ document and must start in the s:initial-content.
     Signal **e:content-definition**
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition-partial**, queue an t:end-of-line, consume,
-    and emit
+    Signal **e:content-definition-partial**, queue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1600,7 +1594,7 @@ document and must start in the s:initial-content.
     s:definition-destination-after
 *   ↪ **Anything else**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 
 ### Definition destination unquoted inside state
 
@@ -1611,8 +1605,7 @@ document and must start in the s:initial-content.
     Signal **e:content-definition**
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition-partial**, queue an t:end-of-line, consume,
-    and emit
+    Signal **e:content-definition-partial**, queue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1623,7 +1616,7 @@ document and must start in the s:initial-content.
     Increment `balance` by `1` and consume
 *   ↪ **c:)**
 
-    If `balance` is `0`, signal **e:content-not-a-definition**.
+    If `balance` is `0`, signal **e:content-phrasing**.
 
     Otherwise, decrement `balance` by `1`, and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -1631,7 +1624,7 @@ document and must start in the s:initial-content.
     Consume and switch to the s:definition-destination-unquoted-escape
 *   ↪ **[ASCII control][]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **Anything else**
 
     Consume
@@ -1654,60 +1647,59 @@ document and must start in the s:initial-content.
     Signal **e:content-definition**
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition-partial**, queue an t:end-of-line, consume,
-    and emit
+    Signal **e:content-definition-partial**, queue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
 *   ↪ **c:"**
 
-    Queue a t:marker, consume, emit, and switch to the
+    Queue a t:marker, consume, and switch to the
     s:definition-title-double-quoted-open-after
 *   ↪ **c:'**
 
-    Queue a t:marker, consume, emit, and switch to the
+    Queue a t:marker, consume, and switch to the
     s:definition-title-single-quoted-open-after
 *   ↪ **c:(**
 
-    Queue a t:marker, consume, emit, and switch to the
+    Queue a t:marker, consume, and switch to the
     s:definition-title-paren-quoted-open-after
 *   ↪ **Anything else**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 
 ### Definition title double quoted open after state
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and emit
+    Queue an t:end-of-line and consume
 *   ↪ **c:"**
 
-    Queue a t:marker, consume, emit, and switch to the
-    s:definition-title-close-after
+    Queue a t:marker, consume, and switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Queue a t:content, consume, and switch to the s:definition-title-double-quoted-escape
+    Queue a t:content, consume, and switch to the
+    s:definition-title-double-quoted-escape
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the s:definition-title-double-quoted-inside
+    Queue a t:content, consume, and switch to the
+    s:definition-title-double-quoted-inside
 
 ### Definition title double quoted inside state
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, emit, and switch to the
+    Queue an t:end-of-line, consume, and switch to the
     s:definition-title-double-quoted-open-after
 *   ↪ **c:"**
 
-    Queue a t:marker, consume, emit, and switch to the
-    s:definition-title-close-after
+    Queue a t:marker, consume, and switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:definition-title-double-quoted-escape
@@ -1729,14 +1721,13 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and emit
+    Queue an t:end-of-line and consume
 *   ↪ **c:'**
 
-    Queue a t:marker, consume, emit, and switch to the
-    s:definition-title-close-after
+    Queue a t:marker, consume, and switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Queue a t:content, consume, and switch to the
@@ -1750,15 +1741,14 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, emit, and switch to the
+    Queue an t:end-of-line, consume, and switch to the
     s:definition-title-single-quoted-open-after
 *   ↪ **c:'**
 
-    Queue a t:marker, consume, emit, and switch to the
-    s:definition-title-close-after
+    Queue a t:marker, consume, and switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:definition-title-single-quoted-escape
@@ -1780,14 +1770,13 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and emit
+    Queue an t:end-of-line and consume
 *   ↪ **c:)**
 
-    Queue a t:marker, consume, emit, and switch to the
-    s:definition-title-close-after
+    Queue a t:marker, consume, and switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Queue a t:content, consume, and switch to the
@@ -1801,15 +1790,14 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, emit, and switch to the
+    Queue an t:end-of-line, consume, and switch to the
     s:definition-title-paren-quoted-open-after
 *   ↪ **c:)**
 
-    Queue a t:marker, consume, emit, and switch to the
-    s:definition-title-close-after
+    Queue a t:marker, consume, and switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:definition-title-paren-quoted-escape
@@ -1834,15 +1822,15 @@ document and must start in the s:initial-content.
     Signal **e:content-definition**
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition**, queue an t:end-of-line, consume, emit, and
-    switch to the s:initial-content
+    Signal **e:content-definition**, queue an t:end-of-line, consume, and switch
+    to the s:initial-content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Queue a t:whitespace, consume, and switch to the s:definition-after
 *   ↪ **Anything else**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 
 ### Definition after state
 
@@ -1851,15 +1839,15 @@ document and must start in the s:initial-content.
     Signal **e:content-definition**
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition**, queue an t:end-of-line, consume, emit, and
-    switch to the s:initial-content
+    Signal **e:content-definition**, queue an t:end-of-line, consume, and switch
+    to the s:initial-content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
 *   ↪ **Anything else**
 
-    Signal **e:content-not-a-definition**
+    Signal **e:content-phrasing**
 
 ### Phrasing content state
 
@@ -1903,7 +1891,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:[**
 
-    If `type` is a `rich`, queue a t:marker, consume, emit, signal and
+    If `type` is a `rich`, queue a t:marker, consume, emit, signal a
     **e:text-link-open**
 
     Otherwise, treat it as per the “anything else” entry below
@@ -1914,7 +1902,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
     > ❗️ Todo: support references, inlines, etc
 
-    If `type` is a `rich`, queue a t:marker, consume, emit, signal and
+    If `type` is a `rich`, queue a t:marker, consume, emit, signal a
     **e:text-link-close**
 
     Otherwise, treat it as per the “anything else” entry below
@@ -1941,7 +1929,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume
 *   ↪ **Anything else**
 
-    Signal **e:emphasis** and reconsume in the s:initial-inline
+    Signal **e:text-emphasis** and reconsume in the s:initial-inline
 
 ### Character reference state
 
@@ -1968,7 +1956,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:;**
 
     If `entityName` is a [character reference name][], queue a t:marker,
-    consume, signal **e:character-reference**, and switch to the
+    consume, signal **e:text-character-reference**, and switch to the
     s:initial-inline
 
     Otherwise, treat it as per the “anything else” entry below
@@ -2020,8 +2008,8 @@ phrasing) of a document and must start in the s:initial-inline.
     `characterReferenceCode`, and consume
 *   ↪ **c:;**
 
-    Queue a t:marker, consume, signal **e:character-reference**, and switch to
-    the s:initial-inline
+    Queue a t:marker, consume, signal **e:text-character-reference**, and switch
+    to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2037,8 +2025,8 @@ phrasing) of a document and must start in the s:initial-inline.
     `characterReferenceCode`, and consume
 *   ↪ **c:;**
 
-    Queue a t:marker, consume, signal **e:character-reference**, and switch to
-    the s:initial-inline
+    Queue a t:marker, consume, signal **e:text-character-reference**, and switch
+    to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2108,20 +2096,20 @@ phrasing) of a document and must start in the s:initial-inline.
     Increment `closingSize` by `1` and consume
 *   ↪ **[c:EOF][]**
 
-    If `openingSize` is `closingSize`, signal **e:code-span** and reconsume in
+    If `openingSize` is `closingSize`, signal **e:text-code** and reconsume in
     the s:initial-inline
 
     Otherwise, reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    If `openingSize` is `closingSize`, signal **e:code-span** and reconsume in
+    If `openingSize` is `closingSize`, signal **e:text-code** and reconsume in
     the s:initial-inline
 
     Otherwise, queue an t:end-of-line, consume, emit, and switch to the
     s:code-span-eol-after
 *   ↪ **Anything else**
 
-    If `openingSize` is `closingSize`, signal **e:code-span** and reconsume in
+    If `openingSize` is `closingSize`, signal **e:text-code** and reconsume in
     the s:initial-inline
 
     Otherwise, consume and switch to the s:code-span-inside
@@ -2133,14 +2121,14 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume
 *   ↪ **Anything else**
 
-    Signal **e:emphasis** and reconsume in the s:initial-inline
+    Signal **e:text-emphasis** and reconsume in the s:initial-inline
 
 ### Escape backslash after state
 
 *   ↪ **[ASCII punctuation][]**
 
-    Queue a t:content, consume, emit, signal **e:escape**, and switch to the
-    s:initial-inline
+    Queue a t:content, consume, emit, signal **e:text-escape**, and switch to
+    the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2201,8 +2189,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:html-instruction**, and switch to the
-    s:initial-inline
+    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
 *   ↪ **c:?**
 
     Consume
@@ -2249,7 +2236,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
     > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
-    Consume, emit, signal **e:autolink-email**, and switch to the
+    Consume, emit, signal **e:text-autolink-email**, and switch to the
     s:initial-inline
 *   ↪ **c:?**
 
@@ -2303,8 +2290,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:html-instruction**, and switch to the
-    s:initial-inline
+    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
 *   ↪ **[c:EOL][]**
 
     Queue an t:end-of-line, consume, queue a t:content, and switch to the
@@ -2402,7 +2388,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:html-comment**, and switch to the s:initial-inline
+    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
 *   ↪ **c:@**
 
     Consume and switch to the s:autolink-email-at-sign-or-dot
@@ -2441,7 +2427,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
     > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
-    Consume, emit, signal **e:autolink-email**, and switch to the
+    Consume, emit, signal **e:text-autolink-email**, and switch to the
     s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**
 
@@ -2478,7 +2464,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:html-comment**, and switch to the s:initial-inline
+    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**
 
     Consume and switch to the s:autolink-email-label
@@ -2526,7 +2512,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:html-comment**, and switch to the s:initial-inline
+    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2535,7 +2521,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **`]]>` (two of c:], with a c:> after)**
 
-    Consume, emit, signal **e:html-cdata**, and switch to the s:initial-inline
+    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
 *   ↪ **[c:EOL][]**
 
     Queue an t:end-of-line, consume, and queue a t:content
@@ -2578,8 +2564,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:html-declaration**, and switch to the
-    s:initial-inline
+    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:html-declaration-content
@@ -2594,8 +2579,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Queue an t:end-of-line, consume, and queue a t:content
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:html-declaration**, and switch to the
-    s:initial-inline
+    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Consume
@@ -2625,8 +2609,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Reconsume in the s:html-closing-tag-between
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:html-tag-close**, and switch to the
-    s:initial-inline
+    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
 *   ↪ **c:@**
 
     Consume and switch to the s:autolink-email-at-sign-or-dot
@@ -2650,8 +2633,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:html-tag-close**, and switch to the
-    s:initial-inline
+    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2664,8 +2646,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:autolink-scheme-inside-or-email-atext
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:html-tag-open**, and switch to the
-    s:initial-inline
+    Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**\
     ↪ **c:-**
 
@@ -2728,7 +2709,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit, signal **e:autolink-uri**, and switch to the
+    Consume, emit, signal **e:text-autolink-uri**, and switch to the
     s:initial-inline
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**\
@@ -2766,7 +2747,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
     > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
-    Consume, emit, signal **e:autolink-email**, and switch to the
+    Consume, emit, signal **e:text-autolink-email**, and switch to the
     s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**
 
@@ -2795,6 +2776,66 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
+
+## Signs
+
+### Content phrasing sign
+
+When a e:content-phrasing is received, the queue up to that point does not
+construct a definition.
+
+### Content definition sign
+
+When a e:content-definition is received, the queue up to that point constructs a
+definition.
+
+### Content definition partial sign
+
+When a e:content-definition-partial is received, the queue up to that point
+constructs a definition without a title.
+It is later followed by a e:content-definition if further queued tokens
+construct a title, or e:content-phrasing if further queued tokens do not
+construct a title.
+
+### Text link open sign
+
+When a e:text-link-open is received, …
+
+### Text image open sign
+
+When a e:text-image-open is received, …
+
+### Text link close sign
+
+When a e:text-link-close is received, …
+
+### Text emphasis sign
+
+When a e:text-emphasis is received, …
+
+### Text character reference sign
+
+When a e:text-character-reference is received, …
+
+### Text escape sign
+
+When a e:text-escape is received, …
+
+### Text code sign
+
+When a e:text-code is received, …
+
+### Text autolink email sign
+
+When a e:text-autolink-email is received, …
+
+### Text autolink URI sign
+
+When a e:text-autolink-uri is received, …
+
+### Text HTML sign
+
+When a e:text-html is received, …
 
 ## Processing
 

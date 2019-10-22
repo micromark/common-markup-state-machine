@@ -166,68 +166,82 @@ Common Markup parser.
     *   [11.48 Autolink email label state](#1148-autolink-email-label-state)
     *   [11.49 Autolink email at sign or dot state](#1149-autolink-email-at-sign-or-dot-state)
     *   [11.50 Autolink email dash state](#1150-autolink-email-dash-state)
-*   [12 Processing](#12-processing)
-    *   [12.1 Process as an ATX heading](#121-process-as-an-atx-heading)
-    *   [12.2 Process as a Setext primary heading](#122-process-as-a-setext-primary-heading)
-    *   [12.3 Process as an asterisk line](#123-process-as-an-asterisk-line)
-    *   [12.4 Process as an asterisk line opening](#124-process-as-an-asterisk-line-opening)
-    *   [12.5 Process as a Fenced code fence](#125-process-as-a-fenced-code-fence)
-    *   [12.6 Process as Content](#126-process-as-content)
-    *   [12.7 Process as Raw text](#127-process-as-raw-text)
-    *   [12.8 Process as Phrasing](#128-process-as-phrasing)
-    *   [12.9 Process as Text](#129-process-as-text)
-*   [13 Tokens](#13-tokens)
-    *   [13.1 Whitespace token](#131-whitespace-token)
-    *   [13.2 Line ending token](#132-line-ending-token)
-    *   [13.3 End-of-file token](#133-end-of-file-token)
-    *   [13.4 End-of-line token](#134-end-of-line-token)
-    *   [13.5 Marker token](#135-marker-token)
-    *   [13.6 Sequence token](#136-sequence-token)
-    *   [13.7 Content token](#137-content-token)
-*   [14 Groups](#14-groups)
-    *   [14.1 Blank line group](#141-blank-line-group)
-    *   [14.2 ATX heading group](#142-atx-heading-group)
-    *   [14.3 ATX heading fence group](#143-atx-heading-fence-group)
-    *   [14.4 ATX heading content group](#144-atx-heading-content-group)
-    *   [14.5 Thematic break group](#145-thematic-break-group)
-    *   [14.6 HTML group](#146-html-group)
-    *   [14.7 HTML line group](#147-html-line-group)
-    *   [14.8 Indented code group](#148-indented-code-group)
-    *   [14.9 Indented code line group](#149-indented-code-line-group)
-    *   [14.10 Blockquote group](#1410-blockquote-group)
-    *   [14.11 Fenced code group](#1411-fenced-code-group)
-    *   [14.12 Fenced code fence group](#1412-fenced-code-fence-group)
-    *   [14.13 Fenced code language group](#1413-fenced-code-language-group)
-    *   [14.14 Fenced code metadata group](#1414-fenced-code-metadata-group)
-    *   [14.15 Fenced code line group](#1415-fenced-code-line-group)
-    *   [14.16 Content group](#1416-content-group)
-    *   [14.17 Content line group](#1417-content-line-group)
-    *   [14.18 Setext heading group](#1418-setext-heading-group)
-    *   [14.19 Setext heading content group](#1419-setext-heading-content-group)
-    *   [14.20 Setext heading underline group](#1420-setext-heading-underline-group)
-    *   [14.21 Definition group](#1421-definition-group)
-    *   [14.22 Definition label group](#1422-definition-label-group)
-    *   [14.23 Definition label content group](#1423-definition-label-content-group)
-    *   [14.24 Definition destination quoted group](#1424-definition-destination-quoted-group)
-    *   [14.25 Definition destination unquoted group](#1425-definition-destination-unquoted-group)
-    *   [14.26 Definition title group](#1426-definition-title-group)
-    *   [14.27 Escape group](#1427-escape-group)
-    *   [14.28 Character reference group](#1428-character-reference-group)
-    *   [14.29 Paragraph group](#1429-paragraph-group)
-    *   [14.30 Image opening group](#1430-image-opening-group)
-    *   [14.31 Link opening group](#1431-link-opening-group)
-    *   [14.32 Link or image closing group](#1432-link-or-image-closing-group)
-    *   [14.33 Emphasis or strong group](#1433-emphasis-or-strong-group)
-    *   [14.34 Phrasing code group](#1434-phrasing-code-group)
-    *   [14.35 Automatic link group](#1435-automatic-link-group)
-    *   [14.36 HTML inline group](#1436-html-inline-group)
-*   [15 Appendix](#15-appendix)
-    *   [15.1 Raw tags](#151-raw-tags)
-    *   [15.2 Simple tags](#152-simple-tags)
-    *   [15.3 Named character references](#153-named-character-references)
-*   [16 References](#16-references)
-*   [17 Acknowledgments](#17-acknowledgments)
-*   [18 License](#18-license)
+*   [12 Signs](#12-signs)
+    *   [12.1 Content phrasing sign](#121-content-phrasing-sign)
+    *   [12.2 Content definition sign](#122-content-definition-sign)
+    *   [12.3 Content definition partial sign](#123-content-definition-partial-sign)
+    *   [12.4 Text link open sign](#124-text-link-open-sign)
+    *   [12.5 Text image open sign](#125-text-image-open-sign)
+    *   [12.6 Text link close sign](#126-text-link-close-sign)
+    *   [12.7 Text emphasis sign](#127-text-emphasis-sign)
+    *   [12.8 Text character reference sign](#128-text-character-reference-sign)
+    *   [12.9 Text escape sign](#129-text-escape-sign)
+    *   [12.10 Text code sign](#1210-text-code-sign)
+    *   [12.11 Text autolink email sign](#1211-text-autolink-email-sign)
+    *   [12.12 Text autolink URI sign](#1212-text-autolink-uri-sign)
+    *   [12.13 Text HTML sign](#1213-text-html-sign)
+*   [13 Processing](#13-processing)
+    *   [13.1 Process as an ATX heading](#131-process-as-an-atx-heading)
+    *   [13.2 Process as a Setext primary heading](#132-process-as-a-setext-primary-heading)
+    *   [13.3 Process as an asterisk line](#133-process-as-an-asterisk-line)
+    *   [13.4 Process as an asterisk line opening](#134-process-as-an-asterisk-line-opening)
+    *   [13.5 Process as a Fenced code fence](#135-process-as-a-fenced-code-fence)
+    *   [13.6 Process as Content](#136-process-as-content)
+    *   [13.7 Process as Raw text](#137-process-as-raw-text)
+    *   [13.8 Process as Phrasing](#138-process-as-phrasing)
+    *   [13.9 Process as Text](#139-process-as-text)
+*   [14 Tokens](#14-tokens)
+    *   [14.1 Whitespace token](#141-whitespace-token)
+    *   [14.2 Line ending token](#142-line-ending-token)
+    *   [14.3 End-of-file token](#143-end-of-file-token)
+    *   [14.4 End-of-line token](#144-end-of-line-token)
+    *   [14.5 Marker token](#145-marker-token)
+    *   [14.6 Sequence token](#146-sequence-token)
+    *   [14.7 Content token](#147-content-token)
+*   [15 Groups](#15-groups)
+    *   [15.1 Blank line group](#151-blank-line-group)
+    *   [15.2 ATX heading group](#152-atx-heading-group)
+    *   [15.3 ATX heading fence group](#153-atx-heading-fence-group)
+    *   [15.4 ATX heading content group](#154-atx-heading-content-group)
+    *   [15.5 Thematic break group](#155-thematic-break-group)
+    *   [15.6 HTML group](#156-html-group)
+    *   [15.7 HTML line group](#157-html-line-group)
+    *   [15.8 Indented code group](#158-indented-code-group)
+    *   [15.9 Indented code line group](#159-indented-code-line-group)
+    *   [15.10 Blockquote group](#1510-blockquote-group)
+    *   [15.11 Fenced code group](#1511-fenced-code-group)
+    *   [15.12 Fenced code fence group](#1512-fenced-code-fence-group)
+    *   [15.13 Fenced code language group](#1513-fenced-code-language-group)
+    *   [15.14 Fenced code metadata group](#1514-fenced-code-metadata-group)
+    *   [15.15 Fenced code line group](#1515-fenced-code-line-group)
+    *   [15.16 Content group](#1516-content-group)
+    *   [15.17 Content line group](#1517-content-line-group)
+    *   [15.18 Setext heading group](#1518-setext-heading-group)
+    *   [15.19 Setext heading content group](#1519-setext-heading-content-group)
+    *   [15.20 Setext heading underline group](#1520-setext-heading-underline-group)
+    *   [15.21 Definition group](#1521-definition-group)
+    *   [15.22 Definition label group](#1522-definition-label-group)
+    *   [15.23 Definition label content group](#1523-definition-label-content-group)
+    *   [15.24 Definition destination quoted group](#1524-definition-destination-quoted-group)
+    *   [15.25 Definition destination unquoted group](#1525-definition-destination-unquoted-group)
+    *   [15.26 Definition title group](#1526-definition-title-group)
+    *   [15.27 Escape group](#1527-escape-group)
+    *   [15.28 Character reference group](#1528-character-reference-group)
+    *   [15.29 Paragraph group](#1529-paragraph-group)
+    *   [15.30 Image opening group](#1530-image-opening-group)
+    *   [15.31 Link opening group](#1531-link-opening-group)
+    *   [15.32 Link or image closing group](#1532-link-or-image-closing-group)
+    *   [15.33 Emphasis or strong group](#1533-emphasis-or-strong-group)
+    *   [15.34 Phrasing code group](#1534-phrasing-code-group)
+    *   [15.35 Automatic link group](#1535-automatic-link-group)
+    *   [15.36 HTML inline group](#1536-html-inline-group)
+*   [16 Appendix](#16-appendix)
+    *   [16.1 Raw tags](#161-raw-tags)
+    *   [16.2 Simple tags](#162-simple-tags)
+    *   [16.3 Named character references](#163-named-character-references)
+*   [17 References](#17-references)
+*   [18 Acknowledgments](#18-acknowledgments)
+*   [19 License](#19-license)
 
 ## 1 Background
 
@@ -1544,34 +1558,27 @@ If the next few characters are:
 
 ## 10 Content state machine
 
-The <a id="content-state-machine" href="#content-state-machine">**content state machine**</a> is used to tokenize content blocks of a document
-and must start in the [*Initial content state*][s-initial-content].
+The <a id="content-state-machine" href="#content-state-machine">**content state machine**</a> is used to tokenize the content blocks of a
+document and must start in the [*Initial content state*][s-initial-content].
 
 ### 10.1 Initial content state
 
-*   ↪ **[EOF][ceof]**\
-    ↪ **[EOL][ceol]**\
-    ↪ **U+0009 CHARACTER TABULATION (HT)**\
-    ↪ **U+0020 SPACE (SP)**
-
-    > ❗️ Note: shouldn’t be possible
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
-    [*Definition label open after state*][s-definition-label-open-after]
+    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition label open after state*][s-definition-label-open-after]
 *   ↪ **Anything else**
 
-    Signal **e:content-not-a-definition**
+    Reconsume in the [*Phrasing content state*][s-phrasing-content]
 
 ### 10.2 Definition label open after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and emit
+    Queue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -1585,13 +1592,13 @@ and must start in the [*Initial content state*][s-initial-content].
 *   ↪ **[EOF][ceof]**\
     ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
     > ❗️ Note: shouldn’t be possible (trailing whitespace, which we are
     > apparently in, is part of the EOL)
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
+    Queue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition label open after state*][s-definition-label-open-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -1605,10 +1612,10 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
+    Queue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition label EOL after state*][s-definition-label-eol-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -1619,8 +1626,7 @@ and must start in the [*Initial content state*][s-initial-content].
     Consume and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
-    [*Definition label close after state*][s-definition-label-close-after]
+    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
     Consume
@@ -1629,13 +1635,13 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
     > ❗️ Note: shouldn’t be possible (an EOL after an EOL cannot be part of a
     > content)
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and emit
+    Queue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -1645,8 +1651,7 @@ and must start in the [*Initial content state*][s-initial-content].
     Consume and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
-    [*Definition label close after state*][s-definition-label-close-after]
+    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
     Queue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
@@ -1655,10 +1660,10 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
+    Queue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition label EOL after state*][s-definition-label-eol-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -1669,8 +1674,7 @@ and must start in the [*Initial content state*][s-initial-content].
     Queue a [*Content token*][t-content], consume, and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
-    [*Definition label close after state*][s-definition-label-close-after]
+    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
     Queue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
@@ -1693,20 +1697,20 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **U+003A COLON (`:`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the [*Definition label after state*][s-definition-label-after]
+    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition label after state*][s-definition-label-after]
 *   ↪ **Anything else**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 
 ### 10.9 Definition label after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[ASCII control][ascii-control]**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and emit
+    Queue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -1714,7 +1718,7 @@ and must start in the [*Initial content state*][s-initial-content].
     [*Definition destination before state*][s-definition-destination-before]
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
+    Queue a [*Marker token*][t-marker], consume, and switch to the
     [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
 *   ↪ **Anything else**
 
@@ -1725,25 +1729,24 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
     > ❗️ Note: shouldn’t be possible (an EOL after an EOL or whitespace cannot
     > be part of a content)
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
-    [*Definition label after state*][s-definition-label-after]
+    Queue an [*End-of-line token*][t-end-of-line], consume, and switch to the [*Definition label after state*][s-definition-label-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
+    Queue a [*Marker token*][t-marker], consume, and switch to the
     [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **Anything else**
 
     Queue a [*Content token*][t-content] and reconsume in the
@@ -1755,10 +1758,10 @@ and must start in the [*Initial content state*][s-initial-content].
     ↪ **[EOL][ceol]**\
     ↪ **U+003C LESS THAN (`<`)**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
+    Queue a [*Marker token*][t-marker], consume, and switch to the
     [*Definition destination quoted close after state*][s-definition-destination-quoted-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1775,10 +1778,10 @@ and must start in the [*Initial content state*][s-initial-content].
     ↪ **[EOL][ceol]**\
     ↪ **U+003C LESS THAN (`<`)**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
+    Queue a [*Marker token*][t-marker], consume, and switch to the
     [*Definition destination quoted close after state*][s-definition-destination-quoted-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1802,11 +1805,10 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-definition**
+    Signal **[*Content definition sign*][e-content-definition]**
 *   ↪ **[EOL][ceol]**
 
-    Signal **e:content-definition-partial**, queue an [*End-of-line token*][t-end-of-line], consume,
-    and emit
+    Signal **[*Content definition partial sign*][e-content-definition-partial]**, queue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -1814,7 +1816,7 @@ and must start in the [*Initial content state*][s-initial-content].
     [*Definition destination after state*][s-definition-destination-after]
 *   ↪ **Anything else**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 
 ### 10.15 Definition destination unquoted inside state
 
@@ -1822,11 +1824,10 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-definition**
+    Signal **[*Content definition sign*][e-content-definition]**
 *   ↪ **[EOL][ceol]**
 
-    Signal **e:content-definition-partial**, queue an [*End-of-line token*][t-end-of-line], consume,
-    and emit
+    Signal **[*Content definition partial sign*][e-content-definition-partial]**, queue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -1837,7 +1838,7 @@ and must start in the [*Initial content state*][s-initial-content].
     Increment `balance` by `1` and consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    If `balance` is `0`, signal **e:content-not-a-definition**.
+    If `balance` is `0`, signal **[*Content phrasing sign*][e-content-phrasing]**.
 
     Otherwise, decrement `balance` by `1`, and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -1845,7 +1846,7 @@ and must start in the [*Initial content state*][s-initial-content].
     Consume and switch to the [*Definition destination unquoted escape state*][s-definition-destination-unquoted-escape]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **Anything else**
 
     Consume
@@ -1865,63 +1866,62 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-definition**
+    Signal **[*Content definition sign*][e-content-definition]**
 *   ↪ **[EOL][ceol]**
 
-    Signal **e:content-definition-partial**, queue an [*End-of-line token*][t-end-of-line], consume,
-    and emit
+    Signal **[*Content definition partial sign*][e-content-definition-partial]**, queue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
+    Queue a [*Marker token*][t-marker], consume, and switch to the
     [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
+    Queue a [*Marker token*][t-marker], consume, and switch to the
     [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
+    Queue a [*Marker token*][t-marker], consume, and switch to the
     [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
 *   ↪ **Anything else**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 
 ### 10.18 Definition title double quoted open after state
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and emit
+    Queue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
-    [*Definition title close after state*][s-definition-title-close-after]
+    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Queue a [*Content token*][t-content], consume, and switch to the [*Definition title double quoted escape state*][s-definition-title-double-quoted-escape]
+    Queue a [*Content token*][t-content], consume, and switch to the
+    [*Definition title double quoted escape state*][s-definition-title-double-quoted-escape]
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the [*Definition title double quoted inside state*][s-definition-title-double-quoted-inside]
+    Queue a [*Content token*][t-content], consume, and switch to the
+    [*Definition title double quoted inside state*][s-definition-title-double-quoted-inside]
 
 ### 10.19 Definition title double quoted inside state
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
+    Queue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
-    [*Definition title close after state*][s-definition-title-close-after]
+    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title double quoted escape state*][s-definition-title-double-quoted-escape]
@@ -1943,14 +1943,13 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and emit
+    Queue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
-    [*Definition title close after state*][s-definition-title-close-after]
+    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Queue a [*Content token*][t-content], consume, and switch to the
@@ -1964,15 +1963,14 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
+    Queue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
-    [*Definition title close after state*][s-definition-title-close-after]
+    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title single quoted escape state*][s-definition-title-single-quoted-escape]
@@ -1994,14 +1992,13 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and emit
+    Queue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
-    [*Definition title close after state*][s-definition-title-close-after]
+    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Queue a [*Content token*][t-content], consume, and switch to the
@@ -2015,15 +2012,14 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
+    Queue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the
-    [*Definition title close after state*][s-definition-title-close-after]
+    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title paren quoted escape state*][s-definition-title-paren-quoted-escape]
@@ -2045,35 +2041,35 @@ and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-definition**
+    Signal **[*Content definition sign*][e-content-definition]**
 *   ↪ **[EOL][ceol]**
 
-    Signal **e:content-definition**, queue an [*End-of-line token*][t-end-of-line], consume, emit, and
-    switch to the [*Initial content state*][s-initial-content]
+    Signal **[*Content definition sign*][e-content-definition]**, queue an [*End-of-line token*][t-end-of-line], consume, and switch
+    to the [*Initial content state*][s-initial-content]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Queue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition after state*][s-definition-after]
 *   ↪ **Anything else**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 
 ### 10.28 Definition after state
 
 *   ↪ **[EOF][ceof]**
 
-    Signal **e:content-definition**
+    Signal **[*Content definition sign*][e-content-definition]**
 *   ↪ **[EOL][ceol]**
 
-    Signal **e:content-definition**, queue an [*End-of-line token*][t-end-of-line], consume, emit, and
-    switch to the [*Initial content state*][s-initial-content]
+    Signal **[*Content definition sign*][e-content-definition]**, queue an [*End-of-line token*][t-end-of-line], consume, and switch
+    to the [*Initial content state*][s-initial-content]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **Anything else**
 
-    Signal **e:content-not-a-definition**
+    Signal **[*Content phrasing sign*][e-content-phrasing]**
 
 ### 10.29 Phrasing content state
 
@@ -2117,8 +2113,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    If `type` is a `rich`, queue a [*Marker token*][t-marker], consume, emit, signal and
-    **e:text-link-open**
+    If `type` is a `rich`, queue a [*Marker token*][t-marker], consume, emit, signal a
+    **[*Text link open sign*][e-text-link-open]**
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -2128,8 +2124,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     > ❗️ Todo: support references, inlines, etc
 
-    If `type` is a `rich`, queue a [*Marker token*][t-marker], consume, emit, signal and
-    **e:text-link-close**
+    If `type` is a `rich`, queue a [*Marker token*][t-marker], consume, emit, signal a
+    **[*Text link close sign*][e-text-link-close]**
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005F UNDERSCORE (`_`)**
@@ -2155,7 +2151,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume
 *   ↪ **Anything else**
 
-    Signal **e:emphasis** and reconsume in the [*Initial inline state*][s-initial-inline]
+    Signal **[*Text emphasis sign*][e-text-emphasis]** and reconsume in the [*Initial inline state*][s-initial-inline]
 
 ### 11.3 Character reference state
 
@@ -2182,7 +2178,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+003B SEMICOLON (`;`)**
 
     If `entityName` is a [character reference name][character-reference-name], queue a [*Marker token*][t-marker],
-    consume, signal **e:character-reference**, and switch to the
+    consume, signal **[*Text character reference sign*][e-text-character-reference]**, and switch to the
     [*Initial inline state*][s-initial-inline]
 
     Otherwise, treat it as per the “anything else” entry below
@@ -2234,8 +2230,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     `characterReferenceCode`, and consume
 *   ↪ **U+003B SEMICOLON (`;`)**
 
-    Queue a [*Marker token*][t-marker], consume, signal **e:character-reference**, and switch to
-    the [*Initial inline state*][s-initial-inline]
+    Queue a [*Marker token*][t-marker], consume, signal **[*Text character reference sign*][e-text-character-reference]**, and switch
+    to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2251,8 +2247,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     `characterReferenceCode`, and consume
 *   ↪ **U+003B SEMICOLON (`;`)**
 
-    Queue a [*Marker token*][t-marker], consume, signal **e:character-reference**, and switch to
-    the [*Initial inline state*][s-initial-inline]
+    Queue a [*Marker token*][t-marker], consume, signal **[*Text character reference sign*][e-text-character-reference]**, and switch
+    to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2322,20 +2318,20 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Increment `closingSize` by `1` and consume
 *   ↪ **[EOF][ceof]**
 
-    If `openingSize` is `closingSize`, signal **e:code-span** and reconsume in
+    If `openingSize` is `closingSize`, signal **[*Text code sign*][e-text-code]** and reconsume in
     the [*Initial inline state*][s-initial-inline]
 
     Otherwise, reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
-    If `openingSize` is `closingSize`, signal **e:code-span** and reconsume in
+    If `openingSize` is `closingSize`, signal **[*Text code sign*][e-text-code]** and reconsume in
     the [*Initial inline state*][s-initial-inline]
 
     Otherwise, queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
     [*Code span eol after state*][s-code-span-eol-after]
 *   ↪ **Anything else**
 
-    If `openingSize` is `closingSize`, signal **e:code-span** and reconsume in
+    If `openingSize` is `closingSize`, signal **[*Text code sign*][e-text-code]** and reconsume in
     the [*Initial inline state*][s-initial-inline]
 
     Otherwise, consume and switch to the [*Code span inside state*][s-code-span-inside]
@@ -2347,14 +2343,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume
 *   ↪ **Anything else**
 
-    Signal **e:emphasis** and reconsume in the [*Initial inline state*][s-initial-inline]
+    Signal **[*Text emphasis sign*][e-text-emphasis]** and reconsume in the [*Initial inline state*][s-initial-inline]
 
 ### 11.14 Escape backslash after state
 
 *   ↪ **[ASCII punctuation][ascii-punctuation]**
 
-    Queue a [*Content token*][t-content], consume, emit, signal **e:escape**, and switch to the
-    [*Initial inline state*][s-initial-inline]
+    Queue a [*Content token*][t-content], consume, emit, signal **[*Text escape sign*][e-text-escape]**, and switch to
+    the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2363,7 +2359,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, signal **e:text-image-open**, and switch to
+    Queue a [*Marker token*][t-marker], consume, emit, signal **[*Text image open sign*][e-text-image-open]**, and switch to
     the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
@@ -2415,8 +2411,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit, signal **e:html-instruction**, and switch to the
-    [*Initial inline state*][s-initial-inline]
+    Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
     Consume
@@ -2463,7 +2458,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
-    Consume, emit, signal **e:autolink-email**, and switch to the
+    Consume, emit, signal **[*Text autolink email sign*][e-text-autolink-email]**, and switch to the
     [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
@@ -2517,8 +2512,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit, signal **e:html-instruction**, and switch to the
-    [*Initial inline state*][s-initial-inline]
+    Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
     Queue an [*End-of-line token*][t-end-of-line], consume, queue a [*Content token*][t-content], and switch to the
@@ -2616,7 +2610,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit, signal **e:html-comment**, and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
     Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
@@ -2655,7 +2649,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
-    Consume, emit, signal **e:autolink-email**, and switch to the
+    Consume, emit, signal **[*Text autolink email sign*][e-text-autolink-email]**, and switch to the
     [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
@@ -2692,7 +2686,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit, signal **e:html-comment**, and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
     Consume and switch to the [*Autolink email label state*][s-autolink-email-label]
@@ -2740,7 +2734,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit, signal **e:html-comment**, and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2749,7 +2743,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **`]]>` (two of U+005D RIGHT SQUARE BRACKET (`]`), with a U+003E GREATER THAN (`>`) after)**
 
-    Consume, emit, signal **e:html-cdata**, and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
     Queue an [*End-of-line token*][t-end-of-line], consume, and queue a [*Content token*][t-content]
@@ -2792,8 +2786,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit, signal **e:html-declaration**, and switch to the
-    [*Initial inline state*][s-initial-inline]
+    Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*HTML declaration content state*][s-html-declaration-content]
@@ -2808,8 +2801,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Queue an [*End-of-line token*][t-end-of-line], consume, and queue a [*Content token*][t-content]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit, signal **e:html-declaration**, and switch to the
-    [*Initial inline state*][s-initial-inline]
+    Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume
@@ -2839,8 +2831,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Reconsume in the [*HTML closing tag between state*][s-html-closing-tag-between]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit, signal **e:html-tag-close**, and switch to the
-    [*Initial inline state*][s-initial-inline]
+    Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
     Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
@@ -2864,8 +2855,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit, signal **e:html-tag-close**, and switch to the
-    [*Initial inline state*][s-initial-inline]
+    Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2878,8 +2868,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*Autolink scheme inside or email atext state*][s-autolink-scheme-inside-or-email-atext]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit, signal **e:html-tag-open**, and switch to the
-    [*Initial inline state*][s-initial-inline]
+    Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
     ↪ **U+002D DASH (`-`)**
 
@@ -2942,7 +2931,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit, signal **e:autolink-uri**, and switch to the
+    Consume, emit, signal **[*Text autolink URI sign*][e-text-autolink-uri]**, and switch to the
     [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -2980,7 +2969,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
-    Consume, emit, signal **e:autolink-email**, and switch to the
+    Consume, emit, signal **[*Text autolink email sign*][e-text-autolink-email]**, and switch to the
     [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
@@ -3010,9 +2999,69 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-## 12 Processing
+## 12 Signs
 
-### 12.1 Process as an ATX heading
+### 12.1 Content phrasing sign
+
+When a [*Content phrasing sign*][e-content-phrasing] is received, the queue up to that point does not
+construct a definition.
+
+### 12.2 Content definition sign
+
+When a [*Content definition sign*][e-content-definition] is received, the queue up to that point constructs a
+definition.
+
+### 12.3 Content definition partial sign
+
+When a [*Content definition partial sign*][e-content-definition-partial] is received, the queue up to that point
+constructs a definition without a title.
+It is later followed by a [*Content definition sign*][e-content-definition] if further queued tokens
+construct a title, or [*Content phrasing sign*][e-content-phrasing] if further queued tokens do not
+construct a title.
+
+### 12.4 Text link open sign
+
+When a [*Text link open sign*][e-text-link-open] is received, …
+
+### 12.5 Text image open sign
+
+When a [*Text image open sign*][e-text-image-open] is received, …
+
+### 12.6 Text link close sign
+
+When a [*Text link close sign*][e-text-link-close] is received, …
+
+### 12.7 Text emphasis sign
+
+When a [*Text emphasis sign*][e-text-emphasis] is received, …
+
+### 12.8 Text character reference sign
+
+When a [*Text character reference sign*][e-text-character-reference] is received, …
+
+### 12.9 Text escape sign
+
+When a [*Text escape sign*][e-text-escape] is received, …
+
+### 12.10 Text code sign
+
+When a [*Text code sign*][e-text-code] is received, …
+
+### 12.11 Text autolink email sign
+
+When a [*Text autolink email sign*][e-text-autolink-email] is received, …
+
+### 12.12 Text autolink URI sign
+
+When a [*Text autolink URI sign*][e-text-autolink-uri] is received, …
+
+### 12.13 Text HTML sign
+
+When a [*Text HTML sign*][e-text-html] is received, …
+
+## 13 Processing
+
+### 13.1 Process as an ATX heading
 
 To <a id="process-as-an-atx-heading" href="#process-as-an-atx-heading">**process as an ATX heading**</a> is to perform the following steps:
 
@@ -3040,7 +3089,7 @@ To <a id="process-as-an-atx-heading" href="#process-as-an-atx-heading">**process
     *   Close
 *   Close
 
-### 12.2 Process as a Setext primary heading
+### 13.2 Process as a Setext primary heading
 
 To <a id="process-as-a-setext-primary-heading" href="#process-as-a-setext-primary-heading">**process as a Setext primary heading**</a> is to perform the following steps:
 
@@ -3059,7 +3108,7 @@ To <a id="process-as-a-setext-primary-heading" href="#process-as-a-setext-primar
     *   Emit the tokens before `index`
     *   Emit the tokens in the queue from `index` as a [*Content token*][t-content]
 
-### 12.3 Process as an asterisk line
+### 13.3 Process as an asterisk line
 
 To <a id="process-as-an-asterisk-line" href="#process-as-an-asterisk-line">**process as an asterisk line**</a> is to perform the following steps:
 
@@ -3067,7 +3116,7 @@ To <a id="process-as-an-asterisk-line" href="#process-as-an-asterisk-line">**pro
 > code, or content.
 > It’s easier to figure this out with a reference parser that is tested.
 
-### 12.4 Process as an asterisk line opening
+### 13.4 Process as an asterisk line opening
 
 To <a id="process-as-an-asterisk-line-opening" href="#process-as-an-asterisk-line-opening">**process as an asterisk line opening**</a> is to perform the following steps:
 
@@ -3075,7 +3124,7 @@ To <a id="process-as-an-asterisk-line-opening" href="#process-as-an-asterisk-lin
 > code, or content.
 > It’s easier to figure this out with a reference parser that is tested.
 
-### 12.5 Process as a Fenced code fence
+### 13.5 Process as a Fenced code fence
 
 To <a id="process-as-a-fenced-code-fence" href="#process-as-a-fenced-code-fence">**process as a Fenced code fence**</a> is to perform the following steps:
 
@@ -3114,22 +3163,22 @@ To <a id="process-as-a-fenced-code-fence" href="#process-as-a-fenced-code-fence"
 *   If there is a token at `lineEnd`, emit it.
 *   Close
 
-### 12.6 Process as Content
+### 13.6 Process as Content
 
-### 12.7 Process as Raw text
+### 13.7 Process as Raw text
 
 To <a id="process-as-raw-text" href="#process-as-raw-text">**process as Raw text**</a> is to [process as Text][process-as-text] given `lines` and `kind`
 `raw`.
 
-### 12.8 Process as Phrasing
+### 13.8 Process as Phrasing
 
 To <a id="process-as-phrasing" href="#process-as-phrasing">**process as Phrasing**</a> is to [process as Text][process-as-text] given `lines`.
 
-### 12.9 Process as Text
+### 13.9 Process as Text
 
-## 13 Tokens
+## 14 Tokens
 
-### 13.1 Whitespace token
+### 14.1 Whitespace token
 
 A [*Whitespace token*][t-whitespace] represents inline whitespace that is part of syntax instead
 of content.
@@ -3151,7 +3200,7 @@ interface Whitespace <: Token {
 }
 ```
 
-### 13.2 Line ending token
+### 14.2 Line ending token
 
 A [*Line ending token*][t-line-ending] represents a line break in the syntax.
 
@@ -3163,7 +3212,7 @@ interface LineEnding <: Token {}
 {type: 'lineEnding'}
 ```
 
-### 13.3 End-of-file token
+### 14.3 End-of-file token
 
 An [*End-of-file token*][t-end-of-file] represents the end of the syntax.
 
@@ -3175,7 +3224,7 @@ interface EndOfFile <: Token {}
 {type: 'endOfFile'}
 ```
 
-### 13.4 End-of-line token
+### 14.4 End-of-line token
 
 An [*End-of-line token*][t-end-of-line] represents a point between two runs of text in content.
 
@@ -3187,7 +3236,7 @@ interface EndOfLine <: Token {}
 {type: 'endOfLine'}
 ```
 
-### 13.5 Marker token
+### 14.5 Marker token
 
 A [*Marker token*][t-marker] represents one punctuation character that is part of syntax instead
 of content.
@@ -3200,7 +3249,7 @@ interface Marker <: Token {}
 {type: 'marker'}
 ```
 
-### 13.6 Sequence token
+### 14.6 Sequence token
 
 A [*Sequence token*][t-sequence] represents one or more of the same punctuation characters that are
 part of syntax instead of content.
@@ -3215,7 +3264,7 @@ interface Sequence <: Token {
 {type: 'sequence', size: 3}
 ```
 
-### 13.7 Content token
+### 14.7 Content token
 
 A [*Content token*][t-content] represents content.
 
@@ -3229,11 +3278,11 @@ interface Content <: Token {
 {type: 'content', prefix: '  '}
 ```
 
-## 14 Groups
+## 15 Groups
 
 Groups are named groups of tokens and other blocks.
 
-### 14.1 Blank line group
+### 15.1 Blank line group
 
 A [*Blank line group*][g-blank-line] represents an empty line.
 
@@ -3243,7 +3292,7 @@ interface BlankLine <: Group {
 }
 ```
 
-### 14.2 ATX heading group
+### 15.2 ATX heading group
 
 An [*ATX heading group*][g-atx-heading] represents a heading for a section.
 
@@ -3253,7 +3302,7 @@ interface AtxHeading <: Group {
 }
 ```
 
-### 14.3 ATX heading fence group
+### 15.3 ATX heading fence group
 
 An [*ATX heading fence group*][g-atx-heading-fence] represents a fence of a heading.
 
@@ -3263,7 +3312,7 @@ interface AtxHeadingFence <: Group {
 }
 ```
 
-### 14.4 ATX heading content group
+### 15.4 ATX heading content group
 
 An [*ATX heading content group*][g-atx-heading-content] represents the phrasing of a heading.
 
@@ -3273,7 +3322,7 @@ interface AtxHeadingContent <: Group {
 }
 ```
 
-### 14.5 Thematic break group
+### 15.5 Thematic break group
 
 A [*Thematic break group*][g-thematic-break] represents a thematic break in a section.
 
@@ -3283,7 +3332,7 @@ interface ThematicBreak <: Group {
 }
 ```
 
-### 14.6 HTML group
+### 15.6 HTML group
 
 An [*HTML group*][g-html] represents embedded HTML.
 
@@ -3293,7 +3342,7 @@ interface HTML <: Group {
 }
 ```
 
-### 14.7 HTML line group
+### 15.7 HTML line group
 
 An [*HTML line group*][g-html-line] represents a line of HTML.
 
@@ -3303,7 +3352,7 @@ interface HTMLLine <: Group {
 }
 ```
 
-### 14.8 Indented code group
+### 15.8 Indented code group
 
 An [*Indented code group*][g-indented-code] represents preformatted text.
 
@@ -3313,7 +3362,7 @@ interface IndentedCode <: Group {
 }
 ```
 
-### 14.9 Indented code line group
+### 15.9 Indented code line group
 
 An [*Indented code line group*][g-indented-code-line] represents a line of indented code.
 
@@ -3323,7 +3372,7 @@ interface IndentedCodeLine <: Group {
 }
 ```
 
-### 14.10 Blockquote group
+### 15.10 Blockquote group
 
 A [*Blockquote group*][g-blockquote] represents paraphrased text.
 
@@ -3333,7 +3382,7 @@ interface Blockquote <: Group {
 }
 ```
 
-### 14.11 Fenced code group
+### 15.11 Fenced code group
 
 A [*Fenced code group*][g-fenced-code] represents preformatted text.
 
@@ -3343,7 +3392,7 @@ interface FencedCode <: Group {
 }
 ```
 
-### 14.12 Fenced code fence group
+### 15.12 Fenced code fence group
 
 A [*Fenced code fence group*][g-fenced-code-fence] represents a fence of fenced code.
 
@@ -3353,7 +3402,7 @@ interface FencedCodeFence <: Group {
 }
 ```
 
-### 14.13 Fenced code language group
+### 15.13 Fenced code language group
 
 A [*Fenced code language group*][g-fenced-code-language] represents the programming language of fenced code.
 
@@ -3363,7 +3412,7 @@ interface FencedCodeLanguage <: Group {
 }
 ```
 
-### 14.14 Fenced code metadata group
+### 15.14 Fenced code metadata group
 
 A [*Fenced code metadata group*][g-fenced-code-metadata] represents the metadata about fenced code.
 
@@ -3373,7 +3422,7 @@ interface FencedCodeMetadata <: Group {
 }
 ```
 
-### 14.15 Fenced code line group
+### 15.15 Fenced code line group
 
 A [*Fenced code line group*][g-fenced-code-line] represents a line of fenced code.
 
@@ -3383,7 +3432,7 @@ interface FencedCodeLine <: Group {
 }
 ```
 
-### 14.16 Content group
+### 15.16 Content group
 
 A [*Content group*][g-content] represents content: definitions, paragraphs, and sometimes heading
 content.
@@ -3394,7 +3443,7 @@ interface Content <: Group {
 }
 ```
 
-### 14.17 Content line group
+### 15.17 Content line group
 
 A [*Content line group*][g-content-line] represents a line of content.
 
@@ -3404,7 +3453,7 @@ interface ContentLine <: Group {
 }
 ```
 
-### 14.18 Setext heading group
+### 15.18 Setext heading group
 
 An [*Setext heading group*][g-setext-heading] represents a heading for a section.
 
@@ -3414,11 +3463,11 @@ interface SetextHeading <: Group {
 }
 ```
 
-### 14.19 Setext heading content group
+### 15.19 Setext heading content group
 
 > ❗️ Todo
 
-### 14.20 Setext heading underline group
+### 15.20 Setext heading underline group
 
 A [*Setext heading underline group*][g-setext-heading-underline] represents a fence of a heading.
 
@@ -3428,7 +3477,7 @@ interface SetextHeadingUnderline <: Group {
 }
 ```
 
-### 14.21 Definition group
+### 15.21 Definition group
 
 A [*Definition group*][g-definition] represents a link reference definition.
 
@@ -3438,7 +3487,7 @@ interface Definition <: Group {
 }
 ```
 
-### 14.22 Definition label group
+### 15.22 Definition label group
 
 A [*Definition label group*][g-definition-label] represents the label of a definition.
 
@@ -3448,7 +3497,7 @@ interface DefinitionLabel <: Group {
 }
 ```
 
-### 14.23 Definition label content group
+### 15.23 Definition label content group
 
 A [*Definition label content group*][g-definition-label-content] represents the content of the label of a
 definition.
@@ -3459,7 +3508,7 @@ interface DefinitionLabelContent <: Group {
 }
 ```
 
-### 14.24 Definition destination quoted group
+### 15.24 Definition destination quoted group
 
 A [*Definition destination quoted group*][g-definition-destination-quoted] represents an enclosed destination of a
 definition.
@@ -3470,7 +3519,7 @@ interface DefinitionDestinationQuoted <: Group {
 }
 ```
 
-### 14.25 Definition destination unquoted group
+### 15.25 Definition destination unquoted group
 
 A [*Definition destination unquoted group*][g-definition-destination-unquoted] represents an unclosed destination of a
 definition.
@@ -3481,7 +3530,7 @@ interface DefinitionDestinationUnquoted <: Group {
 }
 ```
 
-### 14.26 Definition title group
+### 15.26 Definition title group
 
 A [*Definition title group*][g-definition-title] represents advisory information, such as a description of
 the destination of the definition.
@@ -3492,7 +3541,7 @@ interface DefinitionTitle <: Group {
 }
 ```
 
-### 14.27 Escape group
+### 15.27 Escape group
 
 A [*Escape group*][g-escape] represents an escaped marker or an empty escape.
 
@@ -3502,7 +3551,7 @@ interface Escape <: Group {
 }
 ```
 
-### 14.28 Character reference group
+### 15.28 Character reference group
 
 A [*Character reference group*][g-character-reference] represents an escaped character.
 
@@ -3513,21 +3562,21 @@ interface CharacterReference <: Group {
 }
 ```
 
-### 14.29 Paragraph group
+### 15.29 Paragraph group
 
 > ❗️ Todo
 
-### 14.30 Image opening group
+### 15.30 Image opening group
 
-### 14.31 Link opening group
+### 15.31 Link opening group
 
-### 14.32 Link or image closing group
+### 15.32 Link or image closing group
 
-### 14.33 Emphasis or strong group
+### 15.33 Emphasis or strong group
 
-### 14.34 Phrasing code group
+### 15.34 Phrasing code group
 
-### 14.35 Automatic link group
+### 15.35 Automatic link group
 
 A [*Automatic link group*][g-automatic-link] represents a literal URL or email address.
 
@@ -3538,7 +3587,7 @@ interface AutomaticLink <: Group {
 }
 ```
 
-### 14.36 HTML inline group
+### 15.36 HTML inline group
 
 An [*HTML inline group*][g-html-inline] represents XML-like structures.
 
@@ -3548,13 +3597,13 @@ interface HTMLInline <: Group {
 }
 ```
 
-## 15 Appendix
+## 16 Appendix
 
-### 15.1 Raw tags
+### 16.1 Raw tags
 
 A <a id="raw-tag" href="#raw-tag">**raw tag**</a> is one of: `script`, `pre`, and `style`.
 
-### 15.2 Simple tags
+### 16.2 Simple tags
 
 A <a id="simple-tag" href="#simple-tag">**simple tag**</a> is one of: `address`, `article`, `aside`, `base`, `basefont`,
 `blockquote`, `body`, `caption`, `center`, `col`, `colgroup`, `dd`, `details`,
@@ -3565,7 +3614,7 @@ A <a id="simple-tag" href="#simple-tag">**simple tag**</a> is one of: `address`,
 `param`, `section`, `source`, `summary`, `table`, `tbody`, `td`, `tfoot`, `th`,
 `thead`, `title`, `tr`, `track`, and `ul`.
 
-### 15.3 Named character references
+### 16.3 Named character references
 
 A <a id="character-reference-name" href="#character-reference-name">**character reference name**</a> is one of:
 `AEli`, `AElig`, `AM`, `AMP`, `Aacut`, `Aacute`,
@@ -3878,7 +3927,7 @@ A <a id="character-reference-name" href="#character-reference-name">**character 
 `yum`, `yuml`, `zacute`, `zcaron`, `zcy`, `zdot`, `zeetrf`, `zeta`, `zfr`,
 `zhcy`, `zigrarr`, `zopf`, `zscr`, `zwj`, or `zwnj`.
 
-## 16 References
+## 17 References
 
 *   **\[HTML]**:
     [HTML Standard](https://html.spec.whatwg.org/multipage/).
@@ -3897,7 +3946,7 @@ A <a id="character-reference-name" href="#character-reference-name">**character 
     [The Unicode Standard](https://www.unicode.org/versions/).
     Unicode Consortium.
 
-## 17 Acknowledgments
+## 18 Acknowledgments
 
 Thanks to John Gruber for inventing Markdown.
 
@@ -3907,7 +3956,7 @@ Thanks to ZEIT, Inc., Gatsby, Inc., Netlify, Inc., Holloway, Inc., and the many
 organizations and individuals for financial support through
 [OpenCollective](https://opencollective.com/unified)
 
-## 18 License
+## 19 License
 
 Copyright © 2019 Titus Wormer.
 This work is licensed under a
@@ -4239,88 +4288,114 @@ This work is licensed under a
 
 [s-autolink-email-dash]: #1150-autolink-email-dash-state
 
-[t-whitespace]: #131-whitespace-token
+[e-content-phrasing]: #121-content-phrasing-sign
 
-[t-line-ending]: #132-line-ending-token
+[e-content-definition]: #122-content-definition-sign
 
-[t-end-of-file]: #133-end-of-file-token
+[e-content-definition-partial]: #123-content-definition-partial-sign
 
-[t-end-of-line]: #134-end-of-line-token
+[e-text-link-open]: #124-text-link-open-sign
 
-[t-marker]: #135-marker-token
+[e-text-image-open]: #125-text-image-open-sign
 
-[t-sequence]: #136-sequence-token
+[e-text-link-close]: #126-text-link-close-sign
 
-[t-content]: #137-content-token
+[e-text-emphasis]: #127-text-emphasis-sign
 
-[g-blank-line]: #141-blank-line-group
+[e-text-character-reference]: #128-text-character-reference-sign
 
-[g-atx-heading]: #142-atx-heading-group
+[e-text-escape]: #129-text-escape-sign
 
-[g-atx-heading-fence]: #143-atx-heading-fence-group
+[e-text-code]: #1210-text-code-sign
 
-[g-atx-heading-content]: #144-atx-heading-content-group
+[e-text-autolink-email]: #1211-text-autolink-email-sign
 
-[g-thematic-break]: #145-thematic-break-group
+[e-text-autolink-uri]: #1212-text-autolink-uri-sign
 
-[g-html]: #146-html-group
+[e-text-html]: #1213-text-html-sign
 
-[g-html-line]: #147-html-line-group
+[t-whitespace]: #141-whitespace-token
 
-[g-indented-code]: #148-indented-code-group
+[t-line-ending]: #142-line-ending-token
 
-[g-indented-code-line]: #149-indented-code-line-group
+[t-end-of-file]: #143-end-of-file-token
 
-[g-blockquote]: #1410-blockquote-group
+[t-end-of-line]: #144-end-of-line-token
 
-[g-fenced-code]: #1411-fenced-code-group
+[t-marker]: #145-marker-token
 
-[g-fenced-code-fence]: #1412-fenced-code-fence-group
+[t-sequence]: #146-sequence-token
 
-[g-fenced-code-language]: #1413-fenced-code-language-group
+[t-content]: #147-content-token
 
-[g-fenced-code-metadata]: #1414-fenced-code-metadata-group
+[g-blank-line]: #151-blank-line-group
 
-[g-fenced-code-line]: #1415-fenced-code-line-group
+[g-atx-heading]: #152-atx-heading-group
 
-[g-content]: #1416-content-group
+[g-atx-heading-fence]: #153-atx-heading-fence-group
 
-[g-content-line]: #1417-content-line-group
+[g-atx-heading-content]: #154-atx-heading-content-group
 
-[g-setext-heading]: #1418-setext-heading-group
+[g-thematic-break]: #155-thematic-break-group
 
-[g-setext-heading-content]: #1419-setext-heading-content-group
+[g-html]: #156-html-group
 
-[g-setext-heading-underline]: #1420-setext-heading-underline-group
+[g-html-line]: #157-html-line-group
 
-[g-definition]: #1421-definition-group
+[g-indented-code]: #158-indented-code-group
 
-[g-definition-label]: #1422-definition-label-group
+[g-indented-code-line]: #159-indented-code-line-group
 
-[g-definition-label-content]: #1423-definition-label-content-group
+[g-blockquote]: #1510-blockquote-group
 
-[g-definition-destination-quoted]: #1424-definition-destination-quoted-group
+[g-fenced-code]: #1511-fenced-code-group
 
-[g-definition-destination-unquoted]: #1425-definition-destination-unquoted-group
+[g-fenced-code-fence]: #1512-fenced-code-fence-group
 
-[g-definition-title]: #1426-definition-title-group
+[g-fenced-code-language]: #1513-fenced-code-language-group
 
-[g-escape]: #1427-escape-group
+[g-fenced-code-metadata]: #1514-fenced-code-metadata-group
 
-[g-character-reference]: #1428-character-reference-group
+[g-fenced-code-line]: #1515-fenced-code-line-group
 
-[g-paragraph]: #1429-paragraph-group
+[g-content]: #1516-content-group
 
-[g-image-opening]: #1430-image-opening-group
+[g-content-line]: #1517-content-line-group
 
-[g-link-opening]: #1431-link-opening-group
+[g-setext-heading]: #1518-setext-heading-group
 
-[g-link-or-image-closing]: #1432-link-or-image-closing-group
+[g-setext-heading-content]: #1519-setext-heading-content-group
 
-[g-emphasis-or-strong]: #1433-emphasis-or-strong-group
+[g-setext-heading-underline]: #1520-setext-heading-underline-group
 
-[g-phrasing-code]: #1434-phrasing-code-group
+[g-definition]: #1521-definition-group
 
-[g-automatic-link]: #1435-automatic-link-group
+[g-definition-label]: #1522-definition-label-group
 
-[g-html-inline]: #1436-html-inline-group
+[g-definition-label-content]: #1523-definition-label-content-group
+
+[g-definition-destination-quoted]: #1524-definition-destination-quoted-group
+
+[g-definition-destination-unquoted]: #1525-definition-destination-unquoted-group
+
+[g-definition-title]: #1526-definition-title-group
+
+[g-escape]: #1527-escape-group
+
+[g-character-reference]: #1528-character-reference-group
+
+[g-paragraph]: #1529-paragraph-group
+
+[g-image-opening]: #1530-image-opening-group
+
+[g-link-opening]: #1531-link-opening-group
+
+[g-link-or-image-closing]: #1532-link-or-image-closing-group
+
+[g-emphasis-or-strong]: #1533-emphasis-or-strong-group
+
+[g-phrasing-code]: #1534-phrasing-code-group
+
+[g-automatic-link]: #1535-automatic-link-group
+
+[g-html-inline]: #1536-html-inline-group
