@@ -553,6 +553,10 @@ the input character.
 The exact behavior of certain states depends on state, such as the [stack of
 open groups][stack-of-open-groups] and the [queue][queue].
 
+Certain states also use a <a id="shared-space" href="#shared-space">**shared space**</a> to track information between states.
+A variable is declared in the shared state with `let`, changed with `set`, and
+cleared with `unset`.
+
 ## 9 Block state machine
 
 The <a id="block-state-machine" href="#block-state-machine">**block state machine**</a> is used to tokenize the main structure of a
@@ -1743,8 +1747,9 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal [*Content phrasing sign*][e-content-phrasing]
 *   ↪ **Anything else**
 
-    Signal [*Content definition destination unquoted open sign*][e-content-definition-destination-unquoted-open], enqueue a [*Content token*][t-content]
-    and reconsume in the [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
+    Let `balance` be `0`, signal [*Content definition destination unquoted open sign*][e-content-definition-destination-unquoted-open],
+    enqueue a [*Content token*][t-content] and reconsume in the
+    [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
 ### 10.10 Definition destination before state
 
@@ -1771,8 +1776,9 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal [*Content phrasing sign*][e-content-phrasing]
 *   ↪ **Anything else**
 
-    Signal [*Content definition destination unquoted open sign*][e-content-definition-destination-unquoted-open], enqueue a [*Content token*][t-content],
-    and reconsume in the [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
+    Let `balance` be `0`, signal [*Content definition destination unquoted open sign*][e-content-definition-destination-unquoted-open],
+    enqueue a [*Content token*][t-content], and reconsume in the
+    [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
 ### 10.11 Definition destination quoted open after state
 
@@ -1844,27 +1850,26 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 ### 10.15 Definition destination unquoted inside state
 
-> ❗️ Todo: Define shared space: `balance`
-
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content definition destination unquoted close sign*][e-content-definition-destination-unquoted-close] and signal
-    [*Content definition sign*][e-content-definition]
+    Unset `balance`, signal [*Content definition destination unquoted close sign*][e-content-definition-destination-unquoted-close], and
+    signal [*Content definition sign*][e-content-definition]
 *   ↪ **[EOL][ceol]**
 
-    Signal [*Content definition destination unquoted close sign*][e-content-definition-destination-unquoted-close], signal
-    [*Content definition partial sign*][e-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Unset `balance`, signal [*Content definition destination unquoted close sign*][e-content-definition-destination-unquoted-close],
+    signal [*Content definition partial sign*][e-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Signal [*Content definition destination unquoted close sign*][e-content-definition-destination-unquoted-close], enqueue a
-    [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition destination after state*][s-definition-destination-after]
+    Unset `balance`, signal [*Content definition destination unquoted close sign*][e-content-definition-destination-unquoted-close],
+    enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
+    [*Definition destination after state*][s-definition-destination-after]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
     Increment `balance` by `1` and consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    If `balance` is `0`, signal [*Content phrasing sign*][e-content-phrasing]
+    If `balance` is `0`, unset `balance` and signal [*Content phrasing sign*][e-content-phrasing]
 
     Otherwise, decrement `balance` by `1`, and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -1872,7 +1877,7 @@ document and must start in the [*Initial content state*][s-initial-content].
     Consume and switch to the [*Definition destination unquoted escape state*][s-definition-destination-unquoted-escape]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Unset `balance` and signal [*Content phrasing sign*][e-content-phrasing]
 *   ↪ **Anything else**
 
     Consume
@@ -2114,8 +2119,6 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.1 Initial inline state
 
-> ❗️ Todo: Define shared space: `type`
-
 *   ↪ **[EOF][ceof]**
 
     Enqueue an [*End-of-file token*][t-end-of-file] and emit
@@ -2124,28 +2127,28 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0021 EXCLAMATION MARK (`!`)**
 
-    If `type` is a `rich`, enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Image exclamation mark after state*][s-image-exclamation-mark-after].
+    If parsing rich text, enqueue a [*Marker token*][t-marker], consume, and switch to the
+    [*Image exclamation mark after state*][s-image-exclamation-mark-after]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+0026 AMPERSAND (`&`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Character reference state*][s-character-reference].
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Character reference state*][s-character-reference]
 *   ↪ **U+002A ASTERISK (`*`)**
 
-    If `type` is a `rich`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
-    [*Emphasis asterisk state*][s-emphasis-asterisk].
+    If parsing rich text, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
+    [*Emphasis asterisk state*][s-emphasis-asterisk]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    If `type` is a `rich`, enqueue a [*Content token*][t-content], consume, and switch to the
-    [*HTML or autolink less than after state*][s-html-or-autolink-less-than-after].
+    If parsing rich text, enqueue a [*Content token*][t-content], consume, and switch to the
+    [*HTML or autolink less than after state*][s-html-or-autolink-less-than-after]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    If `type` is a `rich`, enqueue a [*Marker token*][t-marker], consume, signal [*Text link open sign*][e-text-link-open]
+    If parsing rich text, enqueue a [*Marker token*][t-marker], consume, signal [*Text link open sign*][e-text-link-open]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -2155,20 +2158,20 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     > ❗️ Todo: support references, inlines, etc
 
-    If `type` is a `rich`, enqueue a [*Marker token*][t-marker], consume, and signal
+    If parsing rich text, enqueue a [*Marker token*][t-marker], consume, and signal
     [*Text link close sign*][e-text-link-close]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005F UNDERSCORE (`_`)**
 
-    If `type` is a `rich`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
-    [*Emphasis underscore state*][s-emphasis-underscore].
+    If parsing rich text, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
+    [*Emphasis underscore state*][s-emphasis-underscore]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
-    If `type` is a `rich`, let `sizeOpen` be `1`, enqueue a [*Sequence token*][t-sequence], consume,
-    and switch to the [*Code span open state*][s-code-span-open].
+    If parsing rich text, let `sizeOpen` be `1`, enqueue a [*Sequence token*][t-sequence], consume,
+    and switch to the [*Code span open state*][s-code-span-open]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
@@ -2191,23 +2194,19 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Character reference numeric state*][s-character-reference-numeric]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
-    > ❗️ Todo: Define shared space: `entityName`
-
-    Enqueue a [*Content token*][t-content], append the character to `entityName`, consume, and
-    switch to the [*Character reference named state*][s-character-reference-named]
+    Let `entityName` be the empty string, append the character to `entityName`,
+    enqueue a [*Content token*][t-content], consume, and switch to the [*Character reference named state*][s-character-reference-named]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
 ### 11.4 Character reference named state
 
-> ❗️ Todo: Define shared space: `entityName`
-
 *   ↪ **U+003B SEMICOLON (`;`)**
 
-    If `entityName` is a [character reference name][character-reference-name], enqueue a [*Marker token*][t-marker],
-    consume, signal [*Text character reference sign*][e-text-character-reference], and switch to the
-    [*Initial inline state*][s-initial-inline]
+    If `entityName` is a [character reference name][character-reference-name], unset `entityName`,
+    enqueue a [*Marker token*][t-marker], consume, signal [*Text character reference sign*][e-text-character-reference], and switch
+    to the [*Initial inline state*][s-initial-inline]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
@@ -2215,18 +2214,19 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Append the character to `entityName` and consume
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `entityName` and reconsume in the [*Initial inline state*][s-initial-inline]
 
 ### 11.5 Character reference numeric state
 
 *   ↪ **U+0058 (`X`)**\
     ↪ **U+0078 (`x`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Character reference hexadecimal start state*][s-character-reference-hexadecimal-start]
+    Let `characterReferenceCode` be `0`, enqueue a [*Marker token*][t-marker], consume, and switch
+    to the [*Character reference hexadecimal start state*][s-character-reference-hexadecimal-start]
 *   ↪ **[ASCII digit][ascii-digit]**
 
-    Enqueue a [*Content token*][t-content] and reconsume in the [*Character reference decimal state*][s-character-reference-decimal]
+    Let `characterReferenceCode` be `0`, enqueue a [*Content token*][t-content] and reconsume in
+    the [*Character reference decimal state*][s-character-reference-decimal]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2238,16 +2238,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Enqueue a [*Content token*][t-content] and reconsume in the [*Character reference hexadecimal state*][s-character-reference-hexadecimal]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `characterReferenceCode` and reconsume in the [*Initial inline state*][s-initial-inline]
 
 ### 11.7 Character reference hexadecimal state
 
-> ❗️ Todo: Define shared space: `characterReferenceCode`
-
 *   ↪ **U+003B SEMICOLON (`;`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, signal [*Text character reference sign*][e-text-character-reference], and switch
-    to the [*Initial inline state*][s-initial-inline]
+    Unset `characterReferenceCode`, enqueue a [*Marker token*][t-marker], consume, signal
+    [*Text character reference sign*][e-text-character-reference], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII digit][ascii-digit]**
 
     Multiply `characterReferenceCode` by `16`, add a numeric version of the
@@ -2265,16 +2263,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     `characterReferenceCode`, and consume
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `characterReferenceCode` and reconsume in the [*Initial inline state*][s-initial-inline]
 
 ### 11.8 Character reference decimal state
 
-> ❗️ Todo: Define shared space: `characterReferenceCode`
-
 *   ↪ **U+003B SEMICOLON (`;`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, signal [*Text character reference sign*][e-text-character-reference], and switch
-    to the [*Initial inline state*][s-initial-inline]
+    Unset `characterReferenceCode`, enqueue a [*Marker token*][t-marker], consume, signal
+    [*Text character reference sign*][e-text-character-reference], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII digit][ascii-digit]**
 
     Multiply `characterReferenceCode` by `10`, add a numeric version of the
@@ -2282,15 +2278,13 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     `characterReferenceCode`, and consume
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `characterReferenceCode` and reconsume in the [*Initial inline state*][s-initial-inline]
 
 ### 11.9 Code span open state
 
-> ❗️ Todo: Define shared space: `sizeOpen`
-
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeOpen` and reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the [*Code span EOL after state*][s-code-span-eol-after]
@@ -2303,11 +2297,9 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.10 Code span EOL after state
 
-> ❗️ Todo: Define shared space: `sizeOpen`
-
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeOpen` and reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the [*Code span EOL after state*][s-code-span-eol-after]
@@ -2321,11 +2313,9 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.11 Code span inside state
 
-> ❗️ Todo: Define shared space: `sizeClose`
-
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeOpen` and reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the [*Code span EOL after state*][s-code-span-eol-after]
@@ -2339,30 +2329,29 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.12 Code span close state
 
-> ❗️ Todo: Define shared space: `sizeOpen`, `sizeClose`
-
 *   ↪ **[EOF][ceof]**
 
-    If `sizeOpen` is `sizeClose`, signal [*Text code sign*][e-text-code], and reconsume in the
-    [*Initial inline state*][s-initial-inline]
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, signal
+    [*Text code sign*][e-text-code], and reconsume in the [*Initial inline state*][s-initial-inline]
 
-    Otherwise, reconsume in the [*Initial inline state*][s-initial-inline]
+    Otherwise, unset `sizeOpen`, unset `sizeClose`, and reconsume in the
+    [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
-    If `sizeOpen` is `sizeClose`, signal [*Text code sign*][e-text-code], and reconsume in the
-    [*Initial inline state*][s-initial-inline]
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, signal
+    [*Text code sign*][e-text-code], and reconsume in the [*Initial inline state*][s-initial-inline]
 
-    Otherwise, enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Code span EOL after state*][s-code-span-eol-after]
+    Otherwise, unset `sizeClose`, enqueue an [*End-of-line token*][t-end-of-line], consume, and switch
+    to the [*Code span EOL after state*][s-code-span-eol-after]
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
     Increment `sizeClose` by `1` and consume
 *   ↪ **Anything else**
 
-    If `sizeOpen` is `sizeClose`, signal [*Text code sign*][e-text-code], and reconsume in the
-    [*Initial inline state*][s-initial-inline]
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, signal
+    [*Text code sign*][e-text-code], and reconsume in the [*Initial inline state*][s-initial-inline]
 
-    Otherwise, consume and switch to the [*Code span inside state*][s-code-span-inside]
+    Otherwise, unset `sizeClose`, consume, and switch to the [*Code span inside state*][s-code-span-inside]
 
 ### 11.13 Emphasis underscore state
 
@@ -3996,7 +3985,7 @@ A <a id="character-reference-name" href="#character-reference-name">**character 
     V.G. Cerf.
     October 1969.
     IETF.
-*   **\[RFC5322]**
+*   **\[RFC5322]**:
     [Internet Message Format](https://tools.ietf.org/html/rfc5322).
     P. Resnick.
     IETF.
@@ -4067,6 +4056,8 @@ This work is licensed under a
 [queue]: #queue
 
 [current-token]: #current-token
+
+[shared-space]: #shared-space
 
 [block-state-machine]: #block-state-machine
 
