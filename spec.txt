@@ -193,7 +193,7 @@ The [current token](#) is the last token in the [queue][].
 
 ## Actions
 
-### Consuming
+### Consume
 
 To consume the [input character][] affects the [current token][].
 Due to the nature of the state machine, it is not possible to consume if there
@@ -216,9 +216,9 @@ type of the token:
 
     Do nothing
 
-### Queueing
+### Enqueue
 
-To queue a token is to add it to the [queue][].
+To enqueue a token is to add it to the [queue][].
 
 Queueing tokens may have side effects, based on the type of the token, and given
 labelled parameters:
@@ -253,7 +253,7 @@ labelled parameters:
 
     Do nothing
 
-### Emitting
+### Emit
 
 To emit a token is to add it to the [current group][].
 It is possible to emit a token directly, but it is more common to emit the
@@ -269,7 +269,7 @@ Emitting tokens may have side effects, based on their types:
 
     Do nothing
 
-### Opening
+### Open
 
 To open a group is to add it to the [current group][] and the [stack of open
 groups][].
@@ -293,7 +293,7 @@ Opening groups may have side effects, based on their type:
 
     Do nothing
 
-### Closing
+### Close
 
 To close a group is to continue on in its parent group and to pop it off the
 [stack of open groups][].
@@ -331,7 +331,7 @@ document and must start in the s:initial.
 
 *   ↪ **[c:EOF][]**
 
-    Queue a t:end-of-file and emit
+    Enqueue a t:end-of-file and emit
 *   ↪ **c:LF**\
     ↪ **c:CR**
 
@@ -339,7 +339,7 @@ document and must start in the s:initial.
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the s:initial-whitespace
+    Enqueue a t:whitespace, consume, and switch to the s:initial-whitespace
 *   ↪ **Anything else**
 
     Reconsume in the s:in-line
@@ -364,13 +364,13 @@ document and must start in the s:initial.
 
 *   ↪ **[c:EOF][]**
 
-    Queue a t:end-of-file and emit
+    Enqueue a t:end-of-file and emit
 *   ↪ **c:LF**
 
-    Queue a t:line-ending, consume, emit, and switch to the s:initial
+    Enqueue a t:line-ending, consume, emit, and switch to the s:initial
 *   ↪ **c:CR**
 
-    Queue a t:line-ending, consume, and switch to the s:carriage-return
+    Enqueue a t:line-ending, consume, and switch to the s:carriage-return
 *   ↪ **Anything else**
 
     > ❗️ Note: Impossible!
@@ -390,32 +390,34 @@ document and must start in the s:initial.
 
 If the [stack of continuation][] matches all open groups:
 
-*   And if the [current group][] is an g:html, queue a t:content with the unused
-    characters of the previous t:whitespace if there is one, and reconsume in
-    the s:html-block-continuation-line
+*   And if the [current group][] is an g:html, enqueue a t:content with the
+    unused characters of the previous t:whitespace if there is one, and
+    reconsume in the s:html-block-continuation-line
 *   And otherwise, if the [current group][] is a g:fenced-code, and either the
     [current token][] is not a t:whitespace, or it is a t:whitespace and its
     unused size is less than four (4), and the [input character][] is the
-    [current group][]’s marker, queue a t:sequence, consume, and switch to the
+    [current group][]’s marker, enqueue a t:sequence, consume, and switch to the
     s:fenced-code-close-sequence
-*   And otherwise, if the [current group][] is a g:fenced-code, queue a
+*   And otherwise, if the [current group][] is a g:fenced-code, enqueue a
     t:content with the unused characters of the previous t:whitespace if there
     is one, consume, and switch to the s:fenced-code-continuation-line.
 
 Otherwise, if the [current group][] is not a g:content, the previous token is a
 t:whitespace, and its unused size is greater than or equal to four (4), add four
-to the previous token’s used size, queue a t:content with the unused characters
-of the previous t:whitespace, consume, and switch to the s:indented-code-line.
+to the previous token’s used size, enqueue a t:content with the unused
+characters of the previous t:whitespace, consume, and switch to the
+s:indented-code-line.
 
 Otherwise, perform the following steps based on the [input character][]:
 
 *   ↪ **c:#**
 
-    Queue a t:sequence, consume, and switch to the
+    Enqueue a t:sequence, consume, and switch to the
     s:atx-heading-opening-sequence
 *   ↪ **c:***
 
-    Queue a t:marker, consume, and switch to the s:asterisk-line-asterisk-after
+    Enqueue a t:marker, consume, and switch to the
+    s:asterisk-line-asterisk-after
 *   ↪ **c:+**
 
     > ❗️ Todo: Could be a list item or content
@@ -428,11 +430,11 @@ Otherwise, perform the following steps based on the [input character][]:
     > ❗️ Todo: Could be a list item or content
 *   ↪ **c:<**
 
-    Queue a t:content with the unused characters of the previous t:whitespace if
-    there is one, consume, and switch to the s:html-block-open
+    Enqueue a t:content with the unused characters of the previous t:whitespace
+    if there is one, consume, and switch to the s:html-block-open
 *   ↪ **c:=**
 
-    If the [current group][] is a g:content, queue a t:sequence, consume, and
+    If the [current group][] is a g:content, enqueue a t:sequence, consume, and
     switch to the s:setext-heading-underline-equals-to-sequence.
 
     Otherwise, treat it as per the “anything else” entry below
@@ -444,15 +446,15 @@ Otherwise, perform the following steps based on the [input character][]:
     > ❗️ Todo: Could be a thematic break or content
 *   ↪ **c:`**
 
-    Queue a t:sequence, consume, and switch to the
+    Enqueue a t:sequence, consume, and switch to the
     s:fenced-code-grave-accent-opening-fence
 *   ↪ **c:~**
 
-    Queue a t:sequence, consume, and switch to the
+    Enqueue a t:sequence, consume, and switch to the
     s:fenced-code-tilde-opening-fence
 *   ↪ **Anything else**
 
-    Otherwise, queue a t:content with the unused characters of the previous
+    Otherwise, enqueue a t:content with the unused characters of the previous
     t:whitespace if there is one, consume, and switch to the
     s:content-continuation
 
@@ -467,7 +469,7 @@ Otherwise, perform the following steps based on the [input character][]:
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the
+    Enqueue a t:whitespace, consume, and switch to the
     s:atx-heading-opening-sequence-after
 *   ↪ **c:#**
 
@@ -494,11 +496,11 @@ Otherwise, perform the following steps based on the [input character][]:
     Consume
 *   ↪ **c:#**
 
-    Open an g:atx-heading, open an g:atx-heading-fence, emit, close, queue a
+    Open an g:atx-heading, open an g:atx-heading-fence, emit, close, enqueue a
     t:sequence, consume, and switch to the s:atx-heading-number-sign-sequence
 *   ↪ **Anything else**
 
-    Open an g:atx-heading, open an g:atx-heading-fence, emit, close, queue a
+    Open an g:atx-heading, open an g:atx-heading-fence, emit, close, enqueue a
     t:content, consume, and switch to the s:atx-heading-content
 
 ### ATX heading content state
@@ -512,7 +514,7 @@ Otherwise, perform the following steps based on the [input character][]:
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the s:atx-heading-whitespace
+    Enqueue a t:whitespace, consume, and switch to the s:atx-heading-whitespace
 *   ↪ **Anything else**
 
     Consume
@@ -531,11 +533,11 @@ Otherwise, perform the following steps based on the [input character][]:
     Consume
 *   ↪ **c:#**
 
-    Queue a t:sequence, consume, and switch to the
+    Enqueue a t:sequence, consume, and switch to the
     s:atx-heading-number-sign-sequence
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the s:atx-heading-content
+    Enqueue a t:content, consume, and switch to the s:atx-heading-content
 
 ### ATX heading number sign sequence state
 
@@ -547,13 +549,13 @@ Otherwise, perform the following steps based on the [input character][]:
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the s:atx-heading-whitespace
+    Enqueue a t:whitespace, consume, and switch to the s:atx-heading-whitespace
 *   ↪ **c:#**
 
     Consume
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the s:atx-heading-content
+    Enqueue a t:content, consume, and switch to the s:atx-heading-content
 
 ### Asterisk line asterisk after state
 
@@ -565,10 +567,11 @@ Otherwise, perform the following steps based on the [input character][]:
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the s:asterisk-line-whitespace
+    Enqueue a t:whitespace, consume, and switch to the
+    s:asterisk-line-whitespace
 *   ↪ **c:***
 
-    Queue a t:marker and consume
+    Enqueue a t:marker and consume
 *   ↪ **Anything else**
 
     > ❗️ Todo: handle the input character, reconsume somewhere.
@@ -589,7 +592,8 @@ Otherwise, perform the following steps based on the [input character][]:
     Consume
 *   ↪ **c:***
 
-    Queue a t:marker, consume, and switch to the s:asterisk-line-asterisk-after
+    Enqueue a t:marker, consume, and switch to the
+    s:asterisk-line-asterisk-after
 *   ↪ **Anything else**
 
     > ❗️ Todo: handle the input character, reconsume somewhere.
@@ -1066,7 +1070,7 @@ If the next few characters are:
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the
+    Enqueue a t:whitespace, consume, and switch to the
     s:setext-heading-underline-equals-to-after
 *   ↪ **Anything else**
 
@@ -1109,8 +1113,8 @@ If the next few characters are:
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    If the [current token][]’s size is greater than or equal to three (3), queue
-    a t:whitespace, consume, and switch to the
+    If the [current token][]’s size is greater than or equal to three (3),
+    enqueue a t:whitespace, consume, and switch to the
     s:fenced-code-grave-accent-opening-fence-whitespace
 
     Otherwise, this is not fenced code.
@@ -1118,12 +1122,12 @@ If the next few characters are:
     s:content-continuation
 *   ↪ **Anything else**
 
-    If the [current token][]’s size is greater than or equal to three (3), queue
-    a t:content, consume, and switch to the
+    If the [current token][]’s size is greater than or equal to three (3),
+    enqueue a t:content, consume, and switch to the
     s:fenced-code-grave-accent-opening-fence-metadata
 
     Otherwise, this is not fenced code.
-    Turn the queue, except for the first token if it is a t:whitespace, into a
+    Turn the enqueue, except for the first token if it is a t:whitespace, into a
     t:content and reconsume in the s:content-continuation
 
 ### Fenced code grave accent opening fence whitespace state
@@ -1146,7 +1150,7 @@ If the next few characters are:
     t:content and reconsume in the s:content-continuation
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the
+    Enqueue a t:content, consume, and switch to the
     s:fenced-code-grave-accent-opening-fence-metadata
 
 ### Fenced code grave accent opening fence metadata state
@@ -1160,7 +1164,7 @@ If the next few characters are:
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the
+    Enqueue a t:whitespace, consume, and switch to the
     s:fenced-code-grave-accent-opening-fence-whitespace
 *   ↪ **c:`**
 
@@ -1190,8 +1194,8 @@ If the next few characters are:
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    If the [current token][]’s size is greater than or equal to three (3), queue
-    a t:whitespace, consume, and switch to the
+    If the [current token][]’s size is greater than or equal to three (3),
+    enqueue a t:whitespace, consume, and switch to the
     s:fenced-code-tilde-opening-fence-whitespace
 
     Otherwise, this is not fenced code.
@@ -1199,8 +1203,8 @@ If the next few characters are:
     s:content-continuation
 *   ↪ **Anything else**
 
-    If the [current token][]’s size is greater than or equal to three (3), queue
-    a t:content, consume, and switch to the
+    If the [current token][]’s size is greater than or equal to three (3),
+    enqueue a t:content, consume, and switch to the
     s:fenced-code-tilde-opening-fence-metadata
 
     Otherwise, this is not fenced code.
@@ -1222,7 +1226,7 @@ If the next few characters are:
     Consume
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the
+    Enqueue a t:content, consume, and switch to the
     s:fenced-code-tilde-opening-fence-metadata
 
 ### Fenced code tilde opening fence metadata state
@@ -1236,7 +1240,7 @@ If the next few characters are:
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the
+    Enqueue a t:whitespace, consume, and switch to the
     s:fenced-code-tilde-opening-fence-whitespace
 *   ↪ **Anything else**
 
@@ -1273,7 +1277,7 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `openingSize`
 
     If the [current token][]’s size is greater than or equal to `openingSize`,
-    queue a t:whitespace, consume, and switch to the
+    enqueue a t:whitespace, consume, and switch to the
     s:fenced-code-close-whitespace.
 
     Otherwise, treat it as per the “anything else” entry below
@@ -1343,7 +1347,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **c:[**
 
-    Queue a t:marker, consume, and switch to the s:definition-label-open-after
+    Enqueue a t:marker, consume, and switch to the s:definition-label-open-after
 *   ↪ **Anything else**
 
     Reconsume in the s:phrasing-content
@@ -1356,14 +1360,14 @@ document and must start in the s:initial-content.
     Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line and consume
+    Enqueue an t:end-of-line and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the s:definition-label-before
+    Enqueue a t:whitespace, consume, and switch to the s:definition-label-before
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the s:definition-label-inside
+    Enqueue a t:content, consume, and switch to the s:definition-label-inside
 
 ### Definition label before state
 
@@ -1376,7 +1380,7 @@ document and must start in the s:initial-content.
     > ❗️ Note: shouldn’t be possible (trailing whitespace, which we are
     > apparently in, is part of the EOL)
 
-    Queue an t:end-of-line, consume, and switch to the
+    Enqueue an t:end-of-line, consume, and switch to the
     s:definition-label-open-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
@@ -1384,7 +1388,7 @@ document and must start in the s:initial-content.
     Consume
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the s:definition-label-inside
+    Enqueue a t:content, consume, and switch to the s:definition-label-inside
 
 ### Definition label inside state
 
@@ -1393,18 +1397,20 @@ document and must start in the s:initial-content.
     Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and switch to the
+    Enqueue an t:end-of-line, consume, and switch to the
     s:definition-label-eol-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the s:definition-label-between
+    Enqueue a t:whitespace, consume, and switch to the
+    s:definition-label-between
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Queue a t:marker, consume, and switch to the s:definition-label-close-after
+    Enqueue a t:marker, consume, and switch to the
+    s:definition-label-close-after
 *   ↪ **Anything else**
 
     Consume
@@ -1419,20 +1425,22 @@ document and must start in the s:initial-content.
     > ❗️ Note: shouldn’t be possible (an EOL after an EOL cannot be part of a
     > content)
 
-    Queue an t:end-of-line and consume
+    Enqueue an t:end-of-line and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the s:definition-label-between
+    Enqueue a t:whitespace, consume, and switch to the
+    s:definition-label-between
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Queue a t:marker, consume, and switch to the s:definition-label-close-after
+    Enqueue a t:marker, consume, and switch to the
+    s:definition-label-close-after
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the s:definition-label-inside
+    Enqueue a t:content, consume, and switch to the s:definition-label-inside
 
 ### Definition label between state
 
@@ -1441,7 +1449,7 @@ document and must start in the s:initial-content.
     Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and switch to the
+    Enqueue an t:end-of-line, consume, and switch to the
     s:definition-label-eol-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
@@ -1449,20 +1457,22 @@ document and must start in the s:initial-content.
     Consume
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Queue a t:content, consume, and switch to the s:definition-label-escape
+    Enqueue a t:content, consume, and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Queue a t:marker, consume, and switch to the s:definition-label-close-after
+    Enqueue a t:marker, consume, and switch to the
+    s:definition-label-close-after
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the s:definition-label-inside
+    Enqueue a t:content, consume, and switch to the s:definition-label-inside
 
 ### Definition label escape state
 
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the s:definition-label-between
+    Enqueue a t:whitespace, consume, and switch to the
+    s:definition-label-between
 *   ↪ **U+005C BACKSLASH (`\`)**\
     ↪ **c:]**
 
@@ -1475,7 +1485,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **c::**
 
-    Queue a t:marker, consume, and switch to the s:definition-label-after
+    Enqueue a t:marker, consume, and switch to the s:definition-label-after
 *   ↪ **Anything else**
 
     Signal **e:content-phrasing**
@@ -1488,19 +1498,19 @@ document and must start in the s:initial-content.
     Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line and consume
+    Enqueue an t:end-of-line and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the
+    Enqueue a t:whitespace, consume, and switch to the
     s:definition-destination-before
 *   ↪ **c:<**
 
-    Queue a t:marker, consume, and switch to the
+    Enqueue a t:marker, consume, and switch to the
     s:definition-destination-quoted-open-after
 *   ↪ **Anything else**
 
-    Queue a t:content and reconsume in the
+    Enqueue a t:content and reconsume in the
     s:definition-destination-unquoted-inside
 
 ### Definition destination before state
@@ -1513,21 +1523,22 @@ document and must start in the s:initial-content.
     > ❗️ Note: shouldn’t be possible (an EOL after an EOL or whitespace cannot
     > be part of a content)
 
-    Queue an t:end-of-line, consume, and switch to the s:definition-label-after
+    Enqueue an t:end-of-line, consume, and switch to the
+    s:definition-label-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
 *   ↪ **c:<**
 
-    Queue a t:marker, consume, and switch to the
+    Enqueue a t:marker, consume, and switch to the
     s:definition-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
     Signal **e:content-phrasing**
 *   ↪ **Anything else**
 
-    Queue a t:content and reconsume in the
+    Enqueue a t:content and reconsume in the
     s:definition-destination-unquoted-inside
 
 ### Definition destination quoted open after state
@@ -1539,15 +1550,15 @@ document and must start in the s:initial-content.
     Signal **e:content-phrasing**
 *   ↪ **c:>**
 
-    Queue a t:marker, consume, and switch to the
+    Enqueue a t:marker, consume, and switch to the
     s:definition-destination-quoted-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Queue a t:content, consume, and switch to the
+    Enqueue a t:content, consume, and switch to the
     s:definition-destination-quoted-escape
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the
+    Enqueue a t:content, consume, and switch to the
     s:definition-destination-quoted-inside
 
 ### Definition destination quoted inside state
@@ -1559,7 +1570,7 @@ document and must start in the s:initial-content.
     Signal **e:content-phrasing**
 *   ↪ **c:>**
 
-    Queue a t:marker, consume, and switch to the
+    Enqueue a t:marker, consume, and switch to the
     s:definition-destination-quoted-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1586,11 +1597,12 @@ document and must start in the s:initial-content.
     Signal **e:content-definition**
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition-partial**, queue an t:end-of-line, and consume
+    Signal **e:content-definition-partial**, enqueue an t:end-of-line, and
+    consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the
+    Enqueue a t:whitespace, consume, and switch to the
     s:definition-destination-after
 *   ↪ **Anything else**
 
@@ -1605,11 +1617,12 @@ document and must start in the s:initial-content.
     Signal **e:content-definition**
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition-partial**, queue an t:end-of-line, and consume
+    Signal **e:content-definition-partial**, enqueue an t:end-of-line, and
+    consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the
+    Enqueue a t:whitespace, consume, and switch to the
     s:definition-destination-after
 *   ↪ **c:(**
 
@@ -1647,22 +1660,23 @@ document and must start in the s:initial-content.
     Signal **e:content-definition**
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition-partial**, queue an t:end-of-line, and consume
+    Signal **e:content-definition-partial**, enqueue an t:end-of-line, and
+    consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
 *   ↪ **c:"**
 
-    Queue a t:marker, consume, and switch to the
+    Enqueue a t:marker, consume, and switch to the
     s:definition-title-double-quoted-open-after
 *   ↪ **c:'**
 
-    Queue a t:marker, consume, and switch to the
+    Enqueue a t:marker, consume, and switch to the
     s:definition-title-single-quoted-open-after
 *   ↪ **c:(**
 
-    Queue a t:marker, consume, and switch to the
+    Enqueue a t:marker, consume, and switch to the
     s:definition-title-paren-quoted-open-after
 *   ↪ **Anything else**
 
@@ -1675,17 +1689,18 @@ document and must start in the s:initial-content.
     Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line and consume
+    Enqueue an t:end-of-line and consume
 *   ↪ **c:"**
 
-    Queue a t:marker, consume, and switch to the s:definition-title-close-after
+    Enqueue a t:marker, consume, and switch to the
+    s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Queue a t:content, consume, and switch to the
+    Enqueue a t:content, consume, and switch to the
     s:definition-title-double-quoted-escape
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the
+    Enqueue a t:content, consume, and switch to the
     s:definition-title-double-quoted-inside
 
 ### Definition title double quoted inside state
@@ -1695,11 +1710,12 @@ document and must start in the s:initial-content.
     Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and switch to the
+    Enqueue an t:end-of-line, consume, and switch to the
     s:definition-title-double-quoted-open-after
 *   ↪ **c:"**
 
-    Queue a t:marker, consume, and switch to the s:definition-title-close-after
+    Enqueue a t:marker, consume, and switch to the
+    s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:definition-title-double-quoted-escape
@@ -1724,17 +1740,18 @@ document and must start in the s:initial-content.
     Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line and consume
+    Enqueue an t:end-of-line and consume
 *   ↪ **c:'**
 
-    Queue a t:marker, consume, and switch to the s:definition-title-close-after
+    Enqueue a t:marker, consume, and switch to the
+    s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Queue a t:content, consume, and switch to the
+    Enqueue a t:content, consume, and switch to the
     s:definition-title-single-quoted-escape
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the
+    Enqueue a t:content, consume, and switch to the
     s:definition-title-single-quoted-inside
 
 ### Definition title single quoted inside state
@@ -1744,11 +1761,12 @@ document and must start in the s:initial-content.
     Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and switch to the
+    Enqueue an t:end-of-line, consume, and switch to the
     s:definition-title-single-quoted-open-after
 *   ↪ **c:'**
 
-    Queue a t:marker, consume, and switch to the s:definition-title-close-after
+    Enqueue a t:marker, consume, and switch to the
+    s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:definition-title-single-quoted-escape
@@ -1773,17 +1791,18 @@ document and must start in the s:initial-content.
     Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line and consume
+    Enqueue an t:end-of-line and consume
 *   ↪ **c:)**
 
-    Queue a t:marker, consume, and switch to the s:definition-title-close-after
+    Enqueue a t:marker, consume, and switch to the
+    s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Queue a t:content, consume, and switch to the
+    Enqueue a t:content, consume, and switch to the
     s:definition-title-paren-quoted-escape
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the
+    Enqueue a t:content, consume, and switch to the
     s:definition-title-paren-quoted-inside
 
 ### Definition title paren quoted inside state
@@ -1793,11 +1812,12 @@ document and must start in the s:initial-content.
     Signal **e:content-phrasing**
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and switch to the
+    Enqueue an t:end-of-line, consume, and switch to the
     s:definition-title-paren-quoted-open-after
 *   ↪ **c:)**
 
-    Queue a t:marker, consume, and switch to the s:definition-title-close-after
+    Enqueue a t:marker, consume, and switch to the
+    s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:definition-title-paren-quoted-escape
@@ -1822,12 +1842,12 @@ document and must start in the s:initial-content.
     Signal **e:content-definition**
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition**, queue an t:end-of-line, consume, and switch
-    to the s:initial-content
+    Signal **e:content-definition**, enqueue an t:end-of-line, consume, and
+    switch to the s:initial-content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Queue a t:whitespace, consume, and switch to the s:definition-after
+    Enqueue a t:whitespace, consume, and switch to the s:definition-after
 *   ↪ **Anything else**
 
     Signal **e:content-phrasing**
@@ -1839,8 +1859,8 @@ document and must start in the s:initial-content.
     Signal **e:content-definition**
 *   ↪ **[c:EOL][]**
 
-    Signal **e:content-definition**, queue an t:end-of-line, consume, and switch
-    to the s:initial-content
+    Signal **e:content-definition**, enqueue an t:end-of-line, consume, and
+    switch to the s:initial-content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1864,57 +1884,58 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Queue a t:end-of-file and emit
+    Enqueue a t:end-of-file and emit
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and emit
+    Enqueue an t:end-of-line, consume, and emit
 *   ↪ **c:!**
 
-    If `type` is a `rich`, queue a t:marker, consume, emit, and switch to the
+    If `type` is a `rich`, enqueue a t:marker, consume, emit, and switch to the
     s:image-exclamation-mark-after.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:&**
 
-    Queue a t:marker, consume, emit, and switch to the s:character-reference.
+    Enqueue a t:marker, consume, emit, and switch to the s:character-reference.
 *   ↪ **c:***
 
-    If `type` is a `rich`, queue a t:sequence, consume, and switch to the
+    If `type` is a `rich`, enqueue a t:sequence, consume, and switch to the
     s:emphasis-asterisk.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:<**
 
-    If `type` is a `rich`, queue a t:content, consume, and switch to the
+    If `type` is a `rich`, enqueue a t:content, consume, and switch to the
     s:html-or-autolink-less-than-after.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:[**
 
-    If `type` is a `rich`, queue a t:marker, consume, emit, signal a
+    If `type` is a `rich`, enqueue a t:marker, consume, emit, signal a
     **e:text-link-open**
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Queue a t:marker, consume, emit, and switch to the s:escape-backslash-after
+    Enqueue a t:marker, consume, emit, and switch to the
+    s:escape-backslash-after
 *   ↪ **c:[**
 
     > ❗️ Todo: support references, inlines, etc
 
-    If `type` is a `rich`, queue a t:marker, consume, emit, signal a
+    If `type` is a `rich`, enqueue a t:marker, consume, emit, signal a
     **e:text-link-close**
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:_**
 
-    If `type` is a `rich`, queue a t:sequence, consume, and switch to the
+    If `type` is a `rich`, enqueue a t:sequence, consume, and switch to the
     s:emphasis-underscore.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:`**
 
-    If `type` is a `rich`, let `openingSize` be `1`, queue a t:sequence,
+    If `type` is a `rich`, let `openingSize` be `1`, enqueue a t:sequence,
     consume, and switch to the s:code-span-opening.
 
     Otherwise, treat it as per the “anything else” entry below
@@ -1935,13 +1956,13 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:#**
 
-    Queue a t:marker, consume, and switch to the s:character-reference-numeric
+    Enqueue a t:marker, consume, and switch to the s:character-reference-numeric
 *   ↪ **[ASCII alphanumeric][]**
 
     > ❗️ Todo: Define shared space: `entityName`
 
-    Queue a t:content, append the character to `entityName`, consume, and switch
-    to the s:character-reference-named
+    Enqueue a t:content, append the character to `entityName`, consume, and
+    switch to the s:character-reference-named
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -1955,7 +1976,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Append the character to `entityName` and consume
 *   ↪ **c:;**
 
-    If `entityName` is a [character reference name][], queue a t:marker,
+    If `entityName` is a [character reference name][], enqueue a t:marker,
     consume, signal **e:text-character-reference**, and switch to the
     s:initial-inline
 
@@ -1969,11 +1990,11 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:X**\
     ↪ **c:x**
 
-    Queue a t:marker, consume, and switch to the
+    Enqueue a t:marker, consume, and switch to the
     s:character-reference-hexadecimal-start
 *   ↪ **[ASCII digit][]**
 
-    Queue a t:content and reconsume in the s:character-reference-decimal
+    Enqueue a t:content and reconsume in the s:character-reference-decimal
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -1982,7 +2003,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[ASCII hex digit][]**
 
-    Queue a t:content and reconsume in the s:character-reference-hexadecimal
+    Enqueue a t:content and reconsume in the s:character-reference-hexadecimal
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2008,8 +2029,8 @@ phrasing) of a document and must start in the s:initial-inline.
     `characterReferenceCode`, and consume
 *   ↪ **c:;**
 
-    Queue a t:marker, consume, signal **e:text-character-reference**, and switch
-    to the s:initial-inline
+    Enqueue a t:marker, consume, signal **e:text-character-reference**, and
+    switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2025,8 +2046,8 @@ phrasing) of a document and must start in the s:initial-inline.
     `characterReferenceCode`, and consume
 *   ↪ **c:;**
 
-    Queue a t:marker, consume, signal **e:text-character-reference**, and switch
-    to the s:initial-inline
+    Enqueue a t:marker, consume, signal **e:text-character-reference**, and
+    switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2043,11 +2064,11 @@ phrasing) of a document and must start in the s:initial-inline.
     Reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, emit, and switch to the
+    Enqueue an t:end-of-line, consume, emit, and switch to the
     s:code-span-eol-after
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the s:code-span-inside
+    Enqueue a t:content, consume, and switch to the s:code-span-inside
 
 ### Code span eol after state
 
@@ -2058,15 +2079,15 @@ phrasing) of a document and must start in the s:initial-inline.
     Reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, emit, and switch to the
+    Enqueue an t:end-of-line, consume, emit, and switch to the
     s:code-span-eol-after
 *   ↪ **c:`**
 
-    Queue a t:sequence, let `closingSize` be `1`, consume, and switch to the
+    Enqueue a t:sequence, let `closingSize` be `1`, consume, and switch to the
     s:code-span-closing
 *   ↪ **Anything else**
 
-    Queue a t:content, consume, and switch to the s:code-span-inside
+    Enqueue a t:content, consume, and switch to the s:code-span-inside
 
 ### Code span inside state
 
@@ -2077,11 +2098,11 @@ phrasing) of a document and must start in the s:initial-inline.
     Reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, emit, and switch to the
+    Enqueue an t:end-of-line, consume, emit, and switch to the
     s:code-span-eol-after
 *   ↪ **c:`**
 
-    Queue a t:sequence, let `closingSize` be `1`, consume, and switch to the
+    Enqueue a t:sequence, let `closingSize` be `1`, consume, and switch to the
     s:code-span-closing
 *   ↪ **Anything else**
 
@@ -2105,7 +2126,7 @@ phrasing) of a document and must start in the s:initial-inline.
     If `openingSize` is `closingSize`, signal **e:text-code** and reconsume in
     the s:initial-inline
 
-    Otherwise, queue an t:end-of-line, consume, emit, and switch to the
+    Otherwise, enqueue an t:end-of-line, consume, emit, and switch to the
     s:code-span-eol-after
 *   ↪ **Anything else**
 
@@ -2127,7 +2148,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[ASCII punctuation][]**
 
-    Queue a t:content, consume, emit, signal **e:text-escape**, and switch to
+    Enqueue a t:content, consume, emit, signal **e:text-escape**, and switch to
     the s:initial-inline
 *   ↪ **Anything else**
 
@@ -2137,8 +2158,8 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:[**
 
-    Queue a t:marker, consume, emit, signal **e:text-image-open**, and switch to
-    the s:initial-inline
+    Enqueue a t:marker, consume, emit, signal **e:text-image-open**, and switch
+    to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2278,7 +2299,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-instruction-close
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and emit
+    Enqueue an t:end-of-line, consume, and emit
 *   ↪ **[c:EOF][]**
 
     Reconsume in the s:initial-inline
@@ -2293,7 +2314,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, queue a t:content, and switch to the
+    Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
     s:html-instruction
 *   ↪ **[c:EOF][]**
 
@@ -2479,7 +2500,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-comment-close-inside
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and queue a t:content
+    Enqueue an t:end-of-line, consume, and enqueue a t:content
 *   ↪ **[c:EOF][]**
 
     Reconsume in the s:initial-inline
@@ -2494,7 +2515,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-comment-close
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, queue a t:content, and switch to the
+    Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
     s:html-comment
 *   ↪ **[c:EOF][]**
 
@@ -2524,7 +2545,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and queue a t:content
+    Enqueue an t:end-of-line, consume, and enqueue a t:content
 *   ↪ **[c:EOF][]**
 
     Reconsume in the s:initial-inline
@@ -2557,7 +2578,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and queue a t:content
+    Enqueue an t:end-of-line, consume, and enqueue a t:content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -2576,7 +2597,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    Queue an t:end-of-line, consume, and queue a t:content
+    Enqueue an t:end-of-line, consume, and enqueue a t:content
 *   ↪ **c:>**
 
     Consume, emit, signal **e:text-html**, and switch to the s:initial-inline
@@ -2717,7 +2738,7 @@ phrasing) of a document and must start in the s:initial-inline.
     ↪ **c:<**:\
     ↪ **[ASCII control][]**:
 
-    Queue an t:end-of-line, consume, and queue a t:content
+    Enqueue an t:end-of-line, consume, and enqueue a t:content
 *   ↪ **Anything else**
 
     Consume

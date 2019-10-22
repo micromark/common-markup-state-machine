@@ -31,11 +31,11 @@ Common Markup parser.
 *   [5 Content stream](#5-content-stream)
 *   [6 State](#6-state)
 *   [7 Actions](#7-actions)
-    *   [7.1 Consuming](#71-consuming)
-    *   [7.2 Queueing](#72-queueing)
-    *   [7.3 Emitting](#73-emitting)
-    *   [7.4 Opening](#74-opening)
-    *   [7.5 Closing](#75-closing)
+    *   [7.1 Consume](#71-consume)
+    *   [7.2 Enqueue](#72-enqueue)
+    *   [7.3 Emit](#73-emit)
+    *   [7.4 Open](#74-open)
+    *   [7.5 Close](#75-close)
 *   [8 Tokenization](#8-tokenization)
 *   [9 Block state machine](#9-block-state-machine)
     *   [9.1 Initial state](#91-initial-state)
@@ -416,7 +416,7 @@ The <a id="current-token" href="#current-token">**current token**</a> is the las
 
 ## 7 Actions
 
-### 7.1 Consuming
+### 7.1 Consume
 
 To consume the [input character][input-character] affects the [current token][current-token].
 Due to the nature of the state machine, it is not possible to consume if there
@@ -439,9 +439,9 @@ type of the token:
 
     Do nothing
 
-### 7.2 Queueing
+### 7.2 Enqueue
 
-To queue a token is to add it to the [queue][queue].
+To enqueue a token is to add it to the [queue][queue].
 
 Queueing tokens may have side effects, based on the type of the token, and given
 labelled parameters:
@@ -476,7 +476,7 @@ labelled parameters:
 
     Do nothing
 
-### 7.3 Emitting
+### 7.3 Emit
 
 To emit a token is to add it to the [current group][current-group].
 It is possible to emit a token directly, but it is more common to emit the
@@ -492,7 +492,7 @@ Emitting tokens may have side effects, based on their types:
 
     Do nothing
 
-### 7.4 Opening
+### 7.4 Open
 
 To open a group is to add it to the [current group][current-group] and the [stack of open
 groups][stack-of-open-groups].
@@ -516,7 +516,7 @@ Opening groups may have side effects, based on their type:
 
     Do nothing
 
-### 7.5 Closing
+### 7.5 Close
 
 To close a group is to continue on in its parent group and to pop it off the
 [stack of open groups][stack-of-open-groups].
@@ -554,7 +554,7 @@ document and must start in the [*Initial state*][s-initial].
 
 *   ↪ **[EOF][ceof]**
 
-    Queue a [*End-of-file token*][t-end-of-file] and emit
+    Enqueue a [*End-of-file token*][t-end-of-file] and emit
 *   ↪ **U+000A LINE FEED (LF)**\
     ↪ **U+000D CARRIAGE RETURN (CR)**
 
@@ -562,7 +562,7 @@ document and must start in the [*Initial state*][s-initial].
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Initial whitespace state*][s-initial-whitespace]
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Initial whitespace state*][s-initial-whitespace]
 *   ↪ **Anything else**
 
     Reconsume in the [*In line state*][s-in-line]
@@ -587,13 +587,13 @@ document and must start in the [*Initial state*][s-initial].
 
 *   ↪ **[EOF][ceof]**
 
-    Queue a [*End-of-file token*][t-end-of-file] and emit
+    Enqueue a [*End-of-file token*][t-end-of-file] and emit
 *   ↪ **U+000A LINE FEED (LF)**
 
-    Queue a [*Line ending token*][t-line-ending], consume, emit, and switch to the [*Initial state*][s-initial]
+    Enqueue a [*Line ending token*][t-line-ending], consume, emit, and switch to the [*Initial state*][s-initial]
 *   ↪ **U+000D CARRIAGE RETURN (CR)**
 
-    Queue a [*Line ending token*][t-line-ending], consume, and switch to the [*Carriage return state*][s-carriage-return]
+    Enqueue a [*Line ending token*][t-line-ending], consume, and switch to the [*Carriage return state*][s-carriage-return]
 *   ↪ **Anything else**
 
     > ❗️ Note: Impossible!
@@ -613,32 +613,34 @@ document and must start in the [*Initial state*][s-initial].
 
 If the [stack of continuation][stack-of-continuation] matches all open groups:
 
-*   And if the [current group][current-group] is an [*HTML group*][g-html], queue a [*Content token*][t-content] with the unused
-    characters of the previous [*Whitespace token*][t-whitespace] if there is one, and reconsume in
-    the [*HTML block continuation line state*][s-html-block-continuation-line]
+*   And if the [current group][current-group] is an [*HTML group*][g-html], enqueue a [*Content token*][t-content] with the
+    unused characters of the previous [*Whitespace token*][t-whitespace] if there is one, and
+    reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line]
 *   And otherwise, if the [current group][current-group] is a [*Fenced code group*][g-fenced-code], and either the
     [current token][current-token] is not a [*Whitespace token*][t-whitespace], or it is a [*Whitespace token*][t-whitespace] and its
     unused size is less than four (4), and the [input character][input-character] is the
-    [current group][current-group]’s marker, queue a [*Sequence token*][t-sequence], consume, and switch to the
+    [current group][current-group]’s marker, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
     [*Fenced code close sequence state*][s-fenced-code-close-sequence]
-*   And otherwise, if the [current group][current-group] is a [*Fenced code group*][g-fenced-code], queue a
+*   And otherwise, if the [current group][current-group] is a [*Fenced code group*][g-fenced-code], enqueue a
     [*Content token*][t-content] with the unused characters of the previous [*Whitespace token*][t-whitespace] if there
     is one, consume, and switch to the [*Fenced code continuation line state*][s-fenced-code-continuation-line].
 
 Otherwise, if the [current group][current-group] is not a [*Content group*][g-content], the previous token is a
 [*Whitespace token*][t-whitespace], and its unused size is greater than or equal to four (4), add four
-to the previous token’s used size, queue a [*Content token*][t-content] with the unused characters
-of the previous [*Whitespace token*][t-whitespace], consume, and switch to the [*Indented code line state*][s-indented-code-line].
+to the previous token’s used size, enqueue a [*Content token*][t-content] with the unused
+characters of the previous [*Whitespace token*][t-whitespace], consume, and switch to the
+[*Indented code line state*][s-indented-code-line].
 
 Otherwise, perform the following steps based on the [input character][input-character]:
 
 *   ↪ **U+0023 NUMBER SIGN (`#`)**
 
-    Queue a [*Sequence token*][t-sequence], consume, and switch to the
+    Enqueue a [*Sequence token*][t-sequence], consume, and switch to the
     [*ATX heading opening sequence state*][s-atx-heading-opening-sequence]
 *   ↪ **U+002A ASTERISK (`*`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the [*Asterisk line asterisk after state*][s-asterisk-line-asterisk-after]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
+    [*Asterisk line asterisk after state*][s-asterisk-line-asterisk-after]
 *   ↪ **U+002B PLUS SIGN (`+`)**
 
     > ❗️ Todo: Could be a list item or content
@@ -651,11 +653,11 @@ Otherwise, perform the following steps based on the [input character][input-char
     > ❗️ Todo: Could be a list item or content
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Queue a [*Content token*][t-content] with the unused characters of the previous [*Whitespace token*][t-whitespace] if
-    there is one, consume, and switch to the [*HTML block open state*][s-html-block-open]
+    Enqueue a [*Content token*][t-content] with the unused characters of the previous [*Whitespace token*][t-whitespace]
+    if there is one, consume, and switch to the [*HTML block open state*][s-html-block-open]
 *   ↪ **U+003D EQUALS TO (`=`)**
 
-    If the [current group][current-group] is a [*Content group*][g-content], queue a [*Sequence token*][t-sequence], consume, and
+    If the [current group][current-group] is a [*Content group*][g-content], enqueue a [*Sequence token*][t-sequence], consume, and
     switch to the [*Setext heading underline equals to sequence state*][s-setext-heading-underline-equals-to-sequence].
 
     Otherwise, treat it as per the “anything else” entry below
@@ -667,15 +669,15 @@ Otherwise, perform the following steps based on the [input character][input-char
     > ❗️ Todo: Could be a thematic break or content
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
-    Queue a [*Sequence token*][t-sequence], consume, and switch to the
+    Enqueue a [*Sequence token*][t-sequence], consume, and switch to the
     [*Fenced code grave accent opening fence state*][s-fenced-code-grave-accent-opening-fence]
 *   ↪ **U+007E TILDE (`~`)**
 
-    Queue a [*Sequence token*][t-sequence], consume, and switch to the
+    Enqueue a [*Sequence token*][t-sequence], consume, and switch to the
     [*Fenced code tilde opening fence state*][s-fenced-code-tilde-opening-fence]
 *   ↪ **Anything else**
 
-    Otherwise, queue a [*Content token*][t-content] with the unused characters of the previous
+    Otherwise, enqueue a [*Content token*][t-content] with the unused characters of the previous
     [*Whitespace token*][t-whitespace] if there is one, consume, and switch to the
     [*Content continuation state*][s-content-continuation]
 
@@ -690,7 +692,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*ATX heading opening sequence after state*][s-atx-heading-opening-sequence-after]
 *   ↪ **U+0023 NUMBER SIGN (`#`)**
 
@@ -717,11 +719,11 @@ Otherwise, perform the following steps based on the [input character][input-char
     Consume
 *   ↪ **U+0023 NUMBER SIGN (`#`)**
 
-    Open an [*ATX heading group*][g-atx-heading], open an [*ATX heading fence group*][g-atx-heading-fence], emit, close, queue a
+    Open an [*ATX heading group*][g-atx-heading], open an [*ATX heading fence group*][g-atx-heading-fence], emit, close, enqueue a
     [*Sequence token*][t-sequence], consume, and switch to the [*ATX heading number sign sequence state*][s-atx-heading-number-sign-sequence]
 *   ↪ **Anything else**
 
-    Open an [*ATX heading group*][g-atx-heading], open an [*ATX heading fence group*][g-atx-heading-fence], emit, close, queue a
+    Open an [*ATX heading group*][g-atx-heading], open an [*ATX heading fence group*][g-atx-heading-fence], emit, close, enqueue a
     [*Content token*][t-content], consume, and switch to the [*ATX heading content state*][s-atx-heading-content]
 
 ### 9.8 ATX heading content state
@@ -734,7 +736,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the [*ATX heading whitespace state*][s-atx-heading-whitespace]
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*ATX heading whitespace state*][s-atx-heading-whitespace]
 *   ↪ **Anything else**
 
     Consume
@@ -753,11 +755,11 @@ Otherwise, perform the following steps based on the [input character][input-char
     Consume
 *   ↪ **U+0023 NUMBER SIGN (`#`)**
 
-    Queue a [*Sequence token*][t-sequence], consume, and switch to the
+    Enqueue a [*Sequence token*][t-sequence], consume, and switch to the
     [*ATX heading number sign sequence state*][s-atx-heading-number-sign-sequence]
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the [*ATX heading content state*][s-atx-heading-content]
+    Enqueue a [*Content token*][t-content], consume, and switch to the [*ATX heading content state*][s-atx-heading-content]
 
 ### 9.10 ATX heading number sign sequence state
 
@@ -769,13 +771,13 @@ Otherwise, perform the following steps based on the [input character][input-char
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the [*ATX heading whitespace state*][s-atx-heading-whitespace]
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*ATX heading whitespace state*][s-atx-heading-whitespace]
 *   ↪ **U+0023 NUMBER SIGN (`#`)**
 
     Consume
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the [*ATX heading content state*][s-atx-heading-content]
+    Enqueue a [*Content token*][t-content], consume, and switch to the [*ATX heading content state*][s-atx-heading-content]
 
 ### 9.11 Asterisk line asterisk after state
 
@@ -787,10 +789,11 @@ Otherwise, perform the following steps based on the [input character][input-char
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Asterisk line whitespace state*][s-asterisk-line-whitespace]
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
+    [*Asterisk line whitespace state*][s-asterisk-line-whitespace]
 *   ↪ **U+002A ASTERISK (`*`)**
 
-    Queue a [*Marker token*][t-marker] and consume
+    Enqueue a [*Marker token*][t-marker] and consume
 *   ↪ **Anything else**
 
     > ❗️ Todo: handle the input character, reconsume somewhere.
@@ -811,7 +814,8 @@ Otherwise, perform the following steps based on the [input character][input-char
     Consume
 *   ↪ **U+002A ASTERISK (`*`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the [*Asterisk line asterisk after state*][s-asterisk-line-asterisk-after]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
+    [*Asterisk line asterisk after state*][s-asterisk-line-asterisk-after]
 *   ↪ **Anything else**
 
     > ❗️ Todo: handle the input character, reconsume somewhere.
@@ -1288,7 +1292,7 @@ If the next few characters are:
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Setext heading underline equals to after state*][s-setext-heading-underline-equals-to-after]
 *   ↪ **Anything else**
 
@@ -1331,8 +1335,8 @@ If the next few characters are:
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    If the [current token][current-token]’s size is greater than or equal to three (3), queue
-    a [*Whitespace token*][t-whitespace], consume, and switch to the
+    If the [current token][current-token]’s size is greater than or equal to three (3),
+    enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Fenced code grave accent opening fence whitespace state*][s-fenced-code-grave-accent-opening-fence-whitespace]
 
     Otherwise, this is not fenced code.
@@ -1340,12 +1344,12 @@ If the next few characters are:
     [*Content continuation state*][s-content-continuation]
 *   ↪ **Anything else**
 
-    If the [current token][current-token]’s size is greater than or equal to three (3), queue
-    a [*Content token*][t-content], consume, and switch to the
+    If the [current token][current-token]’s size is greater than or equal to three (3),
+    enqueue a [*Content token*][t-content], consume, and switch to the
     [*Fenced code grave accent opening fence metadata state*][s-fenced-code-grave-accent-opening-fence-metadata]
 
     Otherwise, this is not fenced code.
-    Turn the queue, except for the first token if it is a [*Whitespace token*][t-whitespace], into a
+    Turn the enqueue, except for the first token if it is a [*Whitespace token*][t-whitespace], into a
     [*Content token*][t-content] and reconsume in the [*Content continuation state*][s-content-continuation]
 
 ### 9.38 Fenced code grave accent opening fence whitespace state
@@ -1368,7 +1372,7 @@ If the next few characters are:
     [*Content token*][t-content] and reconsume in the [*Content continuation state*][s-content-continuation]
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the
+    Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Fenced code grave accent opening fence metadata state*][s-fenced-code-grave-accent-opening-fence-metadata]
 
 ### 9.39 Fenced code grave accent opening fence metadata state
@@ -1382,7 +1386,7 @@ If the next few characters are:
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Fenced code grave accent opening fence whitespace state*][s-fenced-code-grave-accent-opening-fence-whitespace]
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
@@ -1412,8 +1416,8 @@ If the next few characters are:
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    If the [current token][current-token]’s size is greater than or equal to three (3), queue
-    a [*Whitespace token*][t-whitespace], consume, and switch to the
+    If the [current token][current-token]’s size is greater than or equal to three (3),
+    enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Fenced code tilde opening fence whitespace state*][s-fenced-code-tilde-opening-fence-whitespace]
 
     Otherwise, this is not fenced code.
@@ -1421,8 +1425,8 @@ If the next few characters are:
     [*Content continuation state*][s-content-continuation]
 *   ↪ **Anything else**
 
-    If the [current token][current-token]’s size is greater than or equal to three (3), queue
-    a [*Content token*][t-content], consume, and switch to the
+    If the [current token][current-token]’s size is greater than or equal to three (3),
+    enqueue a [*Content token*][t-content], consume, and switch to the
     [*Fenced code tilde opening fence metadata state*][s-fenced-code-tilde-opening-fence-metadata]
 
     Otherwise, this is not fenced code.
@@ -1444,7 +1448,7 @@ If the next few characters are:
     Consume
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the
+    Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Fenced code tilde opening fence metadata state*][s-fenced-code-tilde-opening-fence-metadata]
 
 ### 9.42 Fenced code tilde opening fence metadata state
@@ -1458,7 +1462,7 @@ If the next few characters are:
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Fenced code tilde opening fence whitespace state*][s-fenced-code-tilde-opening-fence-whitespace]
 *   ↪ **Anything else**
 
@@ -1495,7 +1499,7 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `openingSize`
 
     If the [current token][current-token]’s size is greater than or equal to `openingSize`,
-    queue a [*Whitespace token*][t-whitespace], consume, and switch to the
+    enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Fenced code close whitespace state*][s-fenced-code-close-whitespace].
 
     Otherwise, treat it as per the “anything else” entry below
@@ -1565,7 +1569,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition label open after state*][s-definition-label-open-after]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Definition label open after state*][s-definition-label-open-after]
 *   ↪ **Anything else**
 
     Reconsume in the [*Phrasing content state*][s-phrasing-content]
@@ -1578,14 +1582,14 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line] and consume
+    Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition label before state*][s-definition-label-before]
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition label before state*][s-definition-label-before]
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
+    Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
 
 ### 10.3 Definition label before state
 
@@ -1598,7 +1602,7 @@ document and must start in the [*Initial content state*][s-initial-content].
     > ❗️ Note: shouldn’t be possible (trailing whitespace, which we are
     > apparently in, is part of the EOL)
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and switch to the
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition label open after state*][s-definition-label-open-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -1606,7 +1610,7 @@ document and must start in the [*Initial content state*][s-initial-content].
     Consume
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
+    Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
 
 ### 10.4 Definition label inside state
 
@@ -1615,18 +1619,20 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and switch to the
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition label EOL after state*][s-definition-label-eol-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition label between state*][s-definition-label-between]
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
+    [*Definition label between state*][s-definition-label-between]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition label close after state*][s-definition-label-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
+    [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
     Consume
@@ -1641,20 +1647,22 @@ document and must start in the [*Initial content state*][s-initial-content].
     > ❗️ Note: shouldn’t be possible (an EOL after an EOL cannot be part of a
     > content)
 
-    Queue an [*End-of-line token*][t-end-of-line] and consume
+    Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition label between state*][s-definition-label-between]
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
+    [*Definition label between state*][s-definition-label-between]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition label close after state*][s-definition-label-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
+    [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
+    Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
 
 ### 10.6 Definition label between state
 
@@ -1663,7 +1671,7 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and switch to the
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition label EOL after state*][s-definition-label-eol-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -1671,20 +1679,22 @@ document and must start in the [*Initial content state*][s-initial-content].
     Consume
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Queue a [*Content token*][t-content], consume, and switch to the [*Definition label escape state*][s-definition-label-escape]
+    Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition label close after state*][s-definition-label-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
+    [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
+    Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
 
 ### 10.7 Definition label escape state
 
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition label between state*][s-definition-label-between]
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
+    [*Definition label between state*][s-definition-label-between]
 *   ↪ **U+005C BACKSLASH (`\`)**\
     ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
@@ -1697,7 +1707,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **U+003A COLON (`:`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition label after state*][s-definition-label-after]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Definition label after state*][s-definition-label-after]
 *   ↪ **Anything else**
 
     Signal **[*Content phrasing sign*][e-content-phrasing]**
@@ -1710,19 +1720,19 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line] and consume
+    Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Definition destination before state*][s-definition-destination-before]
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
     [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content] and reconsume in the
+    Enqueue a [*Content token*][t-content] and reconsume in the
     [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
 ### 10.10 Definition destination before state
@@ -1735,21 +1745,22 @@ document and must start in the [*Initial content state*][s-initial-content].
     > ❗️ Note: shouldn’t be possible (an EOL after an EOL or whitespace cannot
     > be part of a content)
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and switch to the [*Definition label after state*][s-definition-label-after]
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
+    [*Definition label after state*][s-definition-label-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
     [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
     Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content] and reconsume in the
+    Enqueue a [*Content token*][t-content] and reconsume in the
     [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
 ### 10.11 Definition destination quoted open after state
@@ -1761,15 +1772,15 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
     [*Definition destination quoted close after state*][s-definition-destination-quoted-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Queue a [*Content token*][t-content], consume, and switch to the
+    Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Definition destination quoted escape state*][s-definition-destination-quoted-escape]
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the
+    Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Definition destination quoted inside state*][s-definition-destination-quoted-inside]
 
 ### 10.12 Definition destination quoted inside state
@@ -1781,7 +1792,7 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
     [*Definition destination quoted close after state*][s-definition-destination-quoted-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1808,11 +1819,12 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content definition sign*][e-content-definition]**
 *   ↪ **[EOL][ceol]**
 
-    Signal **[*Content definition partial sign*][e-content-definition-partial]**, queue an [*End-of-line token*][t-end-of-line], and consume
+    Signal **[*Content definition partial sign*][e-content-definition-partial]**, enqueue an [*End-of-line token*][t-end-of-line], and
+    consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Definition destination after state*][s-definition-destination-after]
 *   ↪ **Anything else**
 
@@ -1827,11 +1839,12 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content definition sign*][e-content-definition]**
 *   ↪ **[EOL][ceol]**
 
-    Signal **[*Content definition partial sign*][e-content-definition-partial]**, queue an [*End-of-line token*][t-end-of-line], and consume
+    Signal **[*Content definition partial sign*][e-content-definition-partial]**, enqueue an [*End-of-line token*][t-end-of-line], and
+    consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Definition destination after state*][s-definition-destination-after]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
@@ -1869,22 +1882,23 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content definition sign*][e-content-definition]**
 *   ↪ **[EOL][ceol]**
 
-    Signal **[*Content definition partial sign*][e-content-definition-partial]**, queue an [*End-of-line token*][t-end-of-line], and consume
+    Signal **[*Content definition partial sign*][e-content-definition-partial]**, enqueue an [*End-of-line token*][t-end-of-line], and
+    consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
     [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
     [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
     [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
 *   ↪ **Anything else**
 
@@ -1897,17 +1911,18 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line] and consume
+    Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition title close after state*][s-definition-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
+    [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Queue a [*Content token*][t-content], consume, and switch to the
+    Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Definition title double quoted escape state*][s-definition-title-double-quoted-escape]
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the
+    Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Definition title double quoted inside state*][s-definition-title-double-quoted-inside]
 
 ### 10.19 Definition title double quoted inside state
@@ -1917,11 +1932,12 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and switch to the
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition title close after state*][s-definition-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
+    [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title double quoted escape state*][s-definition-title-double-quoted-escape]
@@ -1946,17 +1962,18 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line] and consume
+    Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition title close after state*][s-definition-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
+    [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Queue a [*Content token*][t-content], consume, and switch to the
+    Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Definition title single quoted escape state*][s-definition-title-single-quoted-escape]
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the
+    Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Definition title single quoted inside state*][s-definition-title-single-quoted-inside]
 
 ### 10.22 Definition title single quoted inside state
@@ -1966,11 +1983,12 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and switch to the
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition title close after state*][s-definition-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
+    [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title single quoted escape state*][s-definition-title-single-quoted-escape]
@@ -1995,17 +2013,18 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line] and consume
+    Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition title close after state*][s-definition-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
+    [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Queue a [*Content token*][t-content], consume, and switch to the
+    Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Definition title paren quoted escape state*][s-definition-title-paren-quoted-escape]
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the
+    Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Definition title paren quoted inside state*][s-definition-title-paren-quoted-inside]
 
 ### 10.25 Definition title paren quoted inside state
@@ -2015,11 +2034,12 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content phrasing sign*][e-content-phrasing]**
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and switch to the
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the [*Definition title close after state*][s-definition-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
+    [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title paren quoted escape state*][s-definition-title-paren-quoted-escape]
@@ -2044,12 +2064,12 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content definition sign*][e-content-definition]**
 *   ↪ **[EOL][ceol]**
 
-    Signal **[*Content definition sign*][e-content-definition]**, queue an [*End-of-line token*][t-end-of-line], consume, and switch
-    to the [*Initial content state*][s-initial-content]
+    Signal **[*Content definition sign*][e-content-definition]**, enqueue an [*End-of-line token*][t-end-of-line], consume, and
+    switch to the [*Initial content state*][s-initial-content]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Queue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition after state*][s-definition-after]
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition after state*][s-definition-after]
 *   ↪ **Anything else**
 
     Signal **[*Content phrasing sign*][e-content-phrasing]**
@@ -2061,8 +2081,8 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal **[*Content definition sign*][e-content-definition]**
 *   ↪ **[EOL][ceol]**
 
-    Signal **[*Content definition sign*][e-content-definition]**, queue an [*End-of-line token*][t-end-of-line], consume, and switch
-    to the [*Initial content state*][s-initial-content]
+    Signal **[*Content definition sign*][e-content-definition]**, enqueue an [*End-of-line token*][t-end-of-line], consume, and
+    switch to the [*Initial content state*][s-initial-content]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -2086,57 +2106,58 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Queue a [*End-of-file token*][t-end-of-file] and emit
+    Enqueue a [*End-of-file token*][t-end-of-file] and emit
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and emit
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and emit
 *   ↪ **U+0021 EXCLAMATION MARK (`!`)**
 
-    If `type` is a `rich`, queue a [*Marker token*][t-marker], consume, emit, and switch to the
+    If `type` is a `rich`, enqueue a [*Marker token*][t-marker], consume, emit, and switch to the
     [*Image exclamation mark after state*][s-image-exclamation-mark-after].
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+0026 AMPERSAND (`&`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the [*Character reference state*][s-character-reference].
+    Enqueue a [*Marker token*][t-marker], consume, emit, and switch to the [*Character reference state*][s-character-reference].
 *   ↪ **U+002A ASTERISK (`*`)**
 
-    If `type` is a `rich`, queue a [*Sequence token*][t-sequence], consume, and switch to the
+    If `type` is a `rich`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
     [*Emphasis asterisk state*][s-emphasis-asterisk].
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    If `type` is a `rich`, queue a [*Content token*][t-content], consume, and switch to the
+    If `type` is a `rich`, enqueue a [*Content token*][t-content], consume, and switch to the
     [*HTML or autolink less than after state*][s-html-or-autolink-less-than-after].
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    If `type` is a `rich`, queue a [*Marker token*][t-marker], consume, emit, signal a
+    If `type` is a `rich`, enqueue a [*Marker token*][t-marker], consume, emit, signal a
     **[*Text link open sign*][e-text-link-open]**
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, and switch to the [*Escape backslash after state*][s-escape-backslash-after]
+    Enqueue a [*Marker token*][t-marker], consume, emit, and switch to the
+    [*Escape backslash after state*][s-escape-backslash-after]
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
     > ❗️ Todo: support references, inlines, etc
 
-    If `type` is a `rich`, queue a [*Marker token*][t-marker], consume, emit, signal a
+    If `type` is a `rich`, enqueue a [*Marker token*][t-marker], consume, emit, signal a
     **[*Text link close sign*][e-text-link-close]**
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005F UNDERSCORE (`_`)**
 
-    If `type` is a `rich`, queue a [*Sequence token*][t-sequence], consume, and switch to the
+    If `type` is a `rich`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
     [*Emphasis underscore state*][s-emphasis-underscore].
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
-    If `type` is a `rich`, let `openingSize` be `1`, queue a [*Sequence token*][t-sequence],
+    If `type` is a `rich`, let `openingSize` be `1`, enqueue a [*Sequence token*][t-sequence],
     consume, and switch to the [*Code span opening state*][s-code-span-opening].
 
     Otherwise, treat it as per the “anything else” entry below
@@ -2157,13 +2178,13 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+0023 NUMBER SIGN (`#`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the [*Character reference numeric state*][s-character-reference-numeric]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Character reference numeric state*][s-character-reference-numeric]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
     > ❗️ Todo: Define shared space: `entityName`
 
-    Queue a [*Content token*][t-content], append the character to `entityName`, consume, and switch
-    to the [*Character reference named state*][s-character-reference-named]
+    Enqueue a [*Content token*][t-content], append the character to `entityName`, consume, and
+    switch to the [*Character reference named state*][s-character-reference-named]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2177,7 +2198,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Append the character to `entityName` and consume
 *   ↪ **U+003B SEMICOLON (`;`)**
 
-    If `entityName` is a [character reference name][character-reference-name], queue a [*Marker token*][t-marker],
+    If `entityName` is a [character reference name][character-reference-name], enqueue a [*Marker token*][t-marker],
     consume, signal **[*Text character reference sign*][e-text-character-reference]**, and switch to the
     [*Initial inline state*][s-initial-inline]
 
@@ -2191,11 +2212,11 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+0058 (`X`)**\
     ↪ **U+0078 (`x`)**
 
-    Queue a [*Marker token*][t-marker], consume, and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
     [*Character reference hexadecimal start state*][s-character-reference-hexadecimal-start]
 *   ↪ **[ASCII digit][ascii-digit]**
 
-    Queue a [*Content token*][t-content] and reconsume in the [*Character reference decimal state*][s-character-reference-decimal]
+    Enqueue a [*Content token*][t-content] and reconsume in the [*Character reference decimal state*][s-character-reference-decimal]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2204,7 +2225,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[ASCII hex digit][ascii-hex-digit]**
 
-    Queue a [*Content token*][t-content] and reconsume in the [*Character reference hexadecimal state*][s-character-reference-hexadecimal]
+    Enqueue a [*Content token*][t-content] and reconsume in the [*Character reference hexadecimal state*][s-character-reference-hexadecimal]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2230,8 +2251,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     `characterReferenceCode`, and consume
 *   ↪ **U+003B SEMICOLON (`;`)**
 
-    Queue a [*Marker token*][t-marker], consume, signal **[*Text character reference sign*][e-text-character-reference]**, and switch
-    to the [*Initial inline state*][s-initial-inline]
+    Enqueue a [*Marker token*][t-marker], consume, signal **[*Text character reference sign*][e-text-character-reference]**, and
+    switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2247,8 +2268,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     `characterReferenceCode`, and consume
 *   ↪ **U+003B SEMICOLON (`;`)**
 
-    Queue a [*Marker token*][t-marker], consume, signal **[*Text character reference sign*][e-text-character-reference]**, and switch
-    to the [*Initial inline state*][s-initial-inline]
+    Enqueue a [*Marker token*][t-marker], consume, signal **[*Text character reference sign*][e-text-character-reference]**, and
+    switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2265,11 +2286,11 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
     [*Code span eol after state*][s-code-span-eol-after]
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the [*Code span inside state*][s-code-span-inside]
+    Enqueue a [*Content token*][t-content], consume, and switch to the [*Code span inside state*][s-code-span-inside]
 
 ### 11.10 Code span eol after state
 
@@ -2280,15 +2301,15 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
     [*Code span eol after state*][s-code-span-eol-after]
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
-    Queue a [*Sequence token*][t-sequence], let `closingSize` be `1`, consume, and switch to the
+    Enqueue a [*Sequence token*][t-sequence], let `closingSize` be `1`, consume, and switch to the
     [*Code span closing state*][s-code-span-closing]
 *   ↪ **Anything else**
 
-    Queue a [*Content token*][t-content], consume, and switch to the [*Code span inside state*][s-code-span-inside]
+    Enqueue a [*Content token*][t-content], consume, and switch to the [*Code span inside state*][s-code-span-inside]
 
 ### 11.11 Code span inside state
 
@@ -2299,11 +2320,11 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
     [*Code span eol after state*][s-code-span-eol-after]
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
-    Queue a [*Sequence token*][t-sequence], let `closingSize` be `1`, consume, and switch to the
+    Enqueue a [*Sequence token*][t-sequence], let `closingSize` be `1`, consume, and switch to the
     [*Code span closing state*][s-code-span-closing]
 *   ↪ **Anything else**
 
@@ -2327,7 +2348,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     If `openingSize` is `closingSize`, signal **[*Text code sign*][e-text-code]** and reconsume in
     the [*Initial inline state*][s-initial-inline]
 
-    Otherwise, queue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
+    Otherwise, enqueue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
     [*Code span eol after state*][s-code-span-eol-after]
 *   ↪ **Anything else**
 
@@ -2349,7 +2370,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[ASCII punctuation][ascii-punctuation]**
 
-    Queue a [*Content token*][t-content], consume, emit, signal **[*Text escape sign*][e-text-escape]**, and switch to
+    Enqueue a [*Content token*][t-content], consume, emit, signal **[*Text escape sign*][e-text-escape]**, and switch to
     the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
@@ -2359,8 +2380,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    Queue a [*Marker token*][t-marker], consume, emit, signal **[*Text image open sign*][e-text-image-open]**, and switch to
-    the [*Initial inline state*][s-initial-inline]
+    Enqueue a [*Marker token*][t-marker], consume, emit, signal **[*Text image open sign*][e-text-image-open]**, and switch
+    to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2500,7 +2521,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML instruction close state*][s-html-instruction-close]
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and emit
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and emit
 *   ↪ **[EOF][ceof]**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2515,7 +2536,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, queue a [*Content token*][t-content], and switch to the
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a [*Content token*][t-content], and switch to the
     [*HTML instruction state*][s-html-instruction]
 *   ↪ **[EOF][ceof]**
 
@@ -2701,7 +2722,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML comment close inside state*][s-html-comment-close-inside]
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and queue a [*Content token*][t-content]
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
 *   ↪ **[EOF][ceof]**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2716,7 +2737,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML comment close state*][s-html-comment-close]
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, queue a [*Content token*][t-content], and switch to the
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a [*Content token*][t-content], and switch to the
     [*HTML comment state*][s-html-comment]
 *   ↪ **[EOF][ceof]**
 
@@ -2746,7 +2767,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and queue a [*Content token*][t-content]
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
 *   ↪ **[EOF][ceof]**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2779,7 +2800,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and queue a [*Content token*][t-content]
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -2798,7 +2819,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and queue a [*Content token*][t-content]
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
@@ -2939,7 +2960,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **U+003C LESS THAN (`<`)**:\
     ↪ **[ASCII control][ascii-control]**:
 
-    Queue an [*End-of-line token*][t-end-of-line], consume, and queue a [*Content token*][t-content]
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
 *   ↪ **Anything else**
 
     Consume
