@@ -1973,9 +1973,6 @@ phrasing) of a document and must start in the s:initial-inline.
 
 > ❗️ Todo: Define shared space: `entityName`
 
-*   ↪ **[ASCII alphanumeric][]**
-
-    Append the character to `entityName` and consume
 *   ↪ **c:;**
 
     If `entityName` is a [character reference name][], enqueue a t:marker,
@@ -1983,6 +1980,9 @@ phrasing) of a document and must start in the s:initial-inline.
     s:initial-inline
 
     Otherwise, treat it as per the “anything else” entry below
+*   ↪ **[ASCII alphanumeric][]**
+
+    Append the character to `entityName` and consume
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2014,6 +2014,10 @@ phrasing) of a document and must start in the s:initial-inline.
 
 > ❗️ Todo: Define shared space: `characterReferenceCode`
 
+*   ↪ **c:;**
+
+    Enqueue a t:marker, consume, signal e:text-character-reference, and switch
+    to the s:initial-inline
 *   ↪ **[ASCII digit][]**
 
     Multiply `characterReferenceCode` by `16`, add a numeric version of the
@@ -2029,10 +2033,6 @@ phrasing) of a document and must start in the s:initial-inline.
     Multiply `characterReferenceCode` by `16`, add a numeric version of the
     [content character][] (subtract `0x57` from the character) to
     `characterReferenceCode`, and consume
-*   ↪ **c:;**
-
-    Enqueue a t:marker, consume, signal e:text-character-reference, and switch
-    to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2041,15 +2041,15 @@ phrasing) of a document and must start in the s:initial-inline.
 
 > ❗️ Todo: Define shared space: `characterReferenceCode`
 
+*   ↪ **c:;**
+
+    Enqueue a t:marker, consume, signal e:text-character-reference, and switch
+    to the s:initial-inline
 *   ↪ **[ASCII digit][]**
 
     Multiply `characterReferenceCode` by `10`, add a numeric version of the
     [content character][] (subtract `0x30` from the character) to
     `characterReferenceCode`, and consume
-*   ↪ **c:;**
-
-    Enqueue a t:marker, consume, signal e:text-character-reference, and switch
-    to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2058,15 +2058,15 @@ phrasing) of a document and must start in the s:initial-inline.
 
 > ❗️ Todo: Define shared space: `sizeOpen`
 
-*   ↪ **c:`**
-
-    Increment `sizeOpen` by `1` and consume
 *   ↪ **[c:EOF][]**
 
     Reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the s:code-span-eol-after
+*   ↪ **c:`**
+
+    Increment `sizeOpen` by `1` and consume
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:code-span-inside
@@ -2111,9 +2111,6 @@ phrasing) of a document and must start in the s:initial-inline.
 
 > ❗️ Todo: Define shared space: `sizeOpen`, `sizeClose`
 
-*   ↪ **c:`**
-
-    Increment `sizeClose` by `1` and consume
 *   ↪ **[c:EOF][]**
 
     If `sizeOpen` is `sizeClose`, signal e:text-code, and reconsume in the
@@ -2127,6 +2124,9 @@ phrasing) of a document and must start in the s:initial-inline.
 
     Otherwise, enqueue an t:end-of-line, consume, and switch to the
     s:code-span-eol-after
+*   ↪ **c:`**
+
+    Increment `sizeClose` by `1` and consume
 *   ↪ **Anything else**
 
     If `sizeOpen` is `sizeClose`, signal e:text-code, and reconsume in the
@@ -2187,6 +2187,10 @@ phrasing) of a document and must start in the s:initial-inline.
 
 ### HTML instruction or email atext state
 
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**
+
+    Reconsume in the s:initial-inline
 *   ↪ **c:?**
 
     Consume and switch to the s:html-instruction-close-or-email-atext
@@ -2197,16 +2201,16 @@ phrasing) of a document and must start in the s:initial-inline.
     ↪ **c:.**
 
     Consume
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**
-
-    Reconsume in the s:initial-inline
 *   ↪ **Anything else**
 
     Consume and switch to the s:html-instruction
 
 ### HTML instruction close or email atext state
 
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**
+
+    Reconsume in the s:initial-inline
 *   ↪ **c:>**
 
     Consume, signal e:text-html, and switch to the s:initial-inline
@@ -2220,32 +2224,32 @@ phrasing) of a document and must start in the s:initial-inline.
     ↪ **c:.**
 
     Consume and switch to the s:html-instruction-or-email-atext
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**
-
-    Reconsume in the s:initial-inline
 *   ↪ **Anything else**
 
     Consume and switch to the s:html-instruction
 
 ### HTML instruction or email at sign or dot state
 
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**
+
+    Reconsume in the s:initial-inline
 *   ↪ **c:?**
 
     Consume and switch to the s:html-instruction-close
 *   ↪ **[ASCII alphanumeric][]**
 
     Consume and switch to the s:html-instruction-or-email-label
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**
-
-    Reconsume in the s:initial-inline
 *   ↪ **Anything else**
 
     Consume and switch to the s:html-instruction
 
 ### HTML instruction or email label state
 
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**
+
+    Reconsume in the s:initial-inline
 *   ↪ **c:-**
 
     Consume and switch to the s:html-instruction-or-email-dash
@@ -2263,16 +2267,16 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **[ASCII alphanumeric][]**
 
     Consume and switch to the s:html-instruction-or-email-label
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**
-
-    Reconsume in the s:initial-inline
 *   ↪ **Anything else**
 
     Consume and switch to the s:html-instruction
 
 ### HTML instruction or email dash state
 
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**
+
+    Reconsume in the s:initial-inline
 *   ↪ **c:-**
 
     Consume and switch to the s:html-instruction-or-email-dash
@@ -2282,41 +2286,37 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **[ASCII alphanumeric][]**
 
     Consume and switch to the s:html-instruction-or-email-label
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**
-
-    Reconsume in the s:initial-inline
 *   ↪ **Anything else**
 
     Consume and switch to the s:html-instruction
 
 ### HTML instruction state
 
-*   ↪ **c:?**
-
-    Consume and switch to the s:html-instruction-close
-*   ↪ **[c:EOL][]**
-
-    Enqueue an t:end-of-line and consume
 *   ↪ **[c:EOF][]**
 
     Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line and consume
+*   ↪ **c:?**
+
+    Consume and switch to the s:html-instruction-close
 *   ↪ **Anything else**
 
     Consume
 
 ### HTML instruction close state
 
-*   ↪ **c:>**
+*   ↪ **[c:EOF][]**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
     s:html-instruction
-*   ↪ **[c:EOF][]**
+*   ↪ **c:>**
 
-    Reconsume in the s:initial-inline
+    Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Consume
@@ -2362,6 +2362,9 @@ phrasing) of a document and must start in the s:initial-inline.
 
 ### HTML comment or email atext state
 
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
 *   ↪ **c:-**
 
     Consume and switch to the s:html-comment-close-inside-or-email-atext
@@ -2372,15 +2375,15 @@ phrasing) of a document and must start in the s:initial-inline.
     ↪ **c:.**
 
     Consume and switch to the s:html-comment-or-email-atext
-*   ↪ **[c:EOF][]**
-
-    Reconsume in the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:html-comment
 
 ### HTML comment close inside or email atext state
 
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
 *   ↪ **c:-**
 
     Consume and switch to the s:html-comment-close-or-email-atext
@@ -2391,9 +2394,6 @@ phrasing) of a document and must start in the s:initial-inline.
     ↪ **c:.**
 
     Consume and switch to the s:html-comment-or-email-atext
-*   ↪ **[c:EOF][]**
-
-    Reconsume in the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:html-comment
@@ -2421,21 +2421,24 @@ phrasing) of a document and must start in the s:initial-inline.
 
 ### HTML comment or email at sign or dot state
 
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
 *   ↪ **c:-**
 
     Consume and switch to the s:html-comment-close-inside
 *   ↪ **[ASCII alphanumeric][]**
 
     Consume and switch to the s:html-comment-or-email-label
-*   ↪ **[c:EOF][]**
-
-    Reconsume in the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:html-comment
 
 ### HTML comment or email label state
 
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
 *   ↪ **c:-**
 
     Consume and switch to the s:html-comment-close-inside-or-email-label-dash
@@ -2450,25 +2453,22 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **[ASCII alphanumeric][]**
 
     Consume and switch to the s:html-comment-or-email-label
-*   ↪ **[c:EOF][]**
-
-    Reconsume in the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:html-comment
 
 ### HTML comment close inside or email label dash state
 
+*   ↪ **[c:EOF][]**\
+    ↪ **c:>**
+
+    Reconsume in the s:initial-inline
 *   ↪ **c:-**
 
     Consume and switch to the s:html-comment-close-or-email-label-dash
 *   ↪ **[ASCII alphanumeric][]**
 
     Consume and switch to the s:html-comment-or-email-label
-*   ↪ **c:>**\
-    ↪ **[c:EOF][]**
-
-    Reconsume in the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:html-comment
@@ -2492,31 +2492,31 @@ phrasing) of a document and must start in the s:initial-inline.
 
 ### HTML comment state
 
-*   ↪ **c:-**
-
-    Consume and switch to the s:html-comment-close-inside
-*   ↪ **[c:EOL][]**
-
-    Enqueue an t:end-of-line, consume, and enqueue a t:content
 *   ↪ **[c:EOF][]**
 
     Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and enqueue a t:content
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-comment-close-inside
 *   ↪ **Anything else**
 
     Consume
 
 ### HTML comment close inside state
 
-*   ↪ **c:-**
+*   ↪ **[c:EOF][]**
 
-    Consume and switch to the s:html-comment-close
+    Reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
     s:html-comment
-*   ↪ **[c:EOF][]**
+*   ↪ **c:-**
 
-    Reconsume in the s:initial-inline
+    Consume and switch to the s:html-comment-close
 *   ↪ **Anything else**
 
     Consume
@@ -2537,15 +2537,15 @@ phrasing) of a document and must start in the s:initial-inline.
 
 ### HTML CDATA state
 
-*   ↪ **`]]>` (two of c:], with a c:> after)**
-
-    Consume, signal e:text-html, and switch to the s:initial-inline
-*   ↪ **[c:EOL][]**
-
-    Enqueue an t:end-of-line, consume, and enqueue a t:content
 *   ↪ **[c:EOF][]**
 
     Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and enqueue a t:content
+*   ↪ **`]]>` (two of c:], with a c:> after)**
+
+    Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Consume
@@ -2658,8 +2658,8 @@ phrasing) of a document and must start in the s:initial-inline.
 
 ### HTML tag open scheme or email atext state
 
-*   ↪ **c:+**:\
-    ↪ **c:.**:
+*   ↪ **c:+**\
+    ↪ **c:.**
 
     Consume and switch to the s:autolink-scheme-inside-or-email-atext
 *   ↪ **c:>**
@@ -2680,11 +2680,11 @@ phrasing) of a document and must start in the s:initial-inline.
 
 > ❗️ Todo: support whitespace, attributes, etc in email
 
-*   ↪ **c:+**:\
-    ↪ **c:.**:
+*   ↪ **c:+**\
+    ↪ **c:.**
 
     Consume and switch to the s:autolink-scheme-inside-or-email-atext
-*   ↪ **c::**:
+*   ↪ **c::**
 
     Consume and switch to the s:autolink-uri-inside
 *   ↪ **c:@**
@@ -2704,7 +2704,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 ### Autolink scheme inside or email atext state
 
-*   ↪ **c::**:
+*   ↪ **c::**
 
     Consume and switch to the s:autolink-uri-inside
 *   ↪ **c:@**
@@ -2729,13 +2729,13 @@ phrasing) of a document and must start in the s:initial-inline.
 
     Consume, signal e:text-autolink-uri, and switch to the
     s:initial-inline
-*   ↪ **[c:EOF][]**\
+*   ↪ **[ASCII control][]**\
+    ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**\
-    ↪ **c:SP**:\
-    ↪ **c:<**:\
-    ↪ **[ASCII control][]**:
+    ↪ **c:SP**\
+    ↪ **c:<**
 
-    Enqueue an t:end-of-line, consume, and enqueue a t:content
+    Reconsume in the s:initial-inline
 *   ↪ **Anything else**
 
     Consume

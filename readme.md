@@ -2203,9 +2203,6 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 > ❗️ Todo: Define shared space: `entityName`
 
-*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
-
-    Append the character to `entityName` and consume
 *   ↪ **U+003B SEMICOLON (`;`)**
 
     If `entityName` is a [character reference name][character-reference-name], enqueue a [*Marker token*][t-marker],
@@ -2213,6 +2210,9 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     [*Initial inline state*][s-initial-inline]
 
     Otherwise, treat it as per the “anything else” entry below
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+
+    Append the character to `entityName` and consume
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2244,6 +2244,10 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 > ❗️ Todo: Define shared space: `characterReferenceCode`
 
+*   ↪ **U+003B SEMICOLON (`;`)**
+
+    Enqueue a [*Marker token*][t-marker], consume, signal [*Text character reference sign*][e-text-character-reference], and switch
+    to the [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII digit][ascii-digit]**
 
     Multiply `characterReferenceCode` by `16`, add a numeric version of the
@@ -2259,10 +2263,6 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Multiply `characterReferenceCode` by `16`, add a numeric version of the
     [content character][content-character] (subtract `0x57` from the character) to
     `characterReferenceCode`, and consume
-*   ↪ **U+003B SEMICOLON (`;`)**
-
-    Enqueue a [*Marker token*][t-marker], consume, signal [*Text character reference sign*][e-text-character-reference], and switch
-    to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2271,15 +2271,15 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 > ❗️ Todo: Define shared space: `characterReferenceCode`
 
+*   ↪ **U+003B SEMICOLON (`;`)**
+
+    Enqueue a [*Marker token*][t-marker], consume, signal [*Text character reference sign*][e-text-character-reference], and switch
+    to the [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII digit][ascii-digit]**
 
     Multiply `characterReferenceCode` by `10`, add a numeric version of the
     [content character][content-character] (subtract `0x30` from the character) to
     `characterReferenceCode`, and consume
-*   ↪ **U+003B SEMICOLON (`;`)**
-
-    Enqueue a [*Marker token*][t-marker], consume, signal [*Text character reference sign*][e-text-character-reference], and switch
-    to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2288,15 +2288,15 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 > ❗️ Todo: Define shared space: `sizeOpen`
 
-*   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
-
-    Increment `sizeOpen` by `1` and consume
 *   ↪ **[EOF][ceof]**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the [*Code span EOL after state*][s-code-span-eol-after]
+*   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
+
+    Increment `sizeOpen` by `1` and consume
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Code span inside state*][s-code-span-inside]
@@ -2341,9 +2341,6 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 > ❗️ Todo: Define shared space: `sizeOpen`, `sizeClose`
 
-*   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
-
-    Increment `sizeClose` by `1` and consume
 *   ↪ **[EOF][ceof]**
 
     If `sizeOpen` is `sizeClose`, signal [*Text code sign*][e-text-code], and reconsume in the
@@ -2357,6 +2354,9 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Otherwise, enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Code span EOL after state*][s-code-span-eol-after]
+*   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
+
+    Increment `sizeClose` by `1` and consume
 *   ↪ **Anything else**
 
     If `sizeOpen` is `sizeClose`, signal [*Text code sign*][e-text-code], and reconsume in the
@@ -2417,6 +2417,10 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.17 HTML instruction or email atext state
 
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
     Consume and switch to the [*HTML instruction close or email atext state*][s-html-instruction-close-or-email-atext]
@@ -2427,16 +2431,16 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **U+002E DOT (`.`)**
 
     Consume
-*   ↪ **[EOF][ceof]**\
-    ↪ **[EOL][ceol]**
-
-    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume and switch to the [*HTML instruction state*][s-html-instruction]
 
 ### 11.18 HTML instruction close or email atext state
 
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
@@ -2450,32 +2454,32 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **U+002E DOT (`.`)**
 
     Consume and switch to the [*HTML instruction or email atext state*][s-html-instruction-or-email-atext]
-*   ↪ **[EOF][ceof]**\
-    ↪ **[EOL][ceol]**
-
-    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume and switch to the [*HTML instruction state*][s-html-instruction]
 
 ### 11.19 HTML instruction or email at sign or dot state
 
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
     Consume and switch to the [*HTML instruction close state*][s-html-instruction-close]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
     Consume and switch to the [*HTML instruction or email label state*][s-html-instruction-or-email-label]
-*   ↪ **[EOF][ceof]**\
-    ↪ **[EOL][ceol]**
-
-    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume and switch to the [*HTML instruction state*][s-html-instruction]
 
 ### 11.20 HTML instruction or email label state
 
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+002D DASH (`-`)**
 
     Consume and switch to the [*HTML instruction or email dash state*][s-html-instruction-or-email-dash]
@@ -2493,16 +2497,16 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
     Consume and switch to the [*HTML instruction or email label state*][s-html-instruction-or-email-label]
-*   ↪ **[EOF][ceof]**\
-    ↪ **[EOL][ceol]**
-
-    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume and switch to the [*HTML instruction state*][s-html-instruction]
 
 ### 11.21 HTML instruction or email dash state
 
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+002D DASH (`-`)**
 
     Consume and switch to the [*HTML instruction or email dash state*][s-html-instruction-or-email-dash]
@@ -2512,41 +2516,37 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
     Consume and switch to the [*HTML instruction or email label state*][s-html-instruction-or-email-label]
-*   ↪ **[EOF][ceof]**\
-    ↪ **[EOL][ceol]**
-
-    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume and switch to the [*HTML instruction state*][s-html-instruction]
 
 ### 11.22 HTML instruction state
 
-*   ↪ **U+003F QUESTION MARK (`?`)**
-
-    Consume and switch to the [*HTML instruction close state*][s-html-instruction-close]
-*   ↪ **[EOL][ceol]**
-
-    Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **[EOF][ceof]**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **[EOL][ceol]**
+
+    Enqueue an [*End-of-line token*][t-end-of-line] and consume
+*   ↪ **U+003F QUESTION MARK (`?`)**
+
+    Consume and switch to the [*HTML instruction close state*][s-html-instruction-close]
 *   ↪ **Anything else**
 
     Consume
 
 ### 11.23 HTML instruction close state
 
-*   ↪ **U+003E GREATER THAN (`>`)**
+*   ↪ **[EOF][ceof]**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a [*Content token*][t-content], and switch to the
     [*HTML instruction state*][s-html-instruction]
-*   ↪ **[EOF][ceof]**
+*   ↪ **U+003E GREATER THAN (`>`)**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume
@@ -2592,6 +2592,9 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.26 HTML comment or email atext state
 
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+002D DASH (`-`)**
 
     Consume and switch to the [*HTML comment close inside or email atext state*][s-html-comment-close-inside-or-email-atext]
@@ -2602,15 +2605,15 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **U+002E DOT (`.`)**
 
     Consume and switch to the [*HTML comment or email atext state*][s-html-comment-or-email-atext]
-*   ↪ **[EOF][ceof]**
-
-    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*HTML comment state*][s-html-comment]
 
 ### 11.27 HTML comment close inside or email atext state
 
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+002D DASH (`-`)**
 
     Consume and switch to the [*HTML comment close or email atext state*][s-html-comment-close-or-email-atext]
@@ -2621,9 +2624,6 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **U+002E DOT (`.`)**
 
     Consume and switch to the [*HTML comment or email atext state*][s-html-comment-or-email-atext]
-*   ↪ **[EOF][ceof]**
-
-    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*HTML comment state*][s-html-comment]
@@ -2651,21 +2651,24 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.29 HTML comment or email at sign or dot state
 
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+002D DASH (`-`)**
 
     Consume and switch to the [*HTML comment close inside state*][s-html-comment-close-inside]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
     Consume and switch to the [*HTML comment or email label state*][s-html-comment-or-email-label]
-*   ↪ **[EOF][ceof]**
-
-    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*HTML comment state*][s-html-comment]
 
 ### 11.30 HTML comment or email label state
 
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+002D DASH (`-`)**
 
     Consume and switch to the [*HTML comment close inside or email label dash state*][s-html-comment-close-inside-or-email-label-dash]
@@ -2680,25 +2683,22 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
     Consume and switch to the [*HTML comment or email label state*][s-html-comment-or-email-label]
-*   ↪ **[EOF][ceof]**
-
-    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*HTML comment state*][s-html-comment]
 
 ### 11.31 HTML comment close inside or email label dash state
 
+*   ↪ **[EOF][ceof]**\
+    ↪ **U+003E GREATER THAN (`>`)**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+002D DASH (`-`)**
 
     Consume and switch to the [*HTML comment close or email label dash state*][s-html-comment-close-or-email-label-dash]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
     Consume and switch to the [*HTML comment or email label state*][s-html-comment-or-email-label]
-*   ↪ **U+003E GREATER THAN (`>`)**\
-    ↪ **[EOF][ceof]**
-
-    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*HTML comment state*][s-html-comment]
@@ -2722,31 +2722,31 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.33 HTML comment state
 
-*   ↪ **U+002D DASH (`-`)**
-
-    Consume and switch to the [*HTML comment close inside state*][s-html-comment-close-inside]
-*   ↪ **[EOL][ceol]**
-
-    Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
 *   ↪ **[EOF][ceof]**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **[EOL][ceol]**
+
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
+*   ↪ **U+002D DASH (`-`)**
+
+    Consume and switch to the [*HTML comment close inside state*][s-html-comment-close-inside]
 *   ↪ **Anything else**
 
     Consume
 
 ### 11.34 HTML comment close inside state
 
-*   ↪ **U+002D DASH (`-`)**
+*   ↪ **[EOF][ceof]**
 
-    Consume and switch to the [*HTML comment close state*][s-html-comment-close]
+    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a [*Content token*][t-content], and switch to the
     [*HTML comment state*][s-html-comment]
-*   ↪ **[EOF][ceof]**
+*   ↪ **U+002D DASH (`-`)**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Consume and switch to the [*HTML comment close state*][s-html-comment-close]
 *   ↪ **Anything else**
 
     Consume
@@ -2767,15 +2767,15 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.36 HTML CDATA state
 
-*   ↪ **`]]>` (two of U+005D RIGHT SQUARE BRACKET (`]`), with a U+003E GREATER THAN (`>`) after)**
-
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
-*   ↪ **[EOL][ceol]**
-
-    Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
 *   ↪ **[EOF][ceof]**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **[EOL][ceol]**
+
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
+*   ↪ **`]]>` (two of U+005D RIGHT SQUARE BRACKET (`]`), with a U+003E GREATER THAN (`>`) after)**
+
+    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume
@@ -2888,8 +2888,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.43 HTML tag open scheme or email atext state
 
-*   ↪ **U+002B PLUS SIGN (`+`)**:\
-    ↪ **U+002E DOT (`.`)**:
+*   ↪ **U+002B PLUS SIGN (`+`)**\
+    ↪ **U+002E DOT (`.`)**
 
     Consume and switch to the [*Autolink scheme inside or email atext state*][s-autolink-scheme-inside-or-email-atext]
 *   ↪ **U+003E GREATER THAN (`>`)**
@@ -2910,11 +2910,11 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 > ❗️ Todo: support whitespace, attributes, etc in email
 
-*   ↪ **U+002B PLUS SIGN (`+`)**:\
-    ↪ **U+002E DOT (`.`)**:
+*   ↪ **U+002B PLUS SIGN (`+`)**\
+    ↪ **U+002E DOT (`.`)**
 
     Consume and switch to the [*Autolink scheme inside or email atext state*][s-autolink-scheme-inside-or-email-atext]
-*   ↪ **U+003A COLON (`:`)**:
+*   ↪ **U+003A COLON (`:`)**
 
     Consume and switch to the [*Autolink URI inside state*][s-autolink-uri-inside]
 *   ↪ **U+0040 AT SIGN (`@`)**
@@ -2934,7 +2934,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.45 Autolink scheme inside or email atext state
 
-*   ↪ **U+003A COLON (`:`)**:
+*   ↪ **U+003A COLON (`:`)**
 
     Consume and switch to the [*Autolink URI inside state*][s-autolink-uri-inside]
 *   ↪ **U+0040 AT SIGN (`@`)**
@@ -2959,13 +2959,13 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Consume, signal [*Text autolink URI sign*][e-text-autolink-uri], and switch to the
     [*Initial inline state*][s-initial-inline]
-*   ↪ **[EOF][ceof]**\
+*   ↪ **[ASCII control][ascii-control]**\
+    ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
-    ↪ **U+0020 SPACE (SP)**:\
-    ↪ **U+003C LESS THAN (`<`)**:\
-    ↪ **[ASCII control][ascii-control]**:
+    ↪ **U+0020 SPACE (SP)**\
+    ↪ **U+003C LESS THAN (`<`)**
 
-    Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
+    Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume
