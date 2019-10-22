@@ -43,8 +43,8 @@ Common Markup parser.
     *   [9.3 Line ending state](#93-line-ending-state)
     *   [9.4 Carriage return state](#94-carriage-return-state)
     *   [9.5 In line state](#95-in-line-state)
-    *   [9.6 ATX heading opening sequence state](#96-atx-heading-opening-sequence-state)
-    *   [9.7 ATX heading opening sequence after state](#97-atx-heading-opening-sequence-after-state)
+    *   [9.6 ATX heading open sequence state](#96-atx-heading-open-sequence-state)
+    *   [9.7 ATX heading open sequence after state](#97-atx-heading-open-sequence-after-state)
     *   [9.8 ATX heading content state](#98-atx-heading-content-state)
     *   [9.9 ATX heading whitespace state](#99-atx-heading-whitespace-state)
     *   [9.10 ATX heading number sign sequence state](#910-atx-heading-number-sign-sequence-state)
@@ -54,7 +54,7 @@ Common Markup parser.
     *   [9.14 HTML block open markup declaration state](#914-html-block-open-markup-declaration-state)
     *   [9.15 HTML block open comment inside state](#915-html-block-open-comment-inside-state)
     *   [9.16 HTML block open character data inside state](#916-html-block-open-character-data-inside-state)
-    *   [9.17 HTML block open tag name inside state](#917-html-block-open-tag-name-inside-state)
+    *   [9.17 HTML block tag open name inside state](#917-html-block-tag-open-name-inside-state)
     *   [9.18 HTML block open simple self closing tag state](#918-html-block-open-simple-self-closing-tag-state)
     *   [9.19 HTML block open complete attribute before state](#919-html-block-open-complete-attribute-before-state)
     *   [9.20 HTML block open complete attribute name state](#920-html-block-open-complete-attribute-name-state)
@@ -66,20 +66,20 @@ Common Markup parser.
     *   [9.26 HTML block open complete self closing tag state](#926-html-block-open-complete-self-closing-tag-state)
     *   [9.27 HTML block open complete tag after state](#927-html-block-open-complete-tag-after-state)
     *   [9.28 HTML block continuation line state](#928-html-block-continuation-line-state)
-    *   [9.29 HTML block continuation close tag state](#929-html-block-continuation-close-tag-state)
-    *   [9.30 HTML block continuation close tag name inside state](#930-html-block-continuation-close-tag-name-inside-state)
+    *   [9.29 HTML block continuation tag close state](#929-html-block-continuation-tag-close-state)
+    *   [9.30 HTML block continuation tag close name inside state](#930-html-block-continuation-tag-close-name-inside-state)
     *   [9.31 HTML block continuation comment inside state](#931-html-block-continuation-comment-inside-state)
     *   [9.32 HTML block continuation character data inside state](#932-html-block-continuation-character-data-inside-state)
     *   [9.33 HTML block continuation declaration before state](#933-html-block-continuation-declaration-before-state)
     *   [9.34 HTML block close line state](#934-html-block-close-line-state)
     *   [9.35 Setext heading underline equals to sequence state](#935-setext-heading-underline-equals-to-sequence-state)
     *   [9.36 Setext heading underline equals to after state](#936-setext-heading-underline-equals-to-after-state)
-    *   [9.37 Fenced code grave accent opening fence state](#937-fenced-code-grave-accent-opening-fence-state)
-    *   [9.38 Fenced code grave accent opening fence whitespace state](#938-fenced-code-grave-accent-opening-fence-whitespace-state)
-    *   [9.39 Fenced code grave accent opening fence metadata state](#939-fenced-code-grave-accent-opening-fence-metadata-state)
-    *   [9.40 Fenced code tilde opening fence state](#940-fenced-code-tilde-opening-fence-state)
-    *   [9.41 Fenced code tilde opening fence whitespace state](#941-fenced-code-tilde-opening-fence-whitespace-state)
-    *   [9.42 Fenced code tilde opening fence metadata state](#942-fenced-code-tilde-opening-fence-metadata-state)
+    *   [9.37 Fenced code grave accent fence open state](#937-fenced-code-grave-accent-fence-open-state)
+    *   [9.38 Fenced code grave accent fence open whitespace state](#938-fenced-code-grave-accent-fence-open-whitespace-state)
+    *   [9.39 Fenced code grave accent fence open metadata state](#939-fenced-code-grave-accent-fence-open-metadata-state)
+    *   [9.40 Fenced code tilde fence open state](#940-fenced-code-tilde-fence-open-state)
+    *   [9.41 Fenced code tilde fence open whitespace state](#941-fenced-code-tilde-fence-open-whitespace-state)
+    *   [9.42 Fenced code tilde fence open metadata state](#942-fenced-code-tilde-fence-open-metadata-state)
     *   [9.43 Fenced code continuation line state](#943-fenced-code-continuation-line-state)
     *   [9.44 Fenced code close sequence state](#944-fenced-code-close-sequence-state)
     *   [9.45 Fenced code close whitespace state](#945-fenced-code-close-whitespace-state)
@@ -124,10 +124,10 @@ Common Markup parser.
     *   [11.6 Character reference hexadecimal start state](#116-character-reference-hexadecimal-start-state)
     *   [11.7 Character reference hexadecimal state](#117-character-reference-hexadecimal-state)
     *   [11.8 Character reference decimal state](#118-character-reference-decimal-state)
-    *   [11.9 Code span opening state](#119-code-span-opening-state)
+    *   [11.9 Code span open state](#119-code-span-open-state)
     *   [11.10 Code span eol after state](#1110-code-span-eol-after-state)
     *   [11.11 Code span inside state](#1111-code-span-inside-state)
-    *   [11.12 Code span closing state](#1112-code-span-closing-state)
+    *   [11.12 Code span close state](#1112-code-span-close-state)
     *   [11.13 Emphasis underscore state](#1113-emphasis-underscore-state)
     *   [11.14 Escape backslash after state](#1114-escape-backslash-after-state)
     *   [11.15 Image exclamation mark after state](#1115-image-exclamation-mark-after-state)
@@ -155,11 +155,11 @@ Common Markup parser.
     *   [11.37 HTML declaration name or email atext state](#1137-html-declaration-name-or-email-atext-state)
     *   [11.38 HTML declaration between state](#1138-html-declaration-between-state)
     *   [11.39 HTML declaration content state](#1139-html-declaration-content-state)
-    *   [11.40 HTML closing tag or email atext state](#1140-html-closing-tag-or-email-atext-state)
-    *   [11.41 HTML closing tag inside or email atext state](#1141-html-closing-tag-inside-or-email-atext-state)
-    *   [11.42 HTML closing tag between state](#1142-html-closing-tag-between-state)
-    *   [11.43 HTML opening tag scheme or email atext state](#1143-html-opening-tag-scheme-or-email-atext-state)
-    *   [11.44 HTML opening tag inside scheme inside or email atext state](#1144-html-opening-tag-inside-scheme-inside-or-email-atext-state)
+    *   [11.40 HTML tag close or email atext state](#1140-html-tag-close-or-email-atext-state)
+    *   [11.41 HTML tag close inside or email atext state](#1141-html-tag-close-inside-or-email-atext-state)
+    *   [11.42 HTML tag close between state](#1142-html-tag-close-between-state)
+    *   [11.43 HTML tag open scheme or email atext state](#1143-html-tag-open-scheme-or-email-atext-state)
+    *   [11.44 HTML tag open inside scheme inside or email atext state](#1144-html-tag-open-inside-scheme-inside-or-email-atext-state)
     *   [11.45 Autolink scheme inside or email atext state](#1145-autolink-scheme-inside-or-email-atext-state)
     *   [11.46 Autolink URI inside state](#1146-autolink-uri-inside-state)
     *   [11.47 Autolink email atext state](#1147-autolink-email-atext-state)
@@ -228,9 +228,9 @@ Common Markup parser.
     *   [15.27 Escape group](#1527-escape-group)
     *   [15.28 Character reference group](#1528-character-reference-group)
     *   [15.29 Paragraph group](#1529-paragraph-group)
-    *   [15.30 Image opening group](#1530-image-opening-group)
-    *   [15.31 Link opening group](#1531-link-opening-group)
-    *   [15.32 Link or image closing group](#1532-link-or-image-closing-group)
+    *   [15.30 Image open group](#1530-image-open-group)
+    *   [15.31 Link open group](#1531-link-open-group)
+    *   [15.32 Link or image close group](#1532-link-or-image-close-group)
     *   [15.33 Emphasis or strong group](#1533-emphasis-or-strong-group)
     *   [15.34 Phrasing code group](#1534-phrasing-code-group)
     *   [15.35 Automatic link group](#1535-automatic-link-group)
@@ -636,7 +636,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 *   ↪ **U+0023 NUMBER SIGN (`#`)**
 
     Enqueue a [*Sequence token*][t-sequence], consume, and switch to the
-    [*ATX heading opening sequence state*][s-atx-heading-opening-sequence]
+    [*ATX heading open sequence state*][s-atx-heading-open-sequence]
 *   ↪ **U+002A ASTERISK (`*`)**
 
     Enqueue a [*Marker token*][t-marker], consume, and switch to the
@@ -670,18 +670,18 @@ Otherwise, perform the following steps based on the [input character][input-char
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
     Enqueue a [*Sequence token*][t-sequence], consume, and switch to the
-    [*Fenced code grave accent opening fence state*][s-fenced-code-grave-accent-opening-fence]
+    [*Fenced code grave accent fence open state*][s-fenced-code-grave-accent-fence-open]
 *   ↪ **U+007E TILDE (`~`)**
 
     Enqueue a [*Sequence token*][t-sequence], consume, and switch to the
-    [*Fenced code tilde opening fence state*][s-fenced-code-tilde-opening-fence]
+    [*Fenced code tilde fence open state*][s-fenced-code-tilde-fence-open]
 *   ↪ **Anything else**
 
     Otherwise, enqueue a [*Content token*][t-content] with the unused characters of the previous
     [*Whitespace token*][t-whitespace] if there is one, consume, and switch to the
     [*Content continuation state*][s-content-continuation]
 
-### 9.6 ATX heading opening sequence state
+### 9.6 ATX heading open sequence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -693,7 +693,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     ↪ **U+0020 SPACE (SP)**
 
     Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*ATX heading opening sequence after state*][s-atx-heading-opening-sequence-after]
+    [*ATX heading open sequence after state*][s-atx-heading-open-sequence-after]
 *   ↪ **U+0023 NUMBER SIGN (`#`)**
 
     If the current token’s size is less than six (6), consume.
@@ -704,7 +704,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     Change the [current token][current-token] into a [*Content token*][t-content], consume, and switch to the
     [*Content continuation state*][s-content-continuation]
 
-### 9.7 ATX heading opening sequence after state
+### 9.7 ATX heading open sequence after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -835,7 +835,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     > ❗️ Todo: Define shared space: `endTag`
 
     Let `endTag` be `true`, consume, and switch to the
-    [*HTML block open tag name inside state*][s-html-block-open-tag-name-inside]
+    [*HTML block tag open name inside state*][s-html-block-tag-open-name-inside]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
     > ❗️ Todo: Define shared space: `kind`
@@ -847,7 +847,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     > ❗️ Todo: Define shared space: `tagName`
 
     Append the [ASCII-lowercase][ascii-lowercase]d character to `tagName`, consume, and switch
-    to the [*HTML block open tag name inside state*][s-html-block-open-tag-name-inside]
+    to the [*HTML block tag open name inside state*][s-html-block-tag-open-name-inside]
 *   ↪ **Anything else**
 
     This is not an HTML block.
@@ -901,7 +901,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 9.17 HTML block open tag name inside state
+### 9.17 HTML block tag open name inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1182,7 +1182,7 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `kind`
 
     If `kind` is `1`, consume, and switch to the
-    [*HTML block continuation close tag state*][s-html-block-continuation-close-tag].
+    [*HTML block continuation tag close state*][s-html-block-continuation-tag-close].
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003E GREATER THAN (`>`)**
@@ -1213,16 +1213,16 @@ If the next few characters are:
 
     Consume
 
-### 9.29 HTML block continuation close tag state
+### 9.29 HTML block continuation tag close state
 
 *   ↪ **U+002F SLASH (`/`)**
 
-    Consume and switch to the [*HTML block continuation close tag name inside state*][s-html-block-continuation-close-tag-name-inside]
+    Consume and switch to the [*HTML block continuation tag close name inside state*][s-html-block-continuation-tag-close-name-inside]
 *   ↪ **Anything else**
 
     Reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line]
 
-### 9.30 HTML block continuation close tag name inside state
+### 9.30 HTML block continuation tag close name inside state
 
 *   ↪ **[ASCII alpha][ascii-alpha]**
 
@@ -1316,7 +1316,7 @@ If the next few characters are:
     Turn the previous and  [current token][current-token] into a [*Content token*][t-content], consume, and
     switch to the [*Content continuation state*][s-content-continuation]
 
-### 9.37 Fenced code grave accent opening fence state
+### 9.37 Fenced code grave accent fence open state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1337,7 +1337,7 @@ If the next few characters are:
 
     If the [current token][current-token]’s size is greater than or equal to three (3),
     enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Fenced code grave accent opening fence whitespace state*][s-fenced-code-grave-accent-opening-fence-whitespace]
+    [*Fenced code grave accent fence open whitespace state*][s-fenced-code-grave-accent-fence-open-whitespace]
 
     Otherwise, this is not fenced code.
     Turn the [current token][current-token] into a [*Content token*][t-content] and reconsume in the
@@ -1346,13 +1346,13 @@ If the next few characters are:
 
     If the [current token][current-token]’s size is greater than or equal to three (3),
     enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Fenced code grave accent opening fence metadata state*][s-fenced-code-grave-accent-opening-fence-metadata]
+    [*Fenced code grave accent fence open metadata state*][s-fenced-code-grave-accent-fence-open-metadata]
 
     Otherwise, this is not fenced code.
     Turn the enqueue, except for the first token if it is a [*Whitespace token*][t-whitespace], into a
     [*Content token*][t-content] and reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 9.38 Fenced code grave accent opening fence whitespace state
+### 9.38 Fenced code grave accent fence open whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1373,9 +1373,9 @@ If the next few characters are:
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Fenced code grave accent opening fence metadata state*][s-fenced-code-grave-accent-opening-fence-metadata]
+    [*Fenced code grave accent fence open metadata state*][s-fenced-code-grave-accent-fence-open-metadata]
 
-### 9.39 Fenced code grave accent opening fence metadata state
+### 9.39 Fenced code grave accent fence open metadata state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1387,7 +1387,7 @@ If the next few characters are:
     ↪ **U+0020 SPACE (SP)**
 
     Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Fenced code grave accent opening fence whitespace state*][s-fenced-code-grave-accent-opening-fence-whitespace]
+    [*Fenced code grave accent fence open whitespace state*][s-fenced-code-grave-accent-fence-open-whitespace]
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
     This is not fenced code.
@@ -1397,7 +1397,7 @@ If the next few characters are:
 
     Consume
 
-### 9.40 Fenced code tilde opening fence state
+### 9.40 Fenced code tilde fence open state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1418,7 +1418,7 @@ If the next few characters are:
 
     If the [current token][current-token]’s size is greater than or equal to three (3),
     enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Fenced code tilde opening fence whitespace state*][s-fenced-code-tilde-opening-fence-whitespace]
+    [*Fenced code tilde fence open whitespace state*][s-fenced-code-tilde-fence-open-whitespace]
 
     Otherwise, this is not fenced code.
     Turn the [current token][current-token] into a [*Content token*][t-content] and reconsume in the
@@ -1427,13 +1427,13 @@ If the next few characters are:
 
     If the [current token][current-token]’s size is greater than or equal to three (3),
     enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Fenced code tilde opening fence metadata state*][s-fenced-code-tilde-opening-fence-metadata]
+    [*Fenced code tilde fence open metadata state*][s-fenced-code-tilde-fence-open-metadata]
 
     Otherwise, this is not fenced code.
     Turn the [current token][current-token] into a [*Content token*][t-content] and reconsume in the
     [*Content continuation state*][s-content-continuation]
 
-### 9.41 Fenced code tilde opening fence whitespace state
+### 9.41 Fenced code tilde fence open whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1449,9 +1449,9 @@ If the next few characters are:
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Fenced code tilde opening fence metadata state*][s-fenced-code-tilde-opening-fence-metadata]
+    [*Fenced code tilde fence open metadata state*][s-fenced-code-tilde-fence-open-metadata]
 
-### 9.42 Fenced code tilde opening fence metadata state
+### 9.42 Fenced code tilde fence open metadata state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1463,7 +1463,7 @@ If the next few characters are:
     ↪ **U+0020 SPACE (SP)**
 
     Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Fenced code tilde opening fence whitespace state*][s-fenced-code-tilde-opening-fence-whitespace]
+    [*Fenced code tilde fence open whitespace state*][s-fenced-code-tilde-fence-open-whitespace]
 *   ↪ **Anything else**
 
     Consume
@@ -1486,9 +1486,9 @@ If the next few characters are:
     ↪ **U+000A LINE FEED (LF)**\
     ↪ **U+000D CARRIAGE RETURN (CR)**
 
-    > ❗️ Todo: Define shared space: `openingSize`
+    > ❗️ Todo: Define shared space: `sizeOpen`
 
-    If the [current token][current-token]’s size is greater than or equal to `openingSize`,
+    If the [current token][current-token]’s size is greater than or equal to `sizeOpen`,
     [process as a Fenced code fence][process-as-a-fenced-code-fence], close, and reconsume in the
     [*Line ending state*][s-line-ending]
 
@@ -1496,9 +1496,9 @@ If the next few characters are:
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    > ❗️ Todo: Define shared space: `openingSize`
+    > ❗️ Todo: Define shared space: `sizeOpen`
 
-    If the [current token][current-token]’s size is greater than or equal to `openingSize`,
+    If the [current token][current-token]’s size is greater than or equal to `sizeOpen`,
     enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Fenced code close whitespace state*][s-fenced-code-close-whitespace].
 
@@ -2157,8 +2157,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
-    If `type` is a `rich`, let `openingSize` be `1`, enqueue a [*Sequence token*][t-sequence],
-    consume, and switch to the [*Code span opening state*][s-code-span-opening].
+    If `type` is a `rich`, let `sizeOpen` be `1`, enqueue a [*Sequence token*][t-sequence], consume,
+    and switch to the [*Code span open state*][s-code-span-open].
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
@@ -2274,13 +2274,13 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.9 Code span opening state
+### 11.9 Code span open state
 
-> ❗️ Todo: Define shared space: `openingSize`
+> ❗️ Todo: Define shared space: `sizeOpen`
 
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
-    Increment `openingSize` by `1` and consume
+    Increment `sizeOpen` by `1` and consume
 *   ↪ **[EOF][ceof]**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2294,7 +2294,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.10 Code span eol after state
 
-> ❗️ Todo: Define shared space: `openingSize`
+> ❗️ Todo: Define shared space: `sizeOpen`
 
 *   ↪ **[EOF][ceof]**
 
@@ -2305,15 +2305,15 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     [*Code span eol after state*][s-code-span-eol-after]
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
-    Enqueue a [*Sequence token*][t-sequence], let `closingSize` be `1`, consume, and switch to the
-    [*Code span closing state*][s-code-span-closing]
+    Enqueue a [*Sequence token*][t-sequence], let `sizeClose` be `1`, consume, and switch to the
+    [*Code span close state*][s-code-span-close]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Code span inside state*][s-code-span-inside]
 
 ### 11.11 Code span inside state
 
-> ❗️ Todo: Define shared space: `closingSize`
+> ❗️ Todo: Define shared space: `sizeClose`
 
 *   ↪ **[EOF][ceof]**
 
@@ -2324,36 +2324,36 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     [*Code span eol after state*][s-code-span-eol-after]
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
-    Enqueue a [*Sequence token*][t-sequence], let `closingSize` be `1`, consume, and switch to the
-    [*Code span closing state*][s-code-span-closing]
+    Enqueue a [*Sequence token*][t-sequence], let `sizeClose` be `1`, consume, and switch to the
+    [*Code span close state*][s-code-span-close]
 *   ↪ **Anything else**
 
     Consume
 
-### 11.12 Code span closing state
+### 11.12 Code span close state
 
-> ❗️ Todo: Define shared space: `openingSize`, `closingSize`
+> ❗️ Todo: Define shared space: `sizeOpen`, `sizeClose`
 
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
-    Increment `closingSize` by `1` and consume
+    Increment `sizeClose` by `1` and consume
 *   ↪ **[EOF][ceof]**
 
-    If `openingSize` is `closingSize`, signal **[*Text code sign*][e-text-code]** and reconsume in
-    the [*Initial inline state*][s-initial-inline]
+    If `sizeOpen` is `sizeClose`, signal **[*Text code sign*][e-text-code]** and reconsume in the
+    [*Initial inline state*][s-initial-inline]
 
     Otherwise, reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
-    If `openingSize` is `closingSize`, signal **[*Text code sign*][e-text-code]** and reconsume in
-    the [*Initial inline state*][s-initial-inline]
+    If `sizeOpen` is `sizeClose`, signal **[*Text code sign*][e-text-code]** and reconsume in the
+    [*Initial inline state*][s-initial-inline]
 
     Otherwise, enqueue an [*End-of-line token*][t-end-of-line], consume, emit, and switch to the
     [*Code span eol after state*][s-code-span-eol-after]
 *   ↪ **Anything else**
 
-    If `openingSize` is `closingSize`, signal **[*Text code sign*][e-text-code]** and reconsume in
-    the [*Initial inline state*][s-initial-inline]
+    If `sizeOpen` is `sizeClose`, signal **[*Text code sign*][e-text-code]** and reconsume in the
+    [*Initial inline state*][s-initial-inline]
 
     Otherwise, consume and switch to the [*Code span inside state*][s-code-span-inside]
 
@@ -2393,13 +2393,13 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML declaration or email atext state*][s-html-declaration-or-email-atext]
 *   ↪ **U+002F SLASH (`/`)**
 
-    Consume and switch to the [*HTML closing tag or email atext state*][s-html-closing-tag-or-email-atext]
+    Consume and switch to the [*HTML tag close or email atext state*][s-html-tag-close-or-email-atext]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
     Consume and switch to the [*HTML instruction or email atext state*][s-html-instruction-or-email-atext]
 *   ↪ **[ASCII alpha][ascii-alpha]**
 
-    Consume and switch to the [*HTML opening tag scheme or email atext state*][s-html-opening-tag-scheme-or-email-atext]
+    Consume and switch to the [*HTML tag open scheme or email atext state*][s-html-tag-open-scheme-or-email-atext]
 *   ↪ **[atext][atext]**\
     ↪ **U+002E DOT (`.`)**
 
@@ -2827,14 +2827,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Consume
 
-### 11.40 HTML closing tag or email atext state
+### 11.40 HTML tag close or email atext state
 
 *   ↪ **U+0040 AT SIGN (`@`)**
 
     Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
 *   ↪ **[ASCII alpha][ascii-alpha]**
 
-    Consume and switch to the [*HTML closing tag inside or email atext state*][s-html-closing-tag-inside-or-email-atext]
+    Consume and switch to the [*HTML tag close inside or email atext state*][s-html-tag-close-inside-or-email-atext]
 *   ↪ **[atext][atext]**\
     ↪ **U+002E DOT (`.`)**
 
@@ -2843,13 +2843,13 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.41 HTML closing tag inside or email atext state
+### 11.41 HTML tag close inside or email atext state
 
 *   ↪ **[EOL][ceol]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Reconsume in the [*HTML closing tag between state*][s-html-closing-tag-between]
+    Reconsume in the [*HTML tag close between state*][s-html-tag-close-between]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     Consume, emit, signal **[*Text HTML sign*][e-text-html]**, and switch to the [*Initial inline state*][s-initial-inline]
@@ -2868,7 +2868,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.42 HTML closing tag between state
+### 11.42 HTML tag close between state
 
 > **Note**: an EOL here would be technically allowed here, but anything else
 > isn’t, and as a `>` after an EOL would start a blockquote, practically it’s
@@ -2881,7 +2881,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.43 HTML opening tag scheme or email atext state
+### 11.43 HTML tag open scheme or email atext state
 
 *   ↪ **U+002B PLUS SIGN (`+`)**:\
     ↪ **U+002E DOT (`.`)**:
@@ -2893,7 +2893,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
     ↪ **U+002D DASH (`-`)**
 
-    Consume and switch to the [*HTML opening tag inside scheme inside or email atext state*][s-html-opening-tag-inside-scheme-inside-or-email-atext]
+    Consume and switch to the [*HTML tag open inside scheme inside or email atext state*][s-html-tag-open-inside-scheme-inside-or-email-atext]
 *   ↪ **[atext][atext]**
 
     Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
@@ -2901,7 +2901,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.44 HTML opening tag inside scheme inside or email atext state
+### 11.44 HTML tag open inside scheme inside or email atext state
 
 > ❗️ Todo: support whitespace, attributes, etc in email
 
@@ -2919,7 +2919,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **U+002D DASH (`-`)**
 
     Consume and switch to the
-    [*HTML opening tag inside scheme inside or email atext state*][s-html-opening-tag-inside-scheme-inside-or-email-atext]
+    [*HTML tag open inside scheme inside or email atext state*][s-html-tag-open-inside-scheme-inside-or-email-atext]
 *   ↪ **[atext][atext]**
 
     Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
@@ -3587,11 +3587,11 @@ interface CharacterReference <: Group {
 
 > ❗️ Todo
 
-### 15.30 Image opening group
+### 15.30 Image open group
 
-### 15.31 Link opening group
+### 15.31 Link open group
 
-### 15.32 Link or image closing group
+### 15.32 Link or image close group
 
 ### 15.33 Emphasis or strong group
 
@@ -4067,9 +4067,9 @@ This work is licensed under a
 
 [s-in-line]: #95-in-line-state
 
-[s-atx-heading-opening-sequence]: #96-atx-heading-opening-sequence-state
+[s-atx-heading-open-sequence]: #96-atx-heading-open-sequence-state
 
-[s-atx-heading-opening-sequence-after]: #97-atx-heading-opening-sequence-after-state
+[s-atx-heading-open-sequence-after]: #97-atx-heading-open-sequence-after-state
 
 [s-atx-heading-content]: #98-atx-heading-content-state
 
@@ -4089,7 +4089,7 @@ This work is licensed under a
 
 [s-html-block-open-character-data-inside]: #916-html-block-open-character-data-inside-state
 
-[s-html-block-open-tag-name-inside]: #917-html-block-open-tag-name-inside-state
+[s-html-block-tag-open-name-inside]: #917-html-block-tag-open-name-inside-state
 
 [s-html-block-open-simple-self-closing-tag]: #918-html-block-open-simple-self-closing-tag-state
 
@@ -4113,9 +4113,9 @@ This work is licensed under a
 
 [s-html-block-continuation-line]: #928-html-block-continuation-line-state
 
-[s-html-block-continuation-close-tag]: #929-html-block-continuation-close-tag-state
+[s-html-block-continuation-tag-close]: #929-html-block-continuation-tag-close-state
 
-[s-html-block-continuation-close-tag-name-inside]: #930-html-block-continuation-close-tag-name-inside-state
+[s-html-block-continuation-tag-close-name-inside]: #930-html-block-continuation-tag-close-name-inside-state
 
 [s-html-block-continuation-comment-inside]: #931-html-block-continuation-comment-inside-state
 
@@ -4129,17 +4129,17 @@ This work is licensed under a
 
 [s-setext-heading-underline-equals-to-after]: #936-setext-heading-underline-equals-to-after-state
 
-[s-fenced-code-grave-accent-opening-fence]: #937-fenced-code-grave-accent-opening-fence-state
+[s-fenced-code-grave-accent-fence-open]: #937-fenced-code-grave-accent-fence-open-state
 
-[s-fenced-code-grave-accent-opening-fence-whitespace]: #938-fenced-code-grave-accent-opening-fence-whitespace-state
+[s-fenced-code-grave-accent-fence-open-whitespace]: #938-fenced-code-grave-accent-fence-open-whitespace-state
 
-[s-fenced-code-grave-accent-opening-fence-metadata]: #939-fenced-code-grave-accent-opening-fence-metadata-state
+[s-fenced-code-grave-accent-fence-open-metadata]: #939-fenced-code-grave-accent-fence-open-metadata-state
 
-[s-fenced-code-tilde-opening-fence]: #940-fenced-code-tilde-opening-fence-state
+[s-fenced-code-tilde-fence-open]: #940-fenced-code-tilde-fence-open-state
 
-[s-fenced-code-tilde-opening-fence-whitespace]: #941-fenced-code-tilde-opening-fence-whitespace-state
+[s-fenced-code-tilde-fence-open-whitespace]: #941-fenced-code-tilde-fence-open-whitespace-state
 
-[s-fenced-code-tilde-opening-fence-metadata]: #942-fenced-code-tilde-opening-fence-metadata-state
+[s-fenced-code-tilde-fence-open-metadata]: #942-fenced-code-tilde-fence-open-metadata-state
 
 [s-fenced-code-continuation-line]: #943-fenced-code-continuation-line-state
 
@@ -4225,13 +4225,13 @@ This work is licensed under a
 
 [s-character-reference-decimal]: #118-character-reference-decimal-state
 
-[s-code-span-opening]: #119-code-span-opening-state
+[s-code-span-open]: #119-code-span-open-state
 
 [s-code-span-eol-after]: #1110-code-span-eol-after-state
 
 [s-code-span-inside]: #1111-code-span-inside-state
 
-[s-code-span-closing]: #1112-code-span-closing-state
+[s-code-span-close]: #1112-code-span-close-state
 
 [s-emphasis-underscore]: #1113-emphasis-underscore-state
 
@@ -4287,15 +4287,15 @@ This work is licensed under a
 
 [s-html-declaration-content]: #1139-html-declaration-content-state
 
-[s-html-closing-tag-or-email-atext]: #1140-html-closing-tag-or-email-atext-state
+[s-html-tag-close-or-email-atext]: #1140-html-tag-close-or-email-atext-state
 
-[s-html-closing-tag-inside-or-email-atext]: #1141-html-closing-tag-inside-or-email-atext-state
+[s-html-tag-close-inside-or-email-atext]: #1141-html-tag-close-inside-or-email-atext-state
 
-[s-html-closing-tag-between]: #1142-html-closing-tag-between-state
+[s-html-tag-close-between]: #1142-html-tag-close-between-state
 
-[s-html-opening-tag-scheme-or-email-atext]: #1143-html-opening-tag-scheme-or-email-atext-state
+[s-html-tag-open-scheme-or-email-atext]: #1143-html-tag-open-scheme-or-email-atext-state
 
-[s-html-opening-tag-inside-scheme-inside-or-email-atext]: #1144-html-opening-tag-inside-scheme-inside-or-email-atext-state
+[s-html-tag-open-inside-scheme-inside-or-email-atext]: #1144-html-tag-open-inside-scheme-inside-or-email-atext-state
 
 [s-autolink-scheme-inside-or-email-atext]: #1145-autolink-scheme-inside-or-email-atext-state
 
@@ -4407,11 +4407,11 @@ This work is licensed under a
 
 [g-paragraph]: #1529-paragraph-group
 
-[g-image-opening]: #1530-image-opening-group
+[g-image-open]: #1530-image-open-group
 
-[g-link-opening]: #1531-link-opening-group
+[g-link-open]: #1531-link-open-group
 
-[g-link-or-image-closing]: #1532-link-or-image-closing-group
+[g-link-or-image-close]: #1532-link-or-image-close-group
 
 [g-emphasis-or-strong]: #1533-emphasis-or-strong-group
 
