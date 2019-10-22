@@ -367,10 +367,10 @@ document and must start in the s:initial.
     Enqueue an t:end-of-file and emit
 *   ↪ **c:LF**
 
-    Enqueue a t:line-ending, consume, emit, and switch to the s:initial
+    Enqueue a t:line-terminator, consume, emit, and switch to the s:initial
 *   ↪ **c:CR**
 
-    Enqueue a t:line-ending, consume, and switch to the s:carriage-return
+    Enqueue a t:line-terminator, consume, and switch to the s:carriage-return
 *   ↪ **Anything else**
 
     > ❗️ Note: Impossible!
@@ -1347,7 +1347,8 @@ document and must start in the s:initial-content.
 
 *   ↪ **c:[**
 
-    Enqueue a t:marker, consume, and switch to the s:definition-label-open-after
+    Enqueue a t:marker, consume, signal e:content-definition-label-open, and
+    switch to the s:definition-label-open-after
 *   ↪ **Anything else**
 
     Reconsume in the s:phrasing-content
@@ -1409,8 +1410,8 @@ document and must start in the s:initial-content.
     Consume and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:definition-label-close-after
+    Signal e:content-definition-label-close, enqueue a t:marker, consume, and
+    switch to the s:definition-label-close-after
 *   ↪ **Anything else**
 
     Consume
@@ -1436,8 +1437,8 @@ document and must start in the s:initial-content.
     Consume and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:definition-label-close-after
+    Signal e:content-definition-label-close, enqueue a t:marker, consume, and
+    switch to the s:definition-label-close-after
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:definition-label-inside
@@ -1460,8 +1461,8 @@ document and must start in the s:initial-content.
     Enqueue a t:content, consume, and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:definition-label-close-after
+    Signal e:content-definition-label-close, enqueue a t:marker, consume, and
+    switch to the s:definition-label-close-after
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:definition-label-inside
@@ -1492,8 +1493,7 @@ document and must start in the s:initial-content.
 
 ### Definition label after state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **[ASCII control][]**
+*   ↪ **[c:EOF][]**
 
     Signal e:content-phrasing
 *   ↪ **[c:EOL][]**
@@ -1506,12 +1506,15 @@ document and must start in the s:initial-content.
     s:definition-destination-before
 *   ↪ **c:<**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:definition-destination-quoted-open-after
+    Signal e:content-definition-destination-quoted-open, enqueue a t:marker,
+    consume, and switch to the s:definition-destination-quoted-open-after
+*   ↪ **[ASCII control][]**
+
+    Signal e:content-phrasing
 *   ↪ **Anything else**
 
-    Enqueue a t:content and reconsume in the
-    s:definition-destination-unquoted-inside
+    Signal e:content-definition-destination-unquoted-open, enqueue a t:content
+    and reconsume in the s:definition-destination-unquoted-inside
 
 ### Definition destination before state
 
@@ -1531,15 +1534,15 @@ document and must start in the s:initial-content.
     Consume
 *   ↪ **c:<**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:definition-destination-quoted-open-after
+    Signal e:content-definition-destination-quoted-open, enqueue a t:marker,
+    consume, and switch to the s:definition-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
     Signal e:content-phrasing
 *   ↪ **Anything else**
 
-    Enqueue a t:content and reconsume in the
-    s:definition-destination-unquoted-inside
+    Signal e:content-definition-destination-unquoted-open, enqueue a t:content,
+    and reconsume in the s:definition-destination-unquoted-inside
 
 ### Definition destination quoted open after state
 
@@ -1550,7 +1553,8 @@ document and must start in the s:initial-content.
     Signal e:content-phrasing
 *   ↪ **c:>**
 
-    Enqueue a t:marker, consume, and switch to the
+    Enqueue a t:marker, consume, signal
+    e:content-definition-destination-quoted-close, and switch to the
     s:definition-destination-quoted-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1570,7 +1574,8 @@ document and must start in the s:initial-content.
     Signal e:content-phrasing
 *   ↪ **c:>**
 
-    Enqueue a t:marker, consume, and switch to the
+    Enqueue a t:marker, consume, signal
+    e:content-definition-destination-quoted-close, and switch to the
     s:definition-destination-quoted-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1613,15 +1618,17 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-definition
+    Signal e:content-definition-destination-unquoted-close and signal
+    e:content-definition
 *   ↪ **[c:EOL][]**
 
-    Signal e:content-definition-partial, enqueue an t:end-of-line, and consume
+    Signal e:content-definition-destination-unquoted-close, signal
+    e:content-definition-partial, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Enqueue a t:whitespace, consume, and switch to the
-    s:definition-destination-after
+    Signal e:content-definition-destination-unquoted-close, enqueue a
+    t:whitespace, consume, and switch to the s:definition-destination-after
 *   ↪ **c:(**
 
     Increment `balance` by `1` and consume
@@ -1665,16 +1672,16 @@ document and must start in the s:initial-content.
     Consume
 *   ↪ **c:"**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:definition-title-double-quoted-open-after
+    Signal e:content-definition-title-open, enqueue a t:marker, consume, and
+    switch to the s:definition-title-double-quoted-open-after
 *   ↪ **c:'**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:definition-title-single-quoted-open-after
+    Signal e:content-definition-title-open, enqueue a t:marker, consume, and
+    switch to the s:definition-title-single-quoted-open-after
 *   ↪ **c:(**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:definition-title-paren-quoted-open-after
+    Signal e:content-definition-title-open, enqueue a t:marker, consume, and
+    switch to the s:definition-title-paren-quoted-open-after
 *   ↪ **Anything else**
 
     Signal e:content-phrasing
@@ -1689,8 +1696,8 @@ document and must start in the s:initial-content.
     Enqueue an t:end-of-line and consume
 *   ↪ **c:"**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:definition-title-close-after
+    Enqueue a t:marker, consume, signal e:content-definition-title-close, and
+    switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a t:content, consume, and switch to the
@@ -1711,8 +1718,8 @@ document and must start in the s:initial-content.
     s:definition-title-double-quoted-open-after
 *   ↪ **c:"**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:definition-title-close-after
+    Enqueue a t:marker, consume, signal e:content-definition-title-close, and
+    switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:definition-title-double-quoted-escape
@@ -1740,8 +1747,8 @@ document and must start in the s:initial-content.
     Enqueue an t:end-of-line and consume
 *   ↪ **c:'**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:definition-title-close-after
+    Enqueue a t:marker, consume, signal e:content-definition-title-close, and
+    switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a t:content, consume, and switch to the
@@ -1762,8 +1769,8 @@ document and must start in the s:initial-content.
     s:definition-title-single-quoted-open-after
 *   ↪ **c:'**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:definition-title-close-after
+    Enqueue a t:marker, consume, signal e:content-definition-title-close, and
+    switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:definition-title-single-quoted-escape
@@ -1791,8 +1798,8 @@ document and must start in the s:initial-content.
     Enqueue an t:end-of-line and consume
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:definition-title-close-after
+    Enqueue a t:marker, consume, signal e:content-definition-title-close, and
+    switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a t:content, consume, and switch to the
@@ -1813,8 +1820,8 @@ document and must start in the s:initial-content.
     s:definition-title-paren-quoted-open-after
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:definition-title-close-after
+    Enqueue a t:marker, consume, signal e:content-definition-title-close, and
+    switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:definition-title-paren-quoted-escape
@@ -2808,6 +2815,38 @@ It is later followed by a e:content-definition if further queued tokens
 construct a title, or e:content-phrasing if further queued tokens do not
 construct a title.
 
+### Content definition label open sign
+
+When a e:content-definition-label-open is received, …
+
+### Content definition label close sign
+
+When a e:content-definition-label-close is received, …
+
+### Content definition destination quoted open sign
+
+When a e:content-definition-destination-quoted-open is received, …
+
+### Content definition destination quoted close sign
+
+When a e:content-definition-destination-quoted-close is received, …
+
+### Content definition destination unquoted open sign
+
+When a e:content-definition-destination-unquoted-open is received, …
+
+### Content definition destination unquoted close sign
+
+When a e:content-definition-destination-unquoted-close is received, …
+
+### Content definition title open sign
+
+When a e:content-definition-title-open is received, …
+
+### Content definition title close sign
+
+When a e:content-definition-title-close is received, …
+
 ### Text link open sign
 
 When a e:text-link-open is received, …
@@ -2989,9 +3028,9 @@ interface Whitespace <: Token {
 }
 ```
 
-### Line ending token
+### Line terminator token
 
-A t:line-ending represents a line break in the syntax.
+A t:line-terminator represents a line break.
 
 ```idl
 interface LineEnding <: Token {}

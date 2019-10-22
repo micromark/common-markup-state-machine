@@ -170,16 +170,24 @@ Common Markup parser.
     *   [12.1 Content phrasing sign](#121-content-phrasing-sign)
     *   [12.2 Content definition sign](#122-content-definition-sign)
     *   [12.3 Content definition partial sign](#123-content-definition-partial-sign)
-    *   [12.4 Text link open sign](#124-text-link-open-sign)
-    *   [12.5 Text image open sign](#125-text-image-open-sign)
-    *   [12.6 Text link close sign](#126-text-link-close-sign)
-    *   [12.7 Text emphasis sign](#127-text-emphasis-sign)
-    *   [12.8 Text character reference sign](#128-text-character-reference-sign)
-    *   [12.9 Text escape sign](#129-text-escape-sign)
-    *   [12.10 Text code sign](#1210-text-code-sign)
-    *   [12.11 Text autolink email sign](#1211-text-autolink-email-sign)
-    *   [12.12 Text autolink URI sign](#1212-text-autolink-uri-sign)
-    *   [12.13 Text HTML sign](#1213-text-html-sign)
+    *   [12.4 Content definition label open sign](#124-content-definition-label-open-sign)
+    *   [12.5 Content definition label close sign](#125-content-definition-label-close-sign)
+    *   [12.6 Content definition destination quoted open sign](#126-content-definition-destination-quoted-open-sign)
+    *   [12.7 Content definition destination quoted close sign](#127-content-definition-destination-quoted-close-sign)
+    *   [12.8 Content definition destination unquoted open sign](#128-content-definition-destination-unquoted-open-sign)
+    *   [12.9 Content definition destination unquoted close sign](#129-content-definition-destination-unquoted-close-sign)
+    *   [12.10 Content definition title open sign](#1210-content-definition-title-open-sign)
+    *   [12.11 Content definition title close sign](#1211-content-definition-title-close-sign)
+    *   [12.12 Text link open sign](#1212-text-link-open-sign)
+    *   [12.13 Text image open sign](#1213-text-image-open-sign)
+    *   [12.14 Text link close sign](#1214-text-link-close-sign)
+    *   [12.15 Text emphasis sign](#1215-text-emphasis-sign)
+    *   [12.16 Text character reference sign](#1216-text-character-reference-sign)
+    *   [12.17 Text escape sign](#1217-text-escape-sign)
+    *   [12.18 Text code sign](#1218-text-code-sign)
+    *   [12.19 Text autolink email sign](#1219-text-autolink-email-sign)
+    *   [12.20 Text autolink URI sign](#1220-text-autolink-uri-sign)
+    *   [12.21 Text HTML sign](#1221-text-html-sign)
 *   [13 Processing](#13-processing)
     *   [13.1 Process as an ATX heading](#131-process-as-an-atx-heading)
     *   [13.2 Process as a Setext primary heading](#132-process-as-a-setext-primary-heading)
@@ -192,7 +200,7 @@ Common Markup parser.
     *   [13.9 Process as Text](#139-process-as-text)
 *   [14 Tokens](#14-tokens)
     *   [14.1 Whitespace token](#141-whitespace-token)
-    *   [14.2 Line ending token](#142-line-ending-token)
+    *   [14.2 Line terminator token](#142-line-terminator-token)
     *   [14.3 End-of-file token](#143-end-of-file-token)
     *   [14.4 End-of-line token](#144-end-of-line-token)
     *   [14.5 Marker token](#145-marker-token)
@@ -590,10 +598,10 @@ document and must start in the [*Initial state*][s-initial].
     Enqueue an [*End-of-file token*][t-end-of-file] and emit
 *   ↪ **U+000A LINE FEED (LF)**
 
-    Enqueue a [*Line ending token*][t-line-ending], consume, emit, and switch to the [*Initial state*][s-initial]
+    Enqueue a [*Line terminator token*][t-line-terminator], consume, emit, and switch to the [*Initial state*][s-initial]
 *   ↪ **U+000D CARRIAGE RETURN (CR)**
 
-    Enqueue a [*Line ending token*][t-line-ending], consume, and switch to the [*Carriage return state*][s-carriage-return]
+    Enqueue a [*Line terminator token*][t-line-terminator], consume, and switch to the [*Carriage return state*][s-carriage-return]
 *   ↪ **Anything else**
 
     > ❗️ Note: Impossible!
@@ -1569,7 +1577,8 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Definition label open after state*][s-definition-label-open-after]
+    Enqueue a [*Marker token*][t-marker], consume, signal [*Content definition label open sign*][e-content-definition-label-open], and
+    switch to the [*Definition label open after state*][s-definition-label-open-after]
 *   ↪ **Anything else**
 
     Reconsume in the [*Phrasing content state*][s-phrasing-content]
@@ -1631,8 +1640,8 @@ document and must start in the [*Initial content state*][s-initial-content].
     Consume and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Definition label close after state*][s-definition-label-close-after]
+    Signal [*Content definition label close sign*][e-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
+    switch to the [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
     Consume
@@ -1658,8 +1667,8 @@ document and must start in the [*Initial content state*][s-initial-content].
     Consume and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Definition label close after state*][s-definition-label-close-after]
+    Signal [*Content definition label close sign*][e-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
+    switch to the [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
@@ -1682,8 +1691,8 @@ document and must start in the [*Initial content state*][s-initial-content].
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Definition label close after state*][s-definition-label-close-after]
+    Signal [*Content definition label close sign*][e-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
+    switch to the [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
@@ -1714,8 +1723,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 ### 10.9 Definition label after state
 
-*   ↪ **[EOF][ceof]**\
-    ↪ **[ASCII control][ascii-control]**
+*   ↪ **[EOF][ceof]**
 
     Signal [*Content phrasing sign*][e-content-phrasing]
 *   ↪ **[EOL][ceol]**
@@ -1728,12 +1736,15 @@ document and must start in the [*Initial content state*][s-initial-content].
     [*Definition destination before state*][s-definition-destination-before]
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
+    Signal [*Content definition destination quoted open sign*][e-content-definition-destination-quoted-open], enqueue a [*Marker token*][t-marker],
+    consume, and switch to the [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
+*   ↪ **[ASCII control][ascii-control]**
+
+    Signal [*Content phrasing sign*][e-content-phrasing]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content token*][t-content] and reconsume in the
-    [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
+    Signal [*Content definition destination unquoted open sign*][e-content-definition-destination-unquoted-open], enqueue a [*Content token*][t-content]
+    and reconsume in the [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
 ### 10.10 Definition destination before state
 
@@ -1753,15 +1764,15 @@ document and must start in the [*Initial content state*][s-initial-content].
     Consume
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
+    Signal [*Content definition destination quoted open sign*][e-content-definition-destination-quoted-open], enqueue a [*Marker token*][t-marker],
+    consume, and switch to the [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
     Signal [*Content phrasing sign*][e-content-phrasing]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content token*][t-content] and reconsume in the
-    [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
+    Signal [*Content definition destination unquoted open sign*][e-content-definition-destination-unquoted-open], enqueue a [*Content token*][t-content],
+    and reconsume in the [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
 ### 10.11 Definition destination quoted open after state
 
@@ -1772,7 +1783,8 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal [*Content phrasing sign*][e-content-phrasing]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, signal
+    [*Content definition destination quoted close sign*][e-content-definition-destination-quoted-close], and switch to the
     [*Definition destination quoted close after state*][s-definition-destination-quoted-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1792,7 +1804,8 @@ document and must start in the [*Initial content state*][s-initial-content].
     Signal [*Content phrasing sign*][e-content-phrasing]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, signal
+    [*Content definition destination quoted close sign*][e-content-definition-destination-quoted-close], and switch to the
     [*Definition destination quoted close after state*][s-definition-destination-quoted-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1835,15 +1848,17 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content definition sign*][e-content-definition]
+    Signal [*Content definition destination unquoted close sign*][e-content-definition-destination-unquoted-close] and signal
+    [*Content definition sign*][e-content-definition]
 *   ↪ **[EOL][ceol]**
 
-    Signal [*Content definition partial sign*][e-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Signal [*Content definition destination unquoted close sign*][e-content-definition-destination-unquoted-close], signal
+    [*Content definition partial sign*][e-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Definition destination after state*][s-definition-destination-after]
+    Signal [*Content definition destination unquoted close sign*][e-content-definition-destination-unquoted-close], enqueue a
+    [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition destination after state*][s-definition-destination-after]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
     Increment `balance` by `1` and consume
@@ -1887,16 +1902,16 @@ document and must start in the [*Initial content state*][s-initial-content].
     Consume
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
+    Signal [*Content definition title open sign*][e-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
+    switch to the [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
+    Signal [*Content definition title open sign*][e-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
+    switch to the [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
+    Signal [*Content definition title open sign*][e-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
+    switch to the [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
 *   ↪ **Anything else**
 
     Signal [*Content phrasing sign*][e-content-phrasing]
@@ -1911,8 +1926,8 @@ document and must start in the [*Initial content state*][s-initial-content].
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Definition title close after state*][s-definition-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, signal [*Content definition title close sign*][e-content-definition-title-close], and
+    switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
@@ -1933,8 +1948,8 @@ document and must start in the [*Initial content state*][s-initial-content].
     [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Definition title close after state*][s-definition-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, signal [*Content definition title close sign*][e-content-definition-title-close], and
+    switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title double quoted escape state*][s-definition-title-double-quoted-escape]
@@ -1962,8 +1977,8 @@ document and must start in the [*Initial content state*][s-initial-content].
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Definition title close after state*][s-definition-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, signal [*Content definition title close sign*][e-content-definition-title-close], and
+    switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
@@ -1984,8 +1999,8 @@ document and must start in the [*Initial content state*][s-initial-content].
     [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Definition title close after state*][s-definition-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, signal [*Content definition title close sign*][e-content-definition-title-close], and
+    switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title single quoted escape state*][s-definition-title-single-quoted-escape]
@@ -2013,8 +2028,8 @@ document and must start in the [*Initial content state*][s-initial-content].
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Definition title close after state*][s-definition-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, signal [*Content definition title close sign*][e-content-definition-title-close], and
+    switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
@@ -2035,8 +2050,8 @@ document and must start in the [*Initial content state*][s-initial-content].
     [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Definition title close after state*][s-definition-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, signal [*Content definition title close sign*][e-content-definition-title-close], and
+    switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Definition title paren quoted escape state*][s-definition-title-paren-quoted-escape]
@@ -3030,43 +3045,75 @@ It is later followed by a [*Content definition sign*][e-content-definition] if f
 construct a title, or [*Content phrasing sign*][e-content-phrasing] if further queued tokens do not
 construct a title.
 
-### 12.4 Text link open sign
+### 12.4 Content definition label open sign
+
+When a [*Content definition label open sign*][e-content-definition-label-open] is received, …
+
+### 12.5 Content definition label close sign
+
+When a [*Content definition label close sign*][e-content-definition-label-close] is received, …
+
+### 12.6 Content definition destination quoted open sign
+
+When a [*Content definition destination quoted open sign*][e-content-definition-destination-quoted-open] is received, …
+
+### 12.7 Content definition destination quoted close sign
+
+When a [*Content definition destination quoted close sign*][e-content-definition-destination-quoted-close] is received, …
+
+### 12.8 Content definition destination unquoted open sign
+
+When a [*Content definition destination unquoted open sign*][e-content-definition-destination-unquoted-open] is received, …
+
+### 12.9 Content definition destination unquoted close sign
+
+When a [*Content definition destination unquoted close sign*][e-content-definition-destination-unquoted-close] is received, …
+
+### 12.10 Content definition title open sign
+
+When a [*Content definition title open sign*][e-content-definition-title-open] is received, …
+
+### 12.11 Content definition title close sign
+
+When a [*Content definition title close sign*][e-content-definition-title-close] is received, …
+
+### 12.12 Text link open sign
 
 When a [*Text link open sign*][e-text-link-open] is received, …
 
-### 12.5 Text image open sign
+### 12.13 Text image open sign
 
 When a [*Text image open sign*][e-text-image-open] is received, …
 
-### 12.6 Text link close sign
+### 12.14 Text link close sign
 
 When a [*Text link close sign*][e-text-link-close] is received, …
 
-### 12.7 Text emphasis sign
+### 12.15 Text emphasis sign
 
 When a [*Text emphasis sign*][e-text-emphasis] is received, …
 
-### 12.8 Text character reference sign
+### 12.16 Text character reference sign
 
 When a [*Text character reference sign*][e-text-character-reference] is received, …
 
-### 12.9 Text escape sign
+### 12.17 Text escape sign
 
 When a [*Text escape sign*][e-text-escape] is received, …
 
-### 12.10 Text code sign
+### 12.18 Text code sign
 
 When a [*Text code sign*][e-text-code] is received, …
 
-### 12.11 Text autolink email sign
+### 12.19 Text autolink email sign
 
 When a [*Text autolink email sign*][e-text-autolink-email] is received, …
 
-### 12.12 Text autolink URI sign
+### 12.20 Text autolink URI sign
 
 When a [*Text autolink URI sign*][e-text-autolink-uri] is received, …
 
-### 12.13 Text HTML sign
+### 12.21 Text HTML sign
 
 When a [*Text HTML sign*][e-text-html] is received, …
 
@@ -3211,9 +3258,9 @@ interface Whitespace <: Token {
 }
 ```
 
-### 14.2 Line ending token
+### 14.2 Line terminator token
 
-A [*Line ending token*][t-line-ending] represents a line break in the syntax.
+A [*Line terminator token*][t-line-terminator] represents a line break.
 
 ```idl
 interface LineEnding <: Token {}
@@ -4305,29 +4352,45 @@ This work is licensed under a
 
 [e-content-definition-partial]: #123-content-definition-partial-sign
 
-[e-text-link-open]: #124-text-link-open-sign
+[e-content-definition-label-open]: #124-content-definition-label-open-sign
 
-[e-text-image-open]: #125-text-image-open-sign
+[e-content-definition-label-close]: #125-content-definition-label-close-sign
 
-[e-text-link-close]: #126-text-link-close-sign
+[e-content-definition-destination-quoted-open]: #126-content-definition-destination-quoted-open-sign
 
-[e-text-emphasis]: #127-text-emphasis-sign
+[e-content-definition-destination-quoted-close]: #127-content-definition-destination-quoted-close-sign
 
-[e-text-character-reference]: #128-text-character-reference-sign
+[e-content-definition-destination-unquoted-open]: #128-content-definition-destination-unquoted-open-sign
 
-[e-text-escape]: #129-text-escape-sign
+[e-content-definition-destination-unquoted-close]: #129-content-definition-destination-unquoted-close-sign
 
-[e-text-code]: #1210-text-code-sign
+[e-content-definition-title-open]: #1210-content-definition-title-open-sign
 
-[e-text-autolink-email]: #1211-text-autolink-email-sign
+[e-content-definition-title-close]: #1211-content-definition-title-close-sign
 
-[e-text-autolink-uri]: #1212-text-autolink-uri-sign
+[e-text-link-open]: #1212-text-link-open-sign
 
-[e-text-html]: #1213-text-html-sign
+[e-text-image-open]: #1213-text-image-open-sign
+
+[e-text-link-close]: #1214-text-link-close-sign
+
+[e-text-emphasis]: #1215-text-emphasis-sign
+
+[e-text-character-reference]: #1216-text-character-reference-sign
+
+[e-text-escape]: #1217-text-escape-sign
+
+[e-text-code]: #1218-text-code-sign
+
+[e-text-autolink-email]: #1219-text-autolink-email-sign
+
+[e-text-autolink-uri]: #1220-text-autolink-uri-sign
+
+[e-text-html]: #1221-text-html-sign
 
 [t-whitespace]: #141-whitespace-token
 
-[t-line-ending]: #142-line-ending-token
+[t-line-terminator]: #142-line-terminator-token
 
 [t-end-of-file]: #143-end-of-file-token
 
