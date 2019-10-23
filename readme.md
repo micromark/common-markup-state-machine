@@ -2407,7 +2407,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML instruction close or email atext state*][s-html-instruction-close-or-email-atext]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
-    Consume and switch to the [*HTML instruction or email at sign or dot state*][s-html-instruction-or-email-at-sign-or-dot]
+    Consume, let `sizeLabel` be `1`, and switch to the
+    [*HTML instruction or email at sign or dot state*][s-html-instruction-or-email-at-sign-or-dot]
 *   ↪ **[atext][atext]**\
     ↪ **U+002E DOT (`.`)**
 
@@ -2430,7 +2431,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume
 *   ↪ **U+0040 AT SIGN (`@`)**
 
-    Consume and switch to the [*HTML instruction or email at sign or dot state*][s-html-instruction-or-email-at-sign-or-dot]
+    Consume, let `sizeLabel` be `1`, and switch to the
+    [*HTML instruction or email at sign or dot state*][s-html-instruction-or-email-at-sign-or-dot]
 *   ↪ **[atext][atext]**\
     ↪ **U+002E DOT (`.`)**
 
@@ -2444,62 +2446,81 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
-    Consume and switch to the [*HTML instruction close state*][s-html-instruction-close]
+    Unset `sizeLabel`, consume, and switch to the [*HTML instruction close state*][s-html-instruction-close]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
-    Consume and switch to the [*HTML instruction or email label state*][s-html-instruction-or-email-label]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*HTML instruction or email label state*][s-html-instruction-or-email-label]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Consume and switch to the [*HTML instruction state*][s-html-instruction]
+    Unset `sizeLabel`, consume, and switch to the [*HTML instruction state*][s-html-instruction]
 
 ### 11.20 HTML instruction or email label state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+002D DASH (`-`)**
 
-    Consume and switch to the [*HTML instruction or email dash state*][s-html-instruction-or-email-dash]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*HTML instruction or email dash state*][s-html-instruction-or-email-dash]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+002E DOT (`.`)**
 
-    Consume and switch to the [*HTML instruction or email at sign or dot state*][s-html-instruction-or-email-at-sign-or-dot]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*HTML instruction or email at sign or dot state*][s-html-instruction-or-email-at-sign-or-dot]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
-    Consume, signal [*Text autolink email sign*][e-text-autolink-email], and switch to the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel`, consume, signal [*Text autolink email sign*][e-text-autolink-email], and switch to the
+    [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
-    Consume and switch to the [*HTML instruction close state*][s-html-instruction-close]
+    Unset `sizeLabel`, consume, and switch to the [*HTML instruction close state*][s-html-instruction-close]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
-    Consume and switch to the [*HTML instruction or email label state*][s-html-instruction-or-email-label]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*HTML instruction or email label state*][s-html-instruction-or-email-label]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Consume and switch to the [*HTML instruction state*][s-html-instruction]
+    Unset `sizeLabel`, consume, and switch to the [*HTML instruction state*][s-html-instruction]
 
 ### 11.21 HTML instruction or email dash state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+002D DASH (`-`)**
 
-    Consume and switch to the [*HTML instruction or email dash state*][s-html-instruction-or-email-dash]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*HTML instruction or email dash state*][s-html-instruction-or-email-dash]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
-    Consume and switch to the [*HTML instruction close state*][s-html-instruction-close]
+    Unset `sizeLabel`, consume, and switch to the [*HTML instruction close state*][s-html-instruction-close]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
-    Consume and switch to the [*HTML instruction or email label state*][s-html-instruction-or-email-label]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*HTML instruction or email label state*][s-html-instruction-or-email-label]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Consume and switch to the [*HTML instruction state*][s-html-instruction]
+    Unset `sizeLabel`, consume, and switch to the [*HTML instruction state*][s-html-instruction]
 
 ### 11.22 HTML instruction state
 
@@ -2539,7 +2560,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML comment open inside or email atext state*][s-html-comment-open-inside-or-email-atext]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
-    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+    Consume, let `sizeLabel` be `1`, and switch to the
+    [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
 *   ↪ **`[CDATA[` (the five upper letters “CDATA” with a U+005B LEFT SQUARE BRACKET (`[`) before and
     after)**
 
@@ -2562,7 +2584,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML comment or email atext state*][s-html-comment-or-email-atext]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
-    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+    Consume, let `sizeLabel` be `1`, and switch to the
+    [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
 *   ↪ **[atext][atext]**\
     ↪ **U+002E DOT (`.`)**
 
@@ -2581,7 +2604,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML comment close inside or email atext state*][s-html-comment-close-inside-or-email-atext]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
-    Consume and switch to the [*HTML comment or email at sign or dot state*][s-html-comment-or-email-at-sign-or-dot]
+    Consume, let `sizeLabel` be `1`, and switch to the
+    [*HTML comment or email at sign or dot state*][s-html-comment-or-email-at-sign-or-dot]
 *   ↪ **[atext][atext]**\
     ↪ **U+002E DOT (`.`)**
 
@@ -2600,7 +2624,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML comment close or email atext state*][s-html-comment-close-or-email-atext]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
-    Consume and switch to the [*HTML comment or email at sign or dot state*][s-html-comment-or-email-at-sign-or-dot]
+    Consume, let `sizeLabel` be `1`, and switch to the
+    [*HTML comment or email at sign or dot state*][s-html-comment-or-email-at-sign-or-dot]
 *   ↪ **[atext][atext]**\
     ↪ **U+002E DOT (`.`)**
 
@@ -2621,7 +2646,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
-    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+    Consume, let `sizeLabel` be `1`, and switch to the
+    [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
 *   ↪ **[atext][atext]**\
     ↪ **U+002E DOT (`.`)**
 
@@ -2634,55 +2660,74 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+002D DASH (`-`)**
 
-    Consume and switch to the [*HTML comment close inside state*][s-html-comment-close-inside]
+    Unset `sizeLabel`, consume, and switch to the [*HTML comment close inside state*][s-html-comment-close-inside]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
-    Consume and switch to the [*HTML comment or email label state*][s-html-comment-or-email-label]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*HTML comment or email label state*][s-html-comment-or-email-label]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the [*HTML comment state*][s-html-comment]
+    Unset `sizeLabel` and reconsume in the [*HTML comment state*][s-html-comment]
 
 ### 11.30 HTML comment or email label state
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+002D DASH (`-`)**
 
-    Consume and switch to the [*HTML comment close inside or email label dash state*][s-html-comment-close-inside-or-email-label-dash]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*HTML comment close inside or email label dash state*][s-html-comment-close-inside-or-email-label-dash]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+002E DOT (`.`)**
 
-    Consume and switch to the [*HTML comment or email at sign or dot state*][s-html-comment-or-email-at-sign-or-dot]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*HTML comment or email at sign or dot state*][s-html-comment-or-email-at-sign-or-dot]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
-    Consume, signal [*Text autolink email sign*][e-text-autolink-email], and switch to the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel`, consume, signal [*Text autolink email sign*][e-text-autolink-email], and switch to the
+    [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
-    Consume and switch to the [*HTML comment or email label state*][s-html-comment-or-email-label]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*HTML comment or email label state*][s-html-comment-or-email-label]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the [*HTML comment state*][s-html-comment]
+    Unset `sizeLabel` and reconsume in the [*HTML comment state*][s-html-comment]
 
 ### 11.31 HTML comment close inside or email label dash state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+003E GREATER THAN (`>`)**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+002D DASH (`-`)**
 
-    Consume and switch to the [*HTML comment close or email label dash state*][s-html-comment-close-or-email-label-dash]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*HTML comment close or email label dash state*][s-html-comment-close-or-email-label-dash]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
-    Consume and switch to the [*HTML comment or email label state*][s-html-comment-or-email-label]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*HTML comment or email label state*][s-html-comment-or-email-label]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the [*HTML comment state*][s-html-comment]
+    Unset `sizeLabel` and reconsume in the [*HTML comment state*][s-html-comment]
 
 ### 11.32 HTML comment close or email label dash state
 
@@ -2693,13 +2738,17 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel`, consume, signal [*Text HTML sign*][e-text-html], and switch to the
+    [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
-    Consume and switch to the [*Autolink email label state*][s-autolink-email-label]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*Autolink email label state*][s-autolink-email-label]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 
 ### 11.33 HTML comment state
 
@@ -2770,7 +2819,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Reconsume in the [*HTML declaration between state*][s-html-declaration-between]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
-    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+    Consume, let `sizeLabel` be `1`, and switch to the
+    [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
 *   ↪ **[ASCII upper alpha][ascii-upper-alpha]**
 
     Consume
@@ -2817,7 +2867,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+0040 AT SIGN (`@`)**
 
-    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+    Consume, let `sizeLabel` be `1`, and switch to the
+    [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
 *   ↪ **[ASCII alpha][ascii-alpha]**
 
     Consume and switch to the [*HTML tag close inside or email atext state*][s-html-tag-close-inside-or-email-atext]
@@ -2841,7 +2892,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
-    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+    Consume, let `sizeLabel` be `1`, and switch to the
+    [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
     ↪ **U+002D DASH (`-`)**
 
@@ -2900,7 +2952,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*Autolink URI inside state*][s-autolink-uri-inside]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
-    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+    Consume, let `sizeLabel` be `1`, and switch to the
+    [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
     ↪ **U+002D DASH (`-`)**
 
@@ -2920,7 +2973,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*Autolink URI inside state*][s-autolink-uri-inside]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
-    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+    Consume, let `sizeLabel` be `1`, and switch to the
+    [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
     ↪ **U+002B PLUS SIGN (`+`)**\
     ↪ **U+002D DASH (`-`)**\
@@ -2955,7 +3009,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+0040 AT SIGN (`@`)**
 
-    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+    Consume, let `sizeLabel` be `1`, and switch to the
+    [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
 *   ↪ **[atext][atext]**\
     ↪ **U+002E DOT (`.`)**
 
@@ -2968,43 +3023,59 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+002D DASH (`-`)**
 
-    Consume and switch to the [*Autolink email dash state*][s-autolink-email-dash]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*Autolink email dash state*][s-autolink-email-dash]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+002E DOT (`.`)**
 
-    Consume and switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
-    Consume, signal [*Text autolink email sign*][e-text-autolink-email], and switch to the
+    Unset `sizeLabel`, consume, signal [*Text autolink email sign*][e-text-autolink-email], and switch to the
     [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
-    Consume
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1` and consume
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 
 ### 11.49 Autolink email at sign or dot state
 
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
-    Consume and switch to the [*Autolink email label state*][s-autolink-email-label]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*Autolink email label state*][s-autolink-email-label]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 
 ### 11.50 Autolink email dash state
 
 *   ↪ **U+002D DASH (`-`)**
 
-    Consume
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1` and consume
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
-    Consume and switch to the [*Autolink email label state*][s-autolink-email-label]
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the [*Autolink email label state*][s-autolink-email-label]
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 
 ## 12 Signs
 

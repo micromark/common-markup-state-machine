@@ -2183,7 +2183,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-instruction-close-or-email-atext
 *   ↪ **c:@**
 
-    Consume and switch to the s:html-instruction-or-email-at-sign-or-dot
+    Consume, let `sizeLabel` be `1`, and switch to the
+    s:html-instruction-or-email-at-sign-or-dot
 *   ↪ **[atext][]**\
     ↪ **c:.**
 
@@ -2206,7 +2207,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume
 *   ↪ **c:@**
 
-    Consume and switch to the s:html-instruction-or-email-at-sign-or-dot
+    Consume, let `sizeLabel` be `1`, and switch to the
+    s:html-instruction-or-email-at-sign-or-dot
 *   ↪ **[atext][]**\
     ↪ **c:.**
 
@@ -2220,62 +2222,79 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-inline
 *   ↪ **c:?**
 
-    Consume and switch to the s:html-instruction-close
+    Unset `sizeLabel`, consume, and switch to the s:html-instruction-close
 *   ↪ **[ASCII alphanumeric][]**
 
-    Consume and switch to the s:html-instruction-or-email-label
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:html-instruction-or-email-label
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Consume and switch to the s:html-instruction
+    Unset `sizeLabel`, consume, and switch to the s:html-instruction
 
 ### HTML instruction or email label state
 
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-inline
 *   ↪ **c:-**
 
-    Consume and switch to the s:html-instruction-or-email-dash
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:html-instruction-or-email-dash
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:.**
 
-    Consume and switch to the s:html-instruction-or-email-at-sign-or-dot
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:html-instruction-or-email-at-sign-or-dot
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
 
-    > ❗️ Todo: size between `@` and `>` can be at most 63 total.
-
-    Consume, signal e:text-autolink-email, and switch to the s:initial-inline
+    Unset `sizeLabel`, consume, signal e:text-autolink-email, and switch to the
+    s:initial-inline
 *   ↪ **c:?**
 
-    Consume and switch to the s:html-instruction-close
+    Unset `sizeLabel`, consume, and switch to the s:html-instruction-close
 *   ↪ **[ASCII alphanumeric][]**
 
-    Consume and switch to the s:html-instruction-or-email-label
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:html-instruction-or-email-label
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Consume and switch to the s:html-instruction
+    Unset `sizeLabel`, consume, and switch to the s:html-instruction
 
 ### HTML instruction or email dash state
 
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-inline
 *   ↪ **c:-**
 
-    Consume and switch to the s:html-instruction-or-email-dash
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:html-instruction-or-email-dash
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:?**
 
-    Consume and switch to the s:html-instruction-close
+    Unset `sizeLabel`, consume, and switch to the s:html-instruction-close
 *   ↪ **[ASCII alphanumeric][]**
 
-    Consume and switch to the s:html-instruction-or-email-label
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:html-instruction-or-email-label
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Consume and switch to the s:html-instruction
+    Unset `sizeLabel`, consume, and switch to the s:html-instruction
 
 ### HTML instruction state
 
@@ -2315,7 +2334,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-comment-open-inside-or-email-atext
 *   ↪ **c:@**
 
-    Consume and switch to the s:autolink-email-at-sign-or-dot
+    Consume, let `sizeLabel` be `1`, and switch to the
+    s:autolink-email-at-sign-or-dot
 *   ↪ **`[CDATA[` (the five upper letters “CDATA” with a c:[ before and
     after)**
 
@@ -2338,7 +2358,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-comment-or-email-atext
 *   ↪ **c:@**
 
-    Consume and switch to the s:autolink-email-at-sign-or-dot
+    Consume, let `sizeLabel` be `1`, and switch to the
+    s:autolink-email-at-sign-or-dot
 *   ↪ **[atext][]**\
     ↪ **c:.**
 
@@ -2357,7 +2378,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-comment-close-inside-or-email-atext
 *   ↪ **c:@**
 
-    Consume and switch to the s:html-comment-or-email-at-sign-or-dot
+    Consume, let `sizeLabel` be `1`, and switch to the
+    s:html-comment-or-email-at-sign-or-dot
 *   ↪ **[atext][]**\
     ↪ **c:.**
 
@@ -2376,7 +2398,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-comment-close-or-email-atext
 *   ↪ **c:@**
 
-    Consume and switch to the s:html-comment-or-email-at-sign-or-dot
+    Consume, let `sizeLabel` be `1`, and switch to the
+    s:html-comment-or-email-at-sign-or-dot
 *   ↪ **[atext][]**\
     ↪ **c:.**
 
@@ -2397,7 +2420,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **c:@**
 
-    Consume and switch to the s:autolink-email-at-sign-or-dot
+    Consume, let `sizeLabel` be `1`, and switch to the
+    s:autolink-email-at-sign-or-dot
 *   ↪ **[atext][]**\
     ↪ **c:.**
 
@@ -2410,55 +2434,72 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-inline
 *   ↪ **c:-**
 
-    Consume and switch to the s:html-comment-close-inside
+    Unset `sizeLabel`, consume, and switch to the s:html-comment-close-inside
 *   ↪ **[ASCII alphanumeric][]**
 
-    Consume and switch to the s:html-comment-or-email-label
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:html-comment-or-email-label
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the s:html-comment
+    Unset `sizeLabel` and reconsume in the s:html-comment
 
 ### HTML comment or email label state
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-inline
 *   ↪ **c:-**
 
-    Consume and switch to the s:html-comment-close-inside-or-email-label-dash
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:html-comment-close-inside-or-email-label-dash
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:.**
 
-    Consume and switch to the s:html-comment-or-email-at-sign-or-dot
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:html-comment-or-email-at-sign-or-dot
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
 
-    > ❗️ Todo: size between `@` and `>` can be at most 63 total.
-
-    Consume, signal e:text-autolink-email, and switch to the s:initial-inline
+    Unset `sizeLabel`, consume, signal e:text-autolink-email, and switch to the
+    s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**
 
-    Consume and switch to the s:html-comment-or-email-label
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:html-comment-or-email-label
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the s:html-comment
+    Unset `sizeLabel` and reconsume in the s:html-comment
 
 ### HTML comment close inside or email label dash state
 
 *   ↪ **[c:EOF][]**\
     ↪ **c:>**
 
-    Reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-inline
 *   ↪ **c:-**
 
-    Consume and switch to the s:html-comment-close-or-email-label-dash
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:html-comment-close-or-email-label-dash
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **[ASCII alphanumeric][]**
 
-    Consume and switch to the s:html-comment-or-email-label
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:html-comment-or-email-label
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the s:html-comment
+    Unset `sizeLabel` and reconsume in the s:html-comment
 
 ### HTML comment close or email label dash state
 
@@ -2469,13 +2510,17 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Unset `sizeLabel`, consume, signal e:text-html, and switch to the
+    s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**
 
-    Consume and switch to the s:autolink-email-label
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:autolink-email-label
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-inline
 
 ### HTML comment state
 
@@ -2546,7 +2591,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Reconsume in the s:html-declaration-between
 *   ↪ **c:@**
 
-    Consume and switch to the s:autolink-email-at-sign-or-dot
+    Consume, let `sizeLabel` be `1`, and switch to the
+    s:autolink-email-at-sign-or-dot
 *   ↪ **[ASCII upper alpha][]**
 
     Consume
@@ -2593,7 +2639,8 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:@**
 
-    Consume and switch to the s:autolink-email-at-sign-or-dot
+    Consume, let `sizeLabel` be `1`, and switch to the
+    s:autolink-email-at-sign-or-dot
 *   ↪ **[ASCII alpha][]**
 
     Consume and switch to the s:html-tag-close-inside-or-email-atext
@@ -2617,7 +2664,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **c:@**
 
-    Consume and switch to the s:autolink-email-at-sign-or-dot
+    Consume, let `sizeLabel` be `1`, and switch to the
+    s:autolink-email-at-sign-or-dot
 *   ↪ **[ASCII alphanumeric][]**\
     ↪ **c:-**
 
@@ -2676,7 +2724,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:autolink-uri-inside
 *   ↪ **c:@**
 
-    Consume and switch to the s:autolink-email-at-sign-or-dot
+    Consume, let `sizeLabel` be `1`, and switch to the
+    s:autolink-email-at-sign-or-dot
 *   ↪ **[ASCII alphanumeric][]**\
     ↪ **c:-**
 
@@ -2696,7 +2745,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:autolink-uri-inside
 *   ↪ **c:@**
 
-    Consume and switch to the s:autolink-email-at-sign-or-dot
+    Consume, let `sizeLabel` be `1`, and switch to the
+    s:autolink-email-at-sign-or-dot
 *   ↪ **[ASCII alphanumeric][]**\
     ↪ **c:+**\
     ↪ **c:-**\
@@ -2731,7 +2781,8 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:@**
 
-    Consume and switch to the s:autolink-email-at-sign-or-dot
+    Consume, let `sizeLabel` be `1`, and switch to the
+    s:autolink-email-at-sign-or-dot
 *   ↪ **[atext][]**\
     ↪ **c:.**
 
@@ -2744,43 +2795,59 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:-**
 
-    Consume and switch to the s:autolink-email-dash
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:autolink-email-dash
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:.**
 
-    Consume and switch to the s:autolink-email-at-sign-or-dot
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:autolink-email-at-sign-or-dot
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
 
     > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
-    Consume, signal e:text-autolink-email, and switch to the
+    Unset `sizeLabel`, consume, signal e:text-autolink-email, and switch to the
     s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**
 
-    Consume
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1` and consume
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-inline
 
 ### Autolink email at sign or dot state
 
 *   ↪ **[ASCII alphanumeric][]**
 
-    Consume and switch to the s:autolink-email-label
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:autolink-email-label
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-inline
 
 ### Autolink email dash state
 
 *   ↪ **c:-**
 
-    Consume
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1` and consume
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **[ASCII alphanumeric][]**
 
-    Consume and switch to the s:autolink-email-label
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:autolink-email-label
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-inline
 
 ## Signs
 
