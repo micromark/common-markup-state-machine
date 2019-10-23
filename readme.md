@@ -161,12 +161,13 @@ Common Markup parser.
     *   [11.42 HTML tag close between state](#1142-html-tag-close-between-state)
     *   [11.43 HTML tag open scheme or email atext state](#1143-html-tag-open-scheme-or-email-atext-state)
     *   [11.44 HTML tag open inside scheme inside or email atext state](#1144-html-tag-open-inside-scheme-inside-or-email-atext-state)
-    *   [11.45 Autolink scheme inside or email atext state](#1145-autolink-scheme-inside-or-email-atext-state)
-    *   [11.46 Autolink URI inside state](#1146-autolink-uri-inside-state)
-    *   [11.47 Autolink email atext state](#1147-autolink-email-atext-state)
-    *   [11.48 Autolink email label state](#1148-autolink-email-label-state)
-    *   [11.49 Autolink email at sign or dot state](#1149-autolink-email-at-sign-or-dot-state)
-    *   [11.50 Autolink email dash state](#1150-autolink-email-dash-state)
+    *   [11.45 HTML tag open inside or email atext state](#1145-html-tag-open-inside-or-email-atext-state)
+    *   [11.46 Autolink scheme inside or email atext state](#1146-autolink-scheme-inside-or-email-atext-state)
+    *   [11.47 Autolink URI inside state](#1147-autolink-uri-inside-state)
+    *   [11.48 Autolink email atext state](#1148-autolink-email-atext-state)
+    *   [11.49 Autolink email label state](#1149-autolink-email-label-state)
+    *   [11.50 Autolink email at sign or dot state](#1150-autolink-email-at-sign-or-dot-state)
+    *   [11.51 Autolink email dash state](#1151-autolink-email-dash-state)
 *   [12 Signs](#12-signs)
     *   [12.1 Content phrasing sign](#121-content-phrasing-sign)
     *   [12.2 Content definition sign](#122-content-definition-sign)
@@ -2387,7 +2388,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML instruction or email atext state*][s-html-instruction-or-email-atext]
 *   ↪ **[ASCII alpha][ascii-alpha]**
 
-    Consume and switch to the [*HTML tag open scheme or email atext state*][s-html-tag-open-scheme-or-email-atext]
+    Consume, let `sizeScheme` be `1`, and switch to the
+    [*HTML tag open scheme or email atext state*][s-html-tag-open-scheme-or-email-atext]
 *   ↪ **[atext][atext]**\
     ↪ **U+002E DOT (`.`)**
 
@@ -2479,8 +2481,6 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003E GREATER THAN (`>`)**
-
-    > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
     Unset `sizeLabel`, consume, signal [*Text autolink email sign*][e-text-autolink-email], and switch to the
     [*Initial inline state*][s-initial-inline]
@@ -2692,8 +2692,6 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003E GREATER THAN (`>`)**
-
-    > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
     Unset `sizeLabel`, consume, signal [*Text autolink email sign*][e-text-autolink-email], and switch to the
     [*Initial inline state*][s-initial-inline]
@@ -2924,20 +2922,23 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+002B PLUS SIGN (`+`)**\
     ↪ **U+002E DOT (`.`)**
 
-    Consume and switch to the [*Autolink scheme inside or email atext state*][s-autolink-scheme-inside-or-email-atext]
+    Increment `sizeScheme` by `1`, consume, and switch to the
+    [*Autolink scheme inside or email atext state*][s-autolink-scheme-inside-or-email-atext]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Unset `sizeScheme`, consume, signal [*Text HTML sign*][e-text-html], and switch to the
+    [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
     ↪ **U+002D DASH (`-`)**
 
-    Consume and switch to the [*HTML tag open inside scheme inside or email atext state*][s-html-tag-open-inside-scheme-inside-or-email-atext]
+    Increment `sizeScheme` by `1`, consume, and switch to the
+    [*HTML tag open inside scheme inside or email atext state*][s-html-tag-open-inside-scheme-inside-or-email-atext]
 *   ↪ **[atext][atext]**
 
-    Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
+    Unset `sizeScheme`, consume, and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeScheme` and reconsume in the [*Initial inline state*][s-initial-inline]
 
 ### 11.44 HTML tag open inside scheme inside or email atext state
 
@@ -2946,10 +2947,36 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+002B PLUS SIGN (`+`)**\
     ↪ **U+002E DOT (`.`)**
 
-    Consume and switch to the [*Autolink scheme inside or email atext state*][s-autolink-scheme-inside-or-email-atext]
+    If `sizeScheme` is not `32`, increment `sizeScheme` by `1`, consume, and
+    switch to the [*Autolink scheme inside or email atext state*][s-autolink-scheme-inside-or-email-atext]
+
+    Otherwise, treat it as per the “atext” entry below
 *   ↪ **U+003A COLON (`:`)**
 
-    Consume and switch to the [*Autolink URI inside state*][s-autolink-uri-inside]
+    Unset `sizeScheme`, consume, and switch to the [*Autolink URI inside state*][s-autolink-uri-inside]
+*   ↪ **U+0040 AT SIGN (`@`)**
+
+    Unset `sizeScheme`, consume, let `sizeLabel` be `1`, and switch to the
+    [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
+    ↪ **U+002D DASH (`-`)**
+
+    If `sizeScheme` is not `32`, increment `sizeScheme` by `1` and consume
+
+    Otherwise, unset `sizeScheme`, consume, and switch to the
+    [*HTML tag open inside or email atext state*][s-html-tag-open-inside-or-email-atext]
+*   ↪ **[atext][atext]**\
+    ↪ **U+002E DOT (`.`)**
+
+    Unset `sizeScheme`, consume, and switch to the [*Autolink email atext state*][s-autolink-email-atext]
+*   ↪ **Anything else**
+
+    Unset `sizeScheme` and reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.45 HTML tag open inside or email atext state
+
+> ❗️ Todo: support whitespace, attributes, etc in HTML
+
 *   ↪ **U+0040 AT SIGN (`@`)**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2957,38 +2984,40 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
     ↪ **U+002D DASH (`-`)**
 
-    Consume and switch to the
-    [*HTML tag open inside scheme inside or email atext state*][s-html-tag-open-inside-scheme-inside-or-email-atext]
-*   ↪ **[atext][atext]**
+    Consume
+*   ↪ **[atext][atext]**\
+    ↪ **U+002E DOT (`.`)**
 
     Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.45 Autolink scheme inside or email atext state
+### 11.46 Autolink scheme inside or email atext state
 
 *   ↪ **U+003A COLON (`:`)**
 
-    Consume and switch to the [*Autolink URI inside state*][s-autolink-uri-inside]
+    Unset `sizeScheme`, consume, and switch to the [*Autolink URI inside state*][s-autolink-uri-inside]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
-    Consume, let `sizeLabel` be `1`, and switch to the
+    Unset `sizeScheme`, consume, let `sizeLabel` be `1`, and switch to the
     [*Autolink email at sign or dot state*][s-autolink-email-at-sign-or-dot]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
     ↪ **U+002B PLUS SIGN (`+`)**\
     ↪ **U+002D DASH (`-`)**\
     ↪ **U+002E DOT (`.`)**
 
-    Consume
+    If `sizeScheme` is not `32`, increment `sizeScheme` by `1` and consume
+
+    Otherwise, treat it as per the “atext” entry below
 *   ↪ **[atext][atext]**
 
-    Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
+    Unset `sizeScheme`, consume, and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeScheme` and reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.46 Autolink URI inside state
+### 11.47 Autolink URI inside state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -3005,7 +3034,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Consume
 
-### 11.47 Autolink email atext state
+### 11.48 Autolink email atext state
 
 *   ↪ **U+0040 AT SIGN (`@`)**
 
@@ -3019,7 +3048,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.48 Autolink email label state
+### 11.49 Autolink email label state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -3048,7 +3077,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.49 Autolink email at sign or dot state
+### 11.50 Autolink email at sign or dot state
 
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
@@ -3060,7 +3089,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.50 Autolink email dash state
+### 11.51 Autolink email dash state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -4370,17 +4399,19 @@ This work is licensed under a
 
 [s-html-tag-open-inside-scheme-inside-or-email-atext]: #1144-html-tag-open-inside-scheme-inside-or-email-atext-state
 
-[s-autolink-scheme-inside-or-email-atext]: #1145-autolink-scheme-inside-or-email-atext-state
+[s-html-tag-open-inside-or-email-atext]: #1145-html-tag-open-inside-or-email-atext-state
 
-[s-autolink-uri-inside]: #1146-autolink-uri-inside-state
+[s-autolink-scheme-inside-or-email-atext]: #1146-autolink-scheme-inside-or-email-atext-state
 
-[s-autolink-email-atext]: #1147-autolink-email-atext-state
+[s-autolink-uri-inside]: #1147-autolink-uri-inside-state
 
-[s-autolink-email-label]: #1148-autolink-email-label-state
+[s-autolink-email-atext]: #1148-autolink-email-atext-state
 
-[s-autolink-email-at-sign-or-dot]: #1149-autolink-email-at-sign-or-dot-state
+[s-autolink-email-label]: #1149-autolink-email-label-state
 
-[s-autolink-email-dash]: #1150-autolink-email-dash-state
+[s-autolink-email-at-sign-or-dot]: #1150-autolink-email-at-sign-or-dot-state
+
+[s-autolink-email-dash]: #1151-autolink-email-dash-state
 
 [e-content-phrasing]: #121-content-phrasing-sign
 

@@ -2163,7 +2163,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-instruction-or-email-atext
 *   ↪ **[ASCII alpha][]**
 
-    Consume and switch to the s:html-tag-open-scheme-or-email-atext
+    Consume, let `sizeScheme` be `1`, and switch to the
+    s:html-tag-open-scheme-or-email-atext
 *   ↪ **[atext][]**\
     ↪ **c:.**
 
@@ -2696,20 +2697,23 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:+**\
     ↪ **c:.**
 
-    Consume and switch to the s:autolink-scheme-inside-or-email-atext
+    Increment `sizeScheme` by `1`, consume, and switch to the
+    s:autolink-scheme-inside-or-email-atext
 *   ↪ **c:>**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Unset `sizeScheme`, consume, signal e:text-html, and switch to the
+    s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**\
     ↪ **c:-**
 
-    Consume and switch to the s:html-tag-open-inside-scheme-inside-or-email-atext
+    Increment `sizeScheme` by `1`, consume, and switch to the
+    s:html-tag-open-inside-scheme-inside-or-email-atext
 *   ↪ **[atext][]**
 
-    Consume and switch to the s:autolink-email-atext
+    Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Unset `sizeScheme` and reconsume in the s:initial-inline
 
 ### HTML tag open inside scheme inside or email atext state
 
@@ -2718,10 +2722,36 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:+**\
     ↪ **c:.**
 
-    Consume and switch to the s:autolink-scheme-inside-or-email-atext
+    If `sizeScheme` is not `32`, increment `sizeScheme` by `1`, consume, and
+    switch to the s:autolink-scheme-inside-or-email-atext
+
+    Otherwise, treat it as per the “atext” entry below
 *   ↪ **c::**
 
-    Consume and switch to the s:autolink-uri-inside
+    Unset `sizeScheme`, consume, and switch to the s:autolink-uri-inside
+*   ↪ **c:@**
+
+    Unset `sizeScheme`, consume, let `sizeLabel` be `1`, and switch to the
+    s:autolink-email-at-sign-or-dot
+*   ↪ **[ASCII alphanumeric][]**\
+    ↪ **c:-**
+
+    If `sizeScheme` is not `32`, increment `sizeScheme` by `1` and consume
+
+    Otherwise, unset `sizeScheme`, consume, and switch to the
+    s:html-tag-open-inside-or-email-atext
+*   ↪ **[atext][]**\
+    ↪ **c:.**
+
+    Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
+*   ↪ **Anything else**
+
+    Unset `sizeScheme` and reconsume in the s:initial-inline
+
+### HTML tag open inside or email atext state
+
+> ❗️ Todo: support whitespace, attributes, etc in HTML
+
 *   ↪ **c:@**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2729,9 +2759,9 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **[ASCII alphanumeric][]**\
     ↪ **c:-**
 
-    Consume and switch to the
-    s:html-tag-open-inside-scheme-inside-or-email-atext
-*   ↪ **[atext][]**
+    Consume
+*   ↪ **[atext][]**\
+    ↪ **c:.**
 
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
@@ -2742,23 +2772,25 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c::**
 
-    Consume and switch to the s:autolink-uri-inside
+    Unset `sizeScheme`, consume, and switch to the s:autolink-uri-inside
 *   ↪ **c:@**
 
-    Consume, let `sizeLabel` be `1`, and switch to the
+    Unset `sizeScheme`, consume, let `sizeLabel` be `1`, and switch to the
     s:autolink-email-at-sign-or-dot
 *   ↪ **[ASCII alphanumeric][]**\
     ↪ **c:+**\
     ↪ **c:-**\
     ↪ **c:.**
 
-    Consume
+    If `sizeScheme` is not `32`, increment `sizeScheme` by `1` and consume
+
+    Otherwise, treat it as per the “atext” entry below
 *   ↪ **[atext][]**
 
-    Consume and switch to the s:autolink-email-atext
+    Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Unset `sizeScheme` and reconsume in the s:initial-inline
 
 ### Autolink URI inside state
 
