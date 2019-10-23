@@ -322,7 +322,7 @@ the input character.
 The exact behavior of certain states depends on state, such as the [stack of
 open groups][] and the [queue][].
 
-Certain states also use a [shared space](#) to track information between states.
+Certain states also use a shared space to track information between states.
 A variable is declared in the shared state with `let`, changed with `set`, and
 cleared with `unset`.
 
@@ -366,6 +366,8 @@ document and must start in the s:initial.
 
 ### Line ending state
 
+> **Note**: “Anything else” is not possible.
+
 *   ↪ **[c:EOF][]**
 
     Enqueue an t:end-of-file and emit
@@ -375,11 +377,6 @@ document and must start in the s:initial.
 *   ↪ **c:CR**
 
     Enqueue a t:line-terminator, consume, and switch to the s:carriage-return
-*   ↪ **Anything else**
-
-    > ❗️ Note: Impossible!
-
-    Reconsume in the s:initial
 
 ### Carriage return state
 
@@ -611,13 +608,10 @@ Otherwise, perform the following steps based on the [input character][]:
     Consume and switch to the s:html-block-open-markup-declaration
 *   ↪ **c:/**
 
-    > ❗️ Bug: this allows tag names to start with `-` and numbers, we need a
-    > state between these two.
-    >
     > ❗️ Todo: Define shared space: `endTag`
 
     Let `endTag` be `true`, consume, and switch to the
-    s:html-block-tag-open-name-inside
+    s:html-block-open-close-tag-start
 *   ↪ **c:?**
 
     > ❗️ Todo: Define shared space: `kind`
@@ -629,7 +623,7 @@ Otherwise, perform the following steps based on the [input character][]:
     > ❗️ Todo: Define shared space: `tagName`
 
     Append the [ASCII-lowercase][]d character to `tagName`, consume, and switch
-    to the s:html-block-tag-open-name-inside
+    to the s:html-block-open-tag-name-inside
 *   ↪ **Anything else**
 
     This is not an HTML block.
@@ -683,7 +677,18 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the s:content-continuation
 
-### HTML block tag open name inside state
+### HTML block open close tag start state
+
+*   ↪ **[ASCII alpha][]**
+
+    Append the [ASCII-lowercase][]d character to `tagName`, consume, and switch
+    to the s:html-block-open-tag-name-inside
+*   ↪ **Anything else**
+
+    This is not an HTML block.
+    Reconsume in the s:content-continuation
+
+### HTML block open tag name inside state
 
 *   ↪ **[c:EOF][]**\
     ↪ **c:LF**\
@@ -1376,17 +1381,13 @@ document and must start in the s:initial-content.
 
 ### Definition label before state
 
+> **Note**: EOL is not possible.
+
 *   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
     ↪ **c:]**
 
     Signal e:content-phrasing
-*   ↪ **[c:EOL][]**
-
-    > ❗️ Note: shouldn’t be possible (trailing whitespace, which we are
-    > apparently in, is part of the EOL)
-
-    Enqueue an t:end-of-line, consume, and switch to the
-    s:definition-label-open-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1403,7 +1404,7 @@ document and must start in the s:initial-content.
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
-    s:definition-label-eol-after
+    s:definition-label-inside-start-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1420,17 +1421,14 @@ document and must start in the s:initial-content.
 
     Consume
 
-### Definition label EOL after state
+### Definition label inside start after state
 
-*   ↪ **[c:EOF][]**
+> **Note**: EOL is not possible.
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**
 
     Signal e:content-phrasing
-*   ↪ **[c:EOL][]**
-
-    > ❗️ Note: shouldn’t be possible (an EOL after an EOL cannot be part of a
-    > content)
-
-    Enqueue an t:end-of-line and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1455,7 +1453,7 @@ document and must start in the s:initial-content.
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
-    s:definition-label-eol-after
+    s:definition-label-inside-start-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1523,16 +1521,12 @@ document and must start in the s:initial-content.
 
 ### Definition destination before state
 
-*   ↪ **[c:EOF][]**
+> **Note**: EOL is not possible.
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**
 
     Signal e:content-phrasing
-*   ↪ **[c:EOL][]**
-
-    > ❗️ Note: shouldn’t be possible (an EOL after an EOL or whitespace cannot
-    > be part of a content)
-
-    Enqueue an t:end-of-line, consume, and switch to the
-    s:definition-label-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1924,7 +1918,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a t:marker, consume, and switch to the s:escape-backslash-after
-*   ↪ **c:[**
+*   ↪ **c:]**
 
     > ❗️ Todo: support references, inlines, etc
 
@@ -2057,7 +2051,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Unset `sizeOpen` and reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the s:code-span-eol-after
+    Enqueue an t:end-of-line, consume, and switch to the
+    s:code-span-inside-start-after
 *   ↪ **c:`**
 
     Increment `sizeOpen` by `1` and consume
@@ -2065,14 +2060,16 @@ phrasing) of a document and must start in the s:initial-inline.
 
     Enqueue a t:content, consume, and switch to the s:code-span-inside
 
-### Code span EOL after state
+### Code span inside start after state
+
+> **Note**: EOL is not possible.
 
 *   ↪ **[c:EOF][]**
 
     Unset `sizeOpen` and reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the s:code-span-eol-after
+    Enqueue an t:end-of-line and consume
 *   ↪ **c:`**
 
     Enqueue a t:sequence, let `sizeClose` be `1`, consume, and switch to the
@@ -2088,7 +2085,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Unset `sizeOpen` and reconsume in the s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the s:code-span-eol-after
+    Enqueue an t:end-of-line, consume, and switch to the
+    s:code-span-inside-start-after
 *   ↪ **c:`**
 
     Enqueue a t:sequence, let `sizeClose` be `1`, consume, and switch to the
@@ -2112,7 +2110,7 @@ phrasing) of a document and must start in the s:initial-inline.
     e:text-code, and reconsume in the s:initial-inline
 
     Otherwise, unset `sizeClose`, enqueue an t:end-of-line, consume, and switch
-    to the s:code-span-eol-after
+    to the s:code-span-inside-start-after
 *   ↪ **c:`**
 
     Increment `sizeClose` by `1` and consume
@@ -2634,9 +2632,9 @@ phrasing) of a document and must start in the s:initial-inline.
 
 ### HTML tag close between state
 
-> **Note**: an EOL here would be technically allowed here, but anything else
-> isn’t, and as a `>` after an EOL would start a blockquote, practically it’s
-> not possible.
+> **Note**: an EOL would technically be allowed here, but anything else isn’t,
+> and as a `>` after an EOL would start a blockquote, practically it’s not
+> possible.
 
 *   ↪ **c:>**
 
@@ -2667,7 +2665,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 ### HTML tag open inside scheme inside or email atext state
 
-> ❗️ Todo: support whitespace, attributes, etc in email
+> ❗️ Todo: support whitespace, attributes, etc in HTML
 
 *   ↪ **c:+**\
     ↪ **c:.**
@@ -3282,10 +3280,6 @@ interface SetextHeading <: Group {
 }
 ```
 
-### Setext heading content group
-
-> ❗️ Todo
-
 ### Setext heading underline group
 
 A g:setext-heading-underline represents a fence of a heading.
@@ -3380,20 +3374,6 @@ interface CharacterReference <: Group {
   children: [Marker | Content]
 }
 ```
-
-### Paragraph group
-
-> ❗️ Todo
-
-### Image open group
-
-### Link open group
-
-### Link or image close group
-
-### Emphasis or strong group
-
-### Phrasing code group
 
 ### Automatic link group
 
