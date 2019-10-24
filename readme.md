@@ -177,28 +177,28 @@ Common Markup parser.
     *   [11.58 Autolink email label state](#1158-autolink-email-label-state)
     *   [11.59 Autolink email at sign or dot state](#1159-autolink-email-at-sign-or-dot-state)
     *   [11.60 Autolink email dash state](#1160-autolink-email-dash-state)
-*   [12 Signs](#12-signs)
-    *   [12.1 Content phrasing sign](#121-content-phrasing-sign)
-    *   [12.2 Content definition sign](#122-content-definition-sign)
-    *   [12.3 Content definition partial sign](#123-content-definition-partial-sign)
-    *   [12.4 Content definition label open sign](#124-content-definition-label-open-sign)
-    *   [12.5 Content definition label close sign](#125-content-definition-label-close-sign)
-    *   [12.6 Content definition destination quoted open sign](#126-content-definition-destination-quoted-open-sign)
-    *   [12.7 Content definition destination quoted close sign](#127-content-definition-destination-quoted-close-sign)
-    *   [12.8 Content definition destination unquoted open sign](#128-content-definition-destination-unquoted-open-sign)
-    *   [12.9 Content definition destination unquoted close sign](#129-content-definition-destination-unquoted-close-sign)
-    *   [12.10 Content definition title open sign](#1210-content-definition-title-open-sign)
-    *   [12.11 Content definition title close sign](#1211-content-definition-title-close-sign)
-    *   [12.12 Text link open sign](#1212-text-link-open-sign)
-    *   [12.13 Text image open sign](#1213-text-image-open-sign)
-    *   [12.14 Text link close sign](#1214-text-link-close-sign)
-    *   [12.15 Text emphasis sign](#1215-text-emphasis-sign)
-    *   [12.16 Text character reference sign](#1216-text-character-reference-sign)
-    *   [12.17 Text escape sign](#1217-text-escape-sign)
-    *   [12.18 Text code sign](#1218-text-code-sign)
-    *   [12.19 Text autolink email sign](#1219-text-autolink-email-sign)
-    *   [12.20 Text autolink URI sign](#1220-text-autolink-uri-sign)
-    *   [12.21 Text HTML sign](#1221-text-html-sign)
+*   [12 Labels](#12-labels)
+    *   [12.1 Content phrasing label](#121-content-phrasing-label)
+    *   [12.2 Content definition label](#122-content-definition-label)
+    *   [12.3 Content definition partial label](#123-content-definition-partial-label)
+    *   [12.4 Content definition label open label](#124-content-definition-label-open-label)
+    *   [12.5 Content definition label close label](#125-content-definition-label-close-label)
+    *   [12.6 Content definition destination quoted open label](#126-content-definition-destination-quoted-open-label)
+    *   [12.7 Content definition destination quoted close label](#127-content-definition-destination-quoted-close-label)
+    *   [12.8 Content definition destination unquoted open label](#128-content-definition-destination-unquoted-open-label)
+    *   [12.9 Content definition destination unquoted close label](#129-content-definition-destination-unquoted-close-label)
+    *   [12.10 Content definition title open label](#1210-content-definition-title-open-label)
+    *   [12.11 Content definition title close label](#1211-content-definition-title-close-label)
+    *   [12.12 Text link open label](#1212-text-link-open-label)
+    *   [12.13 Text image open label](#1213-text-image-open-label)
+    *   [12.14 Text link close label](#1214-text-link-close-label)
+    *   [12.15 Text emphasis label](#1215-text-emphasis-label)
+    *   [12.16 Text character reference label](#1216-text-character-reference-label)
+    *   [12.17 Text escape label](#1217-text-escape-label)
+    *   [12.18 Text code label](#1218-text-code-label)
+    *   [12.19 Text autolink email label](#1219-text-autolink-email-label)
+    *   [12.20 Text autolink URI label](#1220-text-autolink-uri-label)
+    *   [12.21 Text HTML label](#1221-text-html-label)
 *   [13 Processing](#13-processing)
     *   [13.1 Process as an ATX heading](#131-process-as-an-atx-heading)
     *   [13.2 Process as a Setext primary heading](#132-process-as-a-setext-primary-heading)
@@ -1590,7 +1590,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, signal [*Content definition label open sign*][e-content-definition-label-open], and
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Content definition label open label*][l-content-definition-label-open], and
     switch to the [*Definition label open after state*][s-definition-label-open-after]
 *   ↪ **Anything else**
 
@@ -1601,7 +1601,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 *   ↪ **[EOF][ceof]**\
     ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -1621,7 +1621,7 @@ document and must start in the [*Initial content state*][s-initial-content].
     ↪ **[EOL][ceol]**\
     ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -1634,7 +1634,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
@@ -1649,7 +1649,7 @@ document and must start in the [*Initial content state*][s-initial-content].
     Consume and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Signal [*Content definition label close sign*][e-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
+    Emit a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
     switch to the [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
@@ -1661,7 +1661,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -1672,7 +1672,7 @@ document and must start in the [*Initial content state*][s-initial-content].
     Consume and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Signal [*Content definition label close sign*][e-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
+    Emit a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
     switch to the [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
@@ -1682,7 +1682,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
@@ -1696,7 +1696,7 @@ document and must start in the [*Initial content state*][s-initial-content].
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Signal [*Content definition label close sign*][e-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
+    Emit a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
     switch to the [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
@@ -1724,13 +1724,13 @@ document and must start in the [*Initial content state*][s-initial-content].
     Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Definition label after state*][s-definition-label-after]
 *   ↪ **Anything else**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 
 ### 10.9 Definition label after state
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -1741,14 +1741,14 @@ document and must start in the [*Initial content state*][s-initial-content].
     [*Definition destination before state*][s-definition-destination-before]
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Signal [*Content definition destination quoted open sign*][e-content-definition-destination-quoted-open], enqueue a [*Marker token*][t-marker],
+    Emit a [*Content definition destination quoted open label*][l-content-definition-destination-quoted-open], enqueue a [*Marker token*][t-marker],
     consume, and switch to the [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, signal [*Content definition destination unquoted open sign*][e-content-definition-destination-unquoted-open],
+    Let `balance` be `0`, emit a [*Content definition destination unquoted open label*][l-content-definition-destination-unquoted-open],
     enqueue a [*Content token*][t-content] and reconsume in the
     [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
@@ -1759,21 +1759,21 @@ document and must start in the [*Initial content state*][s-initial-content].
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Signal [*Content definition destination quoted open sign*][e-content-definition-destination-quoted-open], enqueue a [*Marker token*][t-marker],
+    Emit a [*Content definition destination quoted open label*][l-content-definition-destination-quoted-open], enqueue a [*Marker token*][t-marker],
     consume, and switch to the [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, signal [*Content definition destination unquoted open sign*][e-content-definition-destination-unquoted-open],
+    Let `balance` be `0`, emit a [*Content definition destination unquoted open label*][l-content-definition-destination-unquoted-open],
     enqueue a [*Content token*][t-content], and reconsume in the
     [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
@@ -1783,11 +1783,11 @@ document and must start in the [*Initial content state*][s-initial-content].
     ↪ **[EOL][ceol]**\
     ↪ **U+003C LESS THAN (`<`)**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, signal
-    [*Content definition destination quoted close sign*][e-content-definition-destination-quoted-close], and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, emit a
+    [*Content definition destination quoted close label*][l-content-definition-destination-quoted-close], and switch to the
     [*Definition destination quoted close after state*][s-definition-destination-quoted-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1804,11 +1804,11 @@ document and must start in the [*Initial content state*][s-initial-content].
     ↪ **[EOL][ceol]**\
     ↪ **U+003C LESS THAN (`<`)**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, signal
-    [*Content definition destination quoted close sign*][e-content-definition-destination-quoted-close], and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, emit a
+    [*Content definition destination quoted close label*][l-content-definition-destination-quoted-close], and switch to the
     [*Definition destination quoted close after state*][s-definition-destination-quoted-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1832,10 +1832,10 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content definition sign*][e-content-definition]
+    Emit a [*Content definition label*][l-content-definition]
 *   ↪ **[EOL][ceol]**
 
-    Signal [*Content definition partial sign*][e-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Emit a [*Content definition partial label*][l-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -1843,22 +1843,22 @@ document and must start in the [*Initial content state*][s-initial-content].
     [*Definition destination after state*][s-definition-destination-after]
 *   ↪ **Anything else**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 
 ### 10.15 Definition destination unquoted inside state
 
 *   ↪ **[EOF][ceof]**
 
-    Unset `balance`, signal [*Content definition destination unquoted close sign*][e-content-definition-destination-unquoted-close], and
-    signal [*Content definition sign*][e-content-definition]
+    Unset `balance`, emit a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close], and
+    emit a [*Content definition label*][l-content-definition]
 *   ↪ **[EOL][ceol]**
 
-    Unset `balance`, signal [*Content definition destination unquoted close sign*][e-content-definition-destination-unquoted-close],
-    signal [*Content definition partial sign*][e-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Unset `balance`, emit a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close],
+    emit a [*Content definition partial label*][l-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Unset `balance`, signal [*Content definition destination unquoted close sign*][e-content-definition-destination-unquoted-close],
+    Unset `balance`, emit a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close],
     enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Definition destination after state*][s-definition-destination-after]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
@@ -1866,7 +1866,7 @@ document and must start in the [*Initial content state*][s-initial-content].
     Increment `balance` by `1` and consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    If `balance` is `0`, unset `balance` and signal [*Content phrasing sign*][e-content-phrasing]
+    If `balance` is `0`, unset `balance` and emit a [*Content phrasing label*][l-content-phrasing]
 
     Otherwise, decrement `balance` by `1`, and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -1874,7 +1874,7 @@ document and must start in the [*Initial content state*][s-initial-content].
     Consume and switch to the [*Definition destination unquoted escape state*][s-definition-destination-unquoted-escape]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Unset `balance` and signal [*Content phrasing sign*][e-content-phrasing]
+    Unset `balance` and emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **Anything else**
 
     Consume
@@ -1894,41 +1894,41 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content definition sign*][e-content-definition]
+    Emit a [*Content definition label*][l-content-definition]
 *   ↪ **[EOL][ceol]**
 
-    Signal [*Content definition partial sign*][e-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Emit a [*Content definition partial label*][l-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Signal [*Content definition title open sign*][e-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
+    Emit a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
     switch to the [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Signal [*Content definition title open sign*][e-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
+    Emit a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
     switch to the [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
-    Signal [*Content definition title open sign*][e-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
+    Emit a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
     switch to the [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
 *   ↪ **Anything else**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 
 ### 10.18 Definition title double quoted open after state
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, signal [*Content definition title close sign*][e-content-definition-title-close], and
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Content definition title close label*][l-content-definition-title-close], and
     switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1943,14 +1943,14 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, signal [*Content definition title close sign*][e-content-definition-title-close], and
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Content definition title close label*][l-content-definition-title-close], and
     switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1973,13 +1973,13 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, signal [*Content definition title close sign*][e-content-definition-title-close], and
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Content definition title close label*][l-content-definition-title-close], and
     switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1994,14 +1994,14 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, signal [*Content definition title close sign*][e-content-definition-title-close], and
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Content definition title close label*][l-content-definition-title-close], and
     switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -2024,13 +2024,13 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, signal [*Content definition title close sign*][e-content-definition-title-close], and
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Content definition title close label*][l-content-definition-title-close], and
     switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -2045,14 +2045,14 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, signal [*Content definition title close sign*][e-content-definition-title-close], and
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Content definition title close label*][l-content-definition-title-close], and
     switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -2075,10 +2075,10 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content definition sign*][e-content-definition]
+    Emit a [*Content definition label*][l-content-definition]
 *   ↪ **[EOL][ceol]**
 
-    Signal [*Content definition sign*][e-content-definition], enqueue an [*End-of-line token*][t-end-of-line], consume, and switch
+    Emit a [*Content definition label*][l-content-definition], enqueue an [*End-of-line token*][t-end-of-line], consume, and switch
     to the [*Initial content state*][s-initial-content]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -2086,16 +2086,16 @@ document and must start in the [*Initial content state*][s-initial-content].
     Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition after state*][s-definition-after]
 *   ↪ **Anything else**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 
 ### 10.28 Definition after state
 
 *   ↪ **[EOF][ceof]**
 
-    Signal [*Content definition sign*][e-content-definition]
+    Emit a [*Content definition label*][l-content-definition]
 *   ↪ **[EOL][ceol]**
 
-    Signal [*Content definition sign*][e-content-definition], enqueue an [*End-of-line token*][t-end-of-line], consume, and switch
+    Emit a [*Content definition label*][l-content-definition], enqueue an [*End-of-line token*][t-end-of-line], consume, and switch
     to the [*Initial content state*][s-initial-content]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -2103,7 +2103,7 @@ document and must start in the [*Initial content state*][s-initial-content].
     Consume
 *   ↪ **Anything else**
 
-    Signal [*Content phrasing sign*][e-content-phrasing]
+    Emit a [*Content phrasing label*][l-content-phrasing]
 
 ### 10.29 Phrasing content state
 
@@ -2145,7 +2145,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    If parsing rich text, enqueue a [*Marker token*][t-marker], consume, signal [*Text link open sign*][e-text-link-open]
+    If parsing rich text, enqueue a [*Marker token*][t-marker], consume, emit [*Text link open label*][l-text-link-open]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -2155,8 +2155,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     > ❗️ Todo: support references, inlines, etc
 
-    If parsing rich text, enqueue a [*Marker token*][t-marker], consume, and signal
-    [*Text link close sign*][e-text-link-close]
+    If parsing rich text, enqueue a [*Marker token*][t-marker], consume, and emit
+    [*Text link close label*][l-text-link-close]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005F UNDERSCORE (`_`)**
@@ -2182,7 +2182,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume
 *   ↪ **Anything else**
 
-    Signal [*Text emphasis sign*][e-text-emphasis] and reconsume in the [*Initial inline state*][s-initial-inline]
+    Emit a [*Text emphasis label*][l-text-emphasis] and reconsume in the [*Initial inline state*][s-initial-inline]
 
 ### 11.3 Character reference state
 
@@ -2202,7 +2202,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+003B SEMICOLON (`;`)**
 
     If `entityName` is a [character reference name][character-reference-name], unset `entityName`,
-    enqueue a [*Marker token*][t-marker], consume, signal [*Text character reference sign*][e-text-character-reference], and switch
+    enqueue a [*Marker token*][t-marker], consume, emit [*Text character reference label*][l-text-character-reference], and switch
     to the [*Initial inline state*][s-initial-inline]
 
     Otherwise, treat it as per the “anything else” entry below
@@ -2241,8 +2241,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003B SEMICOLON (`;`)**
 
-    Unset `characterReferenceCode`, enqueue a [*Marker token*][t-marker], consume, signal
-    [*Text character reference sign*][e-text-character-reference], and switch to the [*Initial inline state*][s-initial-inline]
+    Unset `characterReferenceCode`, enqueue a [*Marker token*][t-marker], consume, emit
+    [*Text character reference label*][l-text-character-reference], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII digit][ascii-digit]**
 
     Multiply `characterReferenceCode` by `16`, add a numeric version of the
@@ -2266,8 +2266,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003B SEMICOLON (`;`)**
 
-    Unset `characterReferenceCode`, enqueue a [*Marker token*][t-marker], consume, signal
-    [*Text character reference sign*][e-text-character-reference], and switch to the [*Initial inline state*][s-initial-inline]
+    Unset `characterReferenceCode`, enqueue a [*Marker token*][t-marker], consume, emit
+    [*Text character reference label*][l-text-character-reference], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII digit][ascii-digit]**
 
     Multiply `characterReferenceCode` by `10`, add a numeric version of the
@@ -2329,15 +2329,15 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, signal
-    [*Text code sign*][e-text-code], and reconsume in the [*Initial inline state*][s-initial-inline]
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
+    [*Text code label*][l-text-code], and reconsume in the [*Initial inline state*][s-initial-inline]
 
     Otherwise, unset `sizeOpen`, unset `sizeClose`, and reconsume in the
     [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, signal
-    [*Text code sign*][e-text-code], and reconsume in the [*Initial inline state*][s-initial-inline]
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
+    [*Text code label*][l-text-code], and reconsume in the [*Initial inline state*][s-initial-inline]
 
     Otherwise, unset `sizeClose`, enqueue an [*End-of-line token*][t-end-of-line], consume, and switch
     to the [*Code span inside start after state*][s-code-span-inside-start-after]
@@ -2346,8 +2346,8 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Increment `sizeClose` by `1` and consume
 *   ↪ **Anything else**
 
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, signal
-    [*Text code sign*][e-text-code], and reconsume in the [*Initial inline state*][s-initial-inline]
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
+    [*Text code label*][l-text-code], and reconsume in the [*Initial inline state*][s-initial-inline]
 
     Otherwise, unset `sizeClose`, consume, and switch to the [*Code span inside state*][s-code-span-inside]
 
@@ -2358,13 +2358,13 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume
 *   ↪ **Anything else**
 
-    Signal [*Text emphasis sign*][e-text-emphasis] and reconsume in the [*Initial inline state*][s-initial-inline]
+    Emit a [*Text emphasis label*][l-text-emphasis] and reconsume in the [*Initial inline state*][s-initial-inline]
 
 ### 11.14 Escape backslash after state
 
 *   ↪ **[ASCII punctuation][ascii-punctuation]**
 
-    Enqueue a [*Content token*][t-content], consume, signal [*Text escape sign*][e-text-escape], and switch to the
+    Enqueue a [*Content token*][t-content], consume, emit [*Text escape label*][l-text-escape], and switch to the
     [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
@@ -2374,7 +2374,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, signal [*Text image open sign*][e-text-image-open], and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, emit [*Text image open label*][l-text-image-open], and switch to the
     [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
@@ -2432,7 +2432,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
     Consume
@@ -2487,7 +2487,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Unset `sizeLabel`, consume, signal [*Text autolink email sign*][e-text-autolink-email], and switch to the
+    Unset `sizeLabel`, consume, emit [*Text autolink email label*][l-text-autolink-email], and switch to the
     [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
@@ -2553,7 +2553,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     [*HTML instruction state*][s-html-instruction]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume
@@ -2648,7 +2648,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2698,7 +2698,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Unset `sizeLabel`, consume, signal [*Text autolink email sign*][e-text-autolink-email], and switch to the
+    Unset `sizeLabel`, consume, emit [*Text autolink email label*][l-text-autolink-email], and switch to the
     [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
@@ -2741,7 +2741,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Unset `sizeLabel`, consume, signal [*Text HTML sign*][e-text-html], and switch to the
+    Unset `sizeLabel`, consume, emit [*Text HTML label*][l-text-html], and switch to the
     [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
@@ -2793,7 +2793,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2808,7 +2808,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
 *   ↪ **`]]>` (two of U+005D RIGHT SQUARE BRACKET (`]`), with a U+003E GREATER THAN (`>`) after)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume
@@ -2846,7 +2846,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*HTML declaration content state*][s-html-declaration-content]
@@ -2861,7 +2861,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume
@@ -2892,7 +2892,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Reconsume in the [*HTML tag close between state*][s-html-tag-close-between]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2917,7 +2917,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -2931,7 +2931,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     [*Autolink scheme inside or email atext state*][s-autolink-scheme-inside-or-email-atext]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Unset `sizeScheme`, consume, signal [*Text HTML sign*][e-text-html], and switch to the
+    Unset `sizeScheme`, consume, emit [*Text HTML label*][l-text-html], and switch to the
     [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
     ↪ **U+002D DASH (`-`)**
@@ -3037,7 +3037,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML tag open self closing state*][s-html-tag-open-self-closing]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII alpha][ascii-alpha]**\
     ↪ **U+003A COLON (`:`)**\
     ↪ **U+005F UNDERSCORE (`_`)**
@@ -3077,7 +3077,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML tag open attribute value before state*][s-html-tag-open-attribute-value-before]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -3157,7 +3157,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML tag open between state*][s-html-tag-open-between]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume
@@ -3166,7 +3166,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -3206,7 +3206,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, signal [*Text autolink URI sign*][e-text-autolink-uri], and switch to the
+    Consume, emit [*Text autolink URI label*][l-text-autolink-uri], and switch to the
     [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
@@ -3242,7 +3242,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Unset `sizeLabel`, consume, signal [*Text autolink email sign*][e-text-autolink-email], and switch to the
+    Unset `sizeLabel`, consume, emit [*Text autolink email label*][l-text-autolink-email], and switch to the
     [*Initial inline state*][s-initial-inline]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
@@ -3282,97 +3282,97 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 
-## 12 Signs
+## 12 Labels
 
-### 12.1 Content phrasing sign
+### 12.1 Content phrasing label
 
-When a [*Content phrasing sign*][e-content-phrasing] is received, the queue up to that point does not
+When a [*Content phrasing label*][l-content-phrasing] is received, the queue up to that point does not
 construct a definition.
 
-### 12.2 Content definition sign
+### 12.2 Content definition label
 
-When a [*Content definition sign*][e-content-definition] is received, the queue up to that point constructs a
+When a [*Content definition label*][l-content-definition] is received, the queue up to that point constructs a
 definition.
 
-### 12.3 Content definition partial sign
+### 12.3 Content definition partial label
 
-When a [*Content definition partial sign*][e-content-definition-partial] is received, the queue up to that point
+When a [*Content definition partial label*][l-content-definition-partial] is received, the queue up to that point
 constructs a definition without a title.
-It is later followed by a [*Content definition sign*][e-content-definition] if further queued tokens
-construct a title, or [*Content phrasing sign*][e-content-phrasing] if further queued tokens do not
+It is later followed by a [*Content definition label*][l-content-definition] if further queued tokens
+construct a title, or [*Content phrasing label*][l-content-phrasing] if further queued tokens do not
 construct a title.
 
-### 12.4 Content definition label open sign
+### 12.4 Content definition label open label
 
-When a [*Content definition label open sign*][e-content-definition-label-open] is received, …
+When a [*Content definition label open label*][l-content-definition-label-open] is received, …
 
-### 12.5 Content definition label close sign
+### 12.5 Content definition label close label
 
-When a [*Content definition label close sign*][e-content-definition-label-close] is received, …
+When a [*Content definition label close label*][l-content-definition-label-close] is received, …
 
-### 12.6 Content definition destination quoted open sign
+### 12.6 Content definition destination quoted open label
 
-When a [*Content definition destination quoted open sign*][e-content-definition-destination-quoted-open] is received, …
+When a [*Content definition destination quoted open label*][l-content-definition-destination-quoted-open] is received, …
 
-### 12.7 Content definition destination quoted close sign
+### 12.7 Content definition destination quoted close label
 
-When a [*Content definition destination quoted close sign*][e-content-definition-destination-quoted-close] is received, …
+When a [*Content definition destination quoted close label*][l-content-definition-destination-quoted-close] is received, …
 
-### 12.8 Content definition destination unquoted open sign
+### 12.8 Content definition destination unquoted open label
 
-When a [*Content definition destination unquoted open sign*][e-content-definition-destination-unquoted-open] is received, …
+When a [*Content definition destination unquoted open label*][l-content-definition-destination-unquoted-open] is received, …
 
-### 12.9 Content definition destination unquoted close sign
+### 12.9 Content definition destination unquoted close label
 
-When a [*Content definition destination unquoted close sign*][e-content-definition-destination-unquoted-close] is received, …
+When a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close] is received, …
 
-### 12.10 Content definition title open sign
+### 12.10 Content definition title open label
 
-When a [*Content definition title open sign*][e-content-definition-title-open] is received, …
+When a [*Content definition title open label*][l-content-definition-title-open] is received, …
 
-### 12.11 Content definition title close sign
+### 12.11 Content definition title close label
 
-When a [*Content definition title close sign*][e-content-definition-title-close] is received, …
+When a [*Content definition title close label*][l-content-definition-title-close] is received, …
 
-### 12.12 Text link open sign
+### 12.12 Text link open label
 
-When a [*Text link open sign*][e-text-link-open] is received, …
+When a [*Text link open label*][l-text-link-open] is received, …
 
-### 12.13 Text image open sign
+### 12.13 Text image open label
 
-When a [*Text image open sign*][e-text-image-open] is received, …
+When a [*Text image open label*][l-text-image-open] is received, …
 
-### 12.14 Text link close sign
+### 12.14 Text link close label
 
-When a [*Text link close sign*][e-text-link-close] is received, …
+When a [*Text link close label*][l-text-link-close] is received, …
 
-### 12.15 Text emphasis sign
+### 12.15 Text emphasis label
 
-When a [*Text emphasis sign*][e-text-emphasis] is received, …
+When a [*Text emphasis label*][l-text-emphasis] is received, …
 
-### 12.16 Text character reference sign
+### 12.16 Text character reference label
 
-When a [*Text character reference sign*][e-text-character-reference] is received, …
+When a [*Text character reference label*][l-text-character-reference] is received, …
 
-### 12.17 Text escape sign
+### 12.17 Text escape label
 
-When a [*Text escape sign*][e-text-escape] is received, …
+When a [*Text escape label*][l-text-escape] is received, …
 
-### 12.18 Text code sign
+### 12.18 Text code label
 
-When a [*Text code sign*][e-text-code] is received, …
+When a [*Text code label*][l-text-code] is received, …
 
-### 12.19 Text autolink email sign
+### 12.19 Text autolink email label
 
-When a [*Text autolink email sign*][e-text-autolink-email] is received, …
+When a [*Text autolink email label*][l-text-autolink-email] is received, …
 
-### 12.20 Text autolink URI sign
+### 12.20 Text autolink URI label
 
-When a [*Text autolink URI sign*][e-text-autolink-uri] is received, …
+When a [*Text autolink URI label*][l-text-autolink-uri] is received, …
 
-### 12.21 Text HTML sign
+### 12.21 Text HTML label
 
-When a [*Text HTML sign*][e-text-html] is received, …
+When a [*Text HTML label*][l-text-html] is received, …
 
 ## 13 Processing
 
@@ -4607,47 +4607,47 @@ This work is licensed under a
 
 [s-autolink-email-dash]: #1160-autolink-email-dash-state
 
-[e-content-phrasing]: #121-content-phrasing-sign
+[l-content-phrasing]: #121-content-phrasing-label
 
-[e-content-definition]: #122-content-definition-sign
+[l-content-definition]: #122-content-definition-label
 
-[e-content-definition-partial]: #123-content-definition-partial-sign
+[l-content-definition-partial]: #123-content-definition-partial-label
 
-[e-content-definition-label-open]: #124-content-definition-label-open-sign
+[l-content-definition-label-open]: #124-content-definition-label-open-label
 
-[e-content-definition-label-close]: #125-content-definition-label-close-sign
+[l-content-definition-label-close]: #125-content-definition-label-close-label
 
-[e-content-definition-destination-quoted-open]: #126-content-definition-destination-quoted-open-sign
+[l-content-definition-destination-quoted-open]: #126-content-definition-destination-quoted-open-label
 
-[e-content-definition-destination-quoted-close]: #127-content-definition-destination-quoted-close-sign
+[l-content-definition-destination-quoted-close]: #127-content-definition-destination-quoted-close-label
 
-[e-content-definition-destination-unquoted-open]: #128-content-definition-destination-unquoted-open-sign
+[l-content-definition-destination-unquoted-open]: #128-content-definition-destination-unquoted-open-label
 
-[e-content-definition-destination-unquoted-close]: #129-content-definition-destination-unquoted-close-sign
+[l-content-definition-destination-unquoted-close]: #129-content-definition-destination-unquoted-close-label
 
-[e-content-definition-title-open]: #1210-content-definition-title-open-sign
+[l-content-definition-title-open]: #1210-content-definition-title-open-label
 
-[e-content-definition-title-close]: #1211-content-definition-title-close-sign
+[l-content-definition-title-close]: #1211-content-definition-title-close-label
 
-[e-text-link-open]: #1212-text-link-open-sign
+[l-text-link-open]: #1212-text-link-open-label
 
-[e-text-image-open]: #1213-text-image-open-sign
+[l-text-image-open]: #1213-text-image-open-label
 
-[e-text-link-close]: #1214-text-link-close-sign
+[l-text-link-close]: #1214-text-link-close-label
 
-[e-text-emphasis]: #1215-text-emphasis-sign
+[l-text-emphasis]: #1215-text-emphasis-label
 
-[e-text-character-reference]: #1216-text-character-reference-sign
+[l-text-character-reference]: #1216-text-character-reference-label
 
-[e-text-escape]: #1217-text-escape-sign
+[l-text-escape]: #1217-text-escape-label
 
-[e-text-code]: #1218-text-code-sign
+[l-text-code]: #1218-text-code-label
 
-[e-text-autolink-email]: #1219-text-autolink-email-sign
+[l-text-autolink-email]: #1219-text-autolink-email-label
 
-[e-text-autolink-uri]: #1220-text-autolink-uri-sign
+[l-text-autolink-uri]: #1220-text-autolink-uri-label
 
-[e-text-html]: #1221-text-html-sign
+[l-text-html]: #1221-text-html-label
 
 [t-whitespace]: #141-whitespace-token
 

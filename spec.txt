@@ -1356,7 +1356,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **c:[**
 
-    Enqueue a t:marker, consume, signal e:content-definition-label-open, and
+    Enqueue a t:marker, consume, emit a l:content-definition-label-open, and
     switch to the s:definition-label-open-after
 *   ↪ **Anything else**
 
@@ -1367,7 +1367,7 @@ document and must start in the s:initial-content.
 *   ↪ **[c:EOF][]**\
     ↪ **c:]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1387,7 +1387,7 @@ document and must start in the s:initial-content.
     ↪ **[c:EOL][]**\
     ↪ **c:]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1400,7 +1400,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -1415,7 +1415,7 @@ document and must start in the s:initial-content.
     Consume and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Signal e:content-definition-label-close, enqueue a t:marker, consume, and
+    Emit a l:content-definition-label-close, enqueue a t:marker, consume, and
     switch to the s:definition-label-close-after
 *   ↪ **Anything else**
 
@@ -1427,7 +1427,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1438,7 +1438,7 @@ document and must start in the s:initial-content.
     Consume and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Signal e:content-definition-label-close, enqueue a t:marker, consume, and
+    Emit a l:content-definition-label-close, enqueue a t:marker, consume, and
     switch to the s:definition-label-close-after
 *   ↪ **Anything else**
 
@@ -1448,7 +1448,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -1462,7 +1462,7 @@ document and must start in the s:initial-content.
     Enqueue a t:content, consume, and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Signal e:content-definition-label-close, enqueue a t:marker, consume, and
+    Emit a l:content-definition-label-close, enqueue a t:marker, consume, and
     switch to the s:definition-label-close-after
 *   ↪ **Anything else**
 
@@ -1490,13 +1490,13 @@ document and must start in the s:initial-content.
     Enqueue a t:marker, consume, and switch to the s:definition-label-after
 *   ↪ **Anything else**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 
 ### Definition label after state
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1507,14 +1507,14 @@ document and must start in the s:initial-content.
     s:definition-destination-before
 *   ↪ **c:<**
 
-    Signal e:content-definition-destination-quoted-open, enqueue a t:marker,
+    Emit a l:content-definition-destination-quoted-open, enqueue a t:marker,
     consume, and switch to the s:definition-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, signal e:content-definition-destination-unquoted-open,
+    Let `balance` be `0`, emit a l:content-definition-destination-unquoted-open,
     enqueue a t:content and reconsume in the
     s:definition-destination-unquoted-inside
 
@@ -1525,21 +1525,21 @@ document and must start in the s:initial-content.
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
 *   ↪ **c:<**
 
-    Signal e:content-definition-destination-quoted-open, enqueue a t:marker,
+    Emit a l:content-definition-destination-quoted-open, enqueue a t:marker,
     consume, and switch to the s:definition-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, signal e:content-definition-destination-unquoted-open,
+    Let `balance` be `0`, emit a l:content-definition-destination-unquoted-open,
     enqueue a t:content, and reconsume in the
     s:definition-destination-unquoted-inside
 
@@ -1549,11 +1549,11 @@ document and must start in the s:initial-content.
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **c:>**
 
-    Enqueue a t:marker, consume, signal
-    e:content-definition-destination-quoted-close, and switch to the
+    Enqueue a t:marker, consume, emit a
+    l:content-definition-destination-quoted-close, and switch to the
     s:definition-destination-quoted-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1570,11 +1570,11 @@ document and must start in the s:initial-content.
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **c:>**
 
-    Enqueue a t:marker, consume, signal
-    e:content-definition-destination-quoted-close, and switch to the
+    Enqueue a t:marker, consume, emit a
+    l:content-definition-destination-quoted-close, and switch to the
     s:definition-destination-quoted-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1598,10 +1598,10 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-definition
+    Emit a l:content-definition
 *   ↪ **[c:EOL][]**
 
-    Signal e:content-definition-partial, enqueue an t:end-of-line, and consume
+    Emit a l:content-definition-partial, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1609,22 +1609,22 @@ document and must start in the s:initial-content.
     s:definition-destination-after
 *   ↪ **Anything else**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 
 ### Definition destination unquoted inside state
 
 *   ↪ **[c:EOF][]**
 
-    Unset `balance`, signal e:content-definition-destination-unquoted-close, and
-    signal e:content-definition
+    Unset `balance`, emit a l:content-definition-destination-unquoted-close, and
+    emit a l:content-definition
 *   ↪ **[c:EOL][]**
 
-    Unset `balance`, signal e:content-definition-destination-unquoted-close,
-    signal e:content-definition-partial, enqueue an t:end-of-line, and consume
+    Unset `balance`, emit a l:content-definition-destination-unquoted-close,
+    emit a l:content-definition-partial, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Unset `balance`, signal e:content-definition-destination-unquoted-close,
+    Unset `balance`, emit a l:content-definition-destination-unquoted-close,
     enqueue a t:whitespace, consume, and switch to the
     s:definition-destination-after
 *   ↪ **c:(**
@@ -1632,7 +1632,7 @@ document and must start in the s:initial-content.
     Increment `balance` by `1` and consume
 *   ↪ **c:)**
 
-    If `balance` is `0`, unset `balance` and signal e:content-phrasing
+    If `balance` is `0`, unset `balance` and emit a l:content-phrasing
 
     Otherwise, decrement `balance` by `1`, and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -1640,7 +1640,7 @@ document and must start in the s:initial-content.
     Consume and switch to the s:definition-destination-unquoted-escape
 *   ↪ **[ASCII control][]**
 
-    Unset `balance` and signal e:content-phrasing
+    Unset `balance` and emit a l:content-phrasing
 *   ↪ **Anything else**
 
     Consume
@@ -1660,41 +1660,41 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-definition
+    Emit a l:content-definition
 *   ↪ **[c:EOL][]**
 
-    Signal e:content-definition-partial, enqueue an t:end-of-line, and consume
+    Emit a l:content-definition-partial, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
 *   ↪ **c:"**
 
-    Signal e:content-definition-title-open, enqueue a t:marker, consume, and
+    Emit a l:content-definition-title-open, enqueue a t:marker, consume, and
     switch to the s:definition-title-double-quoted-open-after
 *   ↪ **c:'**
 
-    Signal e:content-definition-title-open, enqueue a t:marker, consume, and
+    Emit a l:content-definition-title-open, enqueue a t:marker, consume, and
     switch to the s:definition-title-single-quoted-open-after
 *   ↪ **c:(**
 
-    Signal e:content-definition-title-open, enqueue a t:marker, consume, and
+    Emit a l:content-definition-title-open, enqueue a t:marker, consume, and
     switch to the s:definition-title-paren-quoted-open-after
 *   ↪ **Anything else**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 
 ### Definition title double quoted open after state
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
 *   ↪ **c:"**
 
-    Enqueue a t:marker, consume, signal e:content-definition-title-close, and
+    Enqueue a t:marker, consume, emit a l:content-definition-title-close, and
     switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1709,14 +1709,14 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
     s:definition-title-double-quoted-open-after
 *   ↪ **c:"**
 
-    Enqueue a t:marker, consume, signal e:content-definition-title-close, and
+    Enqueue a t:marker, consume, emit a l:content-definition-title-close, and
     switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1739,13 +1739,13 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
 *   ↪ **c:'**
 
-    Enqueue a t:marker, consume, signal e:content-definition-title-close, and
+    Enqueue a t:marker, consume, emit a l:content-definition-title-close, and
     switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1760,14 +1760,14 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
     s:definition-title-single-quoted-open-after
 *   ↪ **c:'**
 
-    Enqueue a t:marker, consume, signal e:content-definition-title-close, and
+    Enqueue a t:marker, consume, emit a l:content-definition-title-close, and
     switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1790,13 +1790,13 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, signal e:content-definition-title-close, and
+    Enqueue a t:marker, consume, emit a l:content-definition-title-close, and
     switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1811,14 +1811,14 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
     s:definition-title-paren-quoted-open-after
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, signal e:content-definition-title-close, and
+    Enqueue a t:marker, consume, emit a l:content-definition-title-close, and
     switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1841,10 +1841,10 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-definition
+    Emit a l:content-definition
 *   ↪ **[c:EOL][]**
 
-    Signal e:content-definition, enqueue an t:end-of-line, consume, and switch
+    Emit a l:content-definition, enqueue an t:end-of-line, consume, and switch
     to the s:initial-content
 *   ↪ **c:HT**\
     ↪ **c:SP**
@@ -1852,16 +1852,16 @@ document and must start in the s:initial-content.
     Enqueue a t:whitespace, consume, and switch to the s:definition-after
 *   ↪ **Anything else**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 
 ### Definition after state
 
 *   ↪ **[c:EOF][]**
 
-    Signal e:content-definition
+    Emit a l:content-definition
 *   ↪ **[c:EOL][]**
 
-    Signal e:content-definition, enqueue an t:end-of-line, consume, and switch
+    Emit a l:content-definition, enqueue an t:end-of-line, consume, and switch
     to the s:initial-content
 *   ↪ **c:HT**\
     ↪ **c:SP**
@@ -1869,7 +1869,7 @@ document and must start in the s:initial-content.
     Consume
 *   ↪ **Anything else**
 
-    Signal e:content-phrasing
+    Emit a l:content-phrasing
 
 ### Phrasing content state
 
@@ -1911,7 +1911,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:[**
 
-    If parsing rich text, enqueue a t:marker, consume, signal e:text-link-open
+    If parsing rich text, enqueue a t:marker, consume, emit l:text-link-open
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -1921,8 +1921,8 @@ phrasing) of a document and must start in the s:initial-inline.
 
     > ❗️ Todo: support references, inlines, etc
 
-    If parsing rich text, enqueue a t:marker, consume, and signal
-    e:text-link-close
+    If parsing rich text, enqueue a t:marker, consume, and emit
+    l:text-link-close
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:_**
@@ -1948,7 +1948,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume
 *   ↪ **Anything else**
 
-    Signal e:text-emphasis and reconsume in the s:initial-inline
+    Emit a l:text-emphasis and reconsume in the s:initial-inline
 
 ### Character reference state
 
@@ -1968,7 +1968,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:;**
 
     If `entityName` is a [character reference name][], unset `entityName`,
-    enqueue a t:marker, consume, signal e:text-character-reference, and switch
+    enqueue a t:marker, consume, emit l:text-character-reference, and switch
     to the s:initial-inline
 
     Otherwise, treat it as per the “anything else” entry below
@@ -2007,8 +2007,8 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:;**
 
-    Unset `characterReferenceCode`, enqueue a t:marker, consume, signal
-    e:text-character-reference, and switch to the s:initial-inline
+    Unset `characterReferenceCode`, enqueue a t:marker, consume, emit
+    l:text-character-reference, and switch to the s:initial-inline
 *   ↪ **[ASCII digit][]**
 
     Multiply `characterReferenceCode` by `16`, add a numeric version of the
@@ -2032,8 +2032,8 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:;**
 
-    Unset `characterReferenceCode`, enqueue a t:marker, consume, signal
-    e:text-character-reference, and switch to the s:initial-inline
+    Unset `characterReferenceCode`, enqueue a t:marker, consume, emit
+    l:text-character-reference, and switch to the s:initial-inline
 *   ↪ **[ASCII digit][]**
 
     Multiply `characterReferenceCode` by `10`, add a numeric version of the
@@ -2095,15 +2095,15 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, signal
-    e:text-code, and reconsume in the s:initial-inline
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
+    l:text-code, and reconsume in the s:initial-inline
 
     Otherwise, unset `sizeOpen`, unset `sizeClose`, and reconsume in the
     s:initial-inline
 *   ↪ **[c:EOL][]**
 
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, signal
-    e:text-code, and reconsume in the s:initial-inline
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
+    l:text-code, and reconsume in the s:initial-inline
 
     Otherwise, unset `sizeClose`, enqueue an t:end-of-line, consume, and switch
     to the s:code-span-inside-start-after
@@ -2112,8 +2112,8 @@ phrasing) of a document and must start in the s:initial-inline.
     Increment `sizeClose` by `1` and consume
 *   ↪ **Anything else**
 
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, signal
-    e:text-code, and reconsume in the s:initial-inline
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
+    l:text-code, and reconsume in the s:initial-inline
 
     Otherwise, unset `sizeClose`, consume, and switch to the s:code-span-inside
 
@@ -2124,13 +2124,13 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume
 *   ↪ **Anything else**
 
-    Signal e:text-emphasis and reconsume in the s:initial-inline
+    Emit a l:text-emphasis and reconsume in the s:initial-inline
 
 ### Escape backslash after state
 
 *   ↪ **[ASCII punctuation][]**
 
-    Enqueue a t:content, consume, signal e:text-escape, and switch to the
+    Enqueue a t:content, consume, emit l:text-escape, and switch to the
     s:initial-inline
 *   ↪ **Anything else**
 
@@ -2140,7 +2140,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:[**
 
-    Enqueue a t:marker, consume, signal e:text-image-open, and switch to the
+    Enqueue a t:marker, consume, emit l:text-image-open, and switch to the
     s:initial-inline
 *   ↪ **Anything else**
 
@@ -2198,7 +2198,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Reconsume in the s:initial-inline
 *   ↪ **c:>**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-inline
 *   ↪ **c:?**
 
     Consume
@@ -2253,7 +2253,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
 
-    Unset `sizeLabel`, consume, signal e:text-autolink-email, and switch to the
+    Unset `sizeLabel`, consume, emit l:text-autolink-email, and switch to the
     s:initial-inline
 *   ↪ **c:?**
 
@@ -2319,7 +2319,7 @@ phrasing) of a document and must start in the s:initial-inline.
     s:html-instruction
 *   ↪ **c:>**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Consume
@@ -2414,7 +2414,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-inline
 *   ↪ **c:@**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2464,7 +2464,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
 
-    Unset `sizeLabel`, consume, signal e:text-autolink-email, and switch to the
+    Unset `sizeLabel`, consume, emit l:text-autolink-email, and switch to the
     s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**
 
@@ -2507,7 +2507,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Unset `sizeLabel`, consume, signal e:text-html, and switch to the
+    Unset `sizeLabel`, consume, emit l:text-html, and switch to the
     s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**
 
@@ -2559,7 +2559,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2574,7 +2574,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Enqueue an t:end-of-line, consume, and enqueue a t:content
 *   ↪ **`]]>` (two of c:], with a c:> after)**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Consume
@@ -2612,7 +2612,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume
 *   ↪ **c:>**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:html-declaration-content
@@ -2627,7 +2627,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Enqueue an t:end-of-line, consume, and enqueue a t:content
 *   ↪ **c:>**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Consume
@@ -2658,7 +2658,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Reconsume in the s:html-tag-close-between
 *   ↪ **c:>**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-inline
 *   ↪ **c:@**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2683,7 +2683,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2697,7 +2697,7 @@ phrasing) of a document and must start in the s:initial-inline.
     s:autolink-scheme-inside-or-email-atext
 *   ↪ **c:>**
 
-    Unset `sizeScheme`, consume, signal e:text-html, and switch to the
+    Unset `sizeScheme`, consume, emit l:text-html, and switch to the
     s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**\
     ↪ **c:-**
@@ -2803,7 +2803,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-tag-open-self-closing
 *   ↪ **c:>**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-inline
 *   ↪ **[ASCII alpha][]**\
     ↪ **c::**\
     ↪ **c:_**
@@ -2843,7 +2843,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-tag-open-attribute-value-before
 *   ↪ **c:>**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2923,7 +2923,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-tag-open-between
 *   ↪ **c:>**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Consume
@@ -2932,7 +2932,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, signal e:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2972,7 +2972,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Reconsume in the s:initial-inline
 *   ↪ **c:>**
 
-    Consume, signal e:text-autolink-uri, and switch to the
+    Consume, emit l:text-autolink-uri, and switch to the
     s:initial-inline
 *   ↪ **Anything else**
 
@@ -3008,7 +3008,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
 
-    Unset `sizeLabel`, consume, signal e:text-autolink-email, and switch to the
+    Unset `sizeLabel`, consume, emit l:text-autolink-email, and switch to the
     s:initial-inline
 *   ↪ **[ASCII alphanumeric][]**
 
@@ -3048,97 +3048,97 @@ phrasing) of a document and must start in the s:initial-inline.
 
     Unset `sizeLabel` and reconsume in the s:initial-inline
 
-## Signs
+## Labels
 
-### Content phrasing sign
+### Content phrasing label
 
-When a e:content-phrasing is received, the queue up to that point does not
+When a l:content-phrasing is received, the queue up to that point does not
 construct a definition.
 
-### Content definition sign
+### Content definition label
 
-When a e:content-definition is received, the queue up to that point constructs a
+When a l:content-definition is received, the queue up to that point constructs a
 definition.
 
-### Content definition partial sign
+### Content definition partial label
 
-When a e:content-definition-partial is received, the queue up to that point
+When a l:content-definition-partial is received, the queue up to that point
 constructs a definition without a title.
-It is later followed by a e:content-definition if further queued tokens
-construct a title, or e:content-phrasing if further queued tokens do not
+It is later followed by a l:content-definition if further queued tokens
+construct a title, or l:content-phrasing if further queued tokens do not
 construct a title.
 
-### Content definition label open sign
+### Content definition label open label
 
-When a e:content-definition-label-open is received, …
+When a l:content-definition-label-open is received, …
 
-### Content definition label close sign
+### Content definition label close label
 
-When a e:content-definition-label-close is received, …
+When a l:content-definition-label-close is received, …
 
-### Content definition destination quoted open sign
+### Content definition destination quoted open label
 
-When a e:content-definition-destination-quoted-open is received, …
+When a l:content-definition-destination-quoted-open is received, …
 
-### Content definition destination quoted close sign
+### Content definition destination quoted close label
 
-When a e:content-definition-destination-quoted-close is received, …
+When a l:content-definition-destination-quoted-close is received, …
 
-### Content definition destination unquoted open sign
+### Content definition destination unquoted open label
 
-When a e:content-definition-destination-unquoted-open is received, …
+When a l:content-definition-destination-unquoted-open is received, …
 
-### Content definition destination unquoted close sign
+### Content definition destination unquoted close label
 
-When a e:content-definition-destination-unquoted-close is received, …
+When a l:content-definition-destination-unquoted-close is received, …
 
-### Content definition title open sign
+### Content definition title open label
 
-When a e:content-definition-title-open is received, …
+When a l:content-definition-title-open is received, …
 
-### Content definition title close sign
+### Content definition title close label
 
-When a e:content-definition-title-close is received, …
+When a l:content-definition-title-close is received, …
 
-### Text link open sign
+### Text link open label
 
-When a e:text-link-open is received, …
+When a l:text-link-open is received, …
 
-### Text image open sign
+### Text image open label
 
-When a e:text-image-open is received, …
+When a l:text-image-open is received, …
 
-### Text link close sign
+### Text link close label
 
-When a e:text-link-close is received, …
+When a l:text-link-close is received, …
 
-### Text emphasis sign
+### Text emphasis label
 
-When a e:text-emphasis is received, …
+When a l:text-emphasis is received, …
 
-### Text character reference sign
+### Text character reference label
 
-When a e:text-character-reference is received, …
+When a l:text-character-reference is received, …
 
-### Text escape sign
+### Text escape label
 
-When a e:text-escape is received, …
+When a l:text-escape is received, …
 
-### Text code sign
+### Text code label
 
-When a e:text-code is received, …
+When a l:text-code is received, …
 
-### Text autolink email sign
+### Text autolink email label
 
-When a e:text-autolink-email is received, …
+When a l:text-autolink-email is received, …
 
-### Text autolink URI sign
+### Text autolink URI label
 
-When a e:text-autolink-uri is received, …
+When a l:text-autolink-uri is received, …
 
-### Text HTML sign
+### Text HTML label
 
-When a e:text-html is received, …
+When a l:text-html is received, …
 
 ## Processing
 
