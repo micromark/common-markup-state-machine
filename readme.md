@@ -56,7 +56,7 @@ Common Markup parser.
     *   [9.16 HTML block open character data inside state](#916-html-block-open-character-data-inside-state)
     *   [9.17 HTML block open close tag start state](#917-html-block-open-close-tag-start-state)
     *   [9.18 HTML block open tag name inside state](#918-html-block-open-tag-name-inside-state)
-    *   [9.19 HTML block open simple self closing tag state](#919-html-block-open-simple-self-closing-tag-state)
+    *   [9.19 HTML block open simple self closing state](#919-html-block-open-simple-self-closing-state)
     *   [9.20 HTML block open complete attribute before state](#920-html-block-open-complete-attribute-before-state)
     *   [9.21 HTML block open complete attribute name state](#921-html-block-open-complete-attribute-name-state)
     *   [9.22 HTML block open complete attribute name after state](#922-html-block-open-complete-attribute-name-after-state)
@@ -64,7 +64,7 @@ Common Markup parser.
     *   [9.24 HTML block open complete double quoted attribute value state](#924-html-block-open-complete-double-quoted-attribute-value-state)
     *   [9.25 HTML block open complete single quoted attribute value state](#925-html-block-open-complete-single-quoted-attribute-value-state)
     *   [9.26 HTML block open complete unquoted attribute value state](#926-html-block-open-complete-unquoted-attribute-value-state)
-    *   [9.27 HTML block open complete self closing tag state](#927-html-block-open-complete-self-closing-tag-state)
+    *   [9.27 HTML block open complete self closing state](#927-html-block-open-complete-self-closing-state)
     *   [9.28 HTML block open complete tag after state](#928-html-block-open-complete-tag-after-state)
     *   [9.29 HTML block continuation line state](#929-html-block-continuation-line-state)
     *   [9.30 HTML block continuation tag close state](#930-html-block-continuation-tag-close-state)
@@ -162,12 +162,21 @@ Common Markup parser.
     *   [11.43 HTML tag open scheme or email atext state](#1143-html-tag-open-scheme-or-email-atext-state)
     *   [11.44 HTML tag open inside scheme inside or email atext state](#1144-html-tag-open-inside-scheme-inside-or-email-atext-state)
     *   [11.45 HTML tag open inside or email atext state](#1145-html-tag-open-inside-or-email-atext-state)
-    *   [11.46 Autolink scheme inside or email atext state](#1146-autolink-scheme-inside-or-email-atext-state)
-    *   [11.47 Autolink URI inside state](#1147-autolink-uri-inside-state)
-    *   [11.48 Autolink email atext state](#1148-autolink-email-atext-state)
-    *   [11.49 Autolink email label state](#1149-autolink-email-label-state)
-    *   [11.50 Autolink email at sign or dot state](#1150-autolink-email-at-sign-or-dot-state)
-    *   [11.51 Autolink email dash state](#1151-autolink-email-dash-state)
+    *   [11.46 HTML tag open between start after state](#1146-html-tag-open-between-start-after-state)
+    *   [11.47 HTML tag open between state](#1147-html-tag-open-between-state)
+    *   [11.48 HTML tag open attribute name state](#1148-html-tag-open-attribute-name-state)
+    *   [11.49 HTML tag open attribute name after state](#1149-html-tag-open-attribute-name-after-state)
+    *   [11.50 HTML tag open attribute value before state](#1150-html-tag-open-attribute-value-before-state)
+    *   [11.51 HTML tag open double quoted attribute value state](#1151-html-tag-open-double-quoted-attribute-value-state)
+    *   [11.52 HTML tag open single quoted attribute value state](#1152-html-tag-open-single-quoted-attribute-value-state)
+    *   [11.53 HTML tag open unquoted attribute value state](#1153-html-tag-open-unquoted-attribute-value-state)
+    *   [11.54 HTML tag open self closing state](#1154-html-tag-open-self-closing-state)
+    *   [11.55 Autolink scheme inside or email atext state](#1155-autolink-scheme-inside-or-email-atext-state)
+    *   [11.56 Autolink URI inside state](#1156-autolink-uri-inside-state)
+    *   [11.57 Autolink email atext state](#1157-autolink-email-atext-state)
+    *   [11.58 Autolink email label state](#1158-autolink-email-label-state)
+    *   [11.59 Autolink email at sign or dot state](#1159-autolink-email-at-sign-or-dot-state)
+    *   [11.60 Autolink email dash state](#1160-autolink-email-dash-state)
 *   [12 Signs](#12-signs)
     *   [12.1 Content phrasing sign](#121-content-phrasing-sign)
     *   [12.2 Content definition sign](#122-content-definition-sign)
@@ -953,11 +962,11 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `tagName`, `endTag`
 
     If `tagName` is a [simple tag][simple-tag], consume, and switch to the
-    [*HTML block open simple self closing tag state*][s-html-block-open-simple-self-closing-tag].
+    [*HTML block open simple self closing state*][s-html-block-open-simple-self-closing].
 
     Otherwise, if `tagName` is not a [simple tag][simple-tag], `endTag` is not `true`, and
     the [current group][current-group] is not a [*Content group*][g-content], consume, and switch to the
-    [*HTML block open complete self closing tag state*][s-html-block-open-complete-self-closing-tag].
+    [*HTML block open complete self closing state*][s-html-block-open-complete-self-closing].
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003E GREATER THAN (`>`)**
@@ -981,7 +990,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 9.19 HTML block open simple self closing tag state
+### 9.19 HTML block open simple self closing state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -1006,7 +1015,7 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `endTag`
 
     If `endTag` is not `true`, consume, and switch to the
-    [*HTML block open complete self closing tag state*][s-html-block-open-complete-self-closing-tag].
+    [*HTML block open complete self closing state*][s-html-block-open-complete-self-closing].
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003A COLON (`:`)**\
@@ -1055,7 +1064,7 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `endTag`
 
     If `endTag` is not `true`, consume, and switch to the
-    [*HTML block open complete self closing tag state*][s-html-block-open-complete-self-closing-tag].
+    [*HTML block open complete self closing state*][s-html-block-open-complete-self-closing].
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003D EQUALS TO (`=`)**
@@ -1148,7 +1157,7 @@ If the next few characters are:
 
     Consume
 
-### 9.27 HTML block open complete self closing tag state
+### 9.27 HTML block open complete self closing state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -1650,8 +1659,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 > **Note**: EOL is not possible.
 
-*   ↪ **[EOF][ceof]**\
-    ↪ **[EOL][ceol]**
+*   ↪ **[EOF][ceof]**
 
     Signal [*Content phrasing sign*][e-content-phrasing]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
@@ -2292,9 +2300,6 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOF][ceof]**
 
     Unset `sizeOpen` and reconsume in the [*Initial inline state*][s-initial-inline]
-*   ↪ **[EOL][ceol]**
-
-    Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
     Enqueue a [*Sequence token*][t-sequence], let `sizeClose` be `1`, consume, and switch to the
@@ -2942,8 +2947,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.44 HTML tag open inside scheme inside or email atext state
 
-> ❗️ Todo: support whitespace, attributes, etc in HTML
+*   ↪ **[EOL][ceol]**
 
+    Unset `sizeScheme`, enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a [*Content token*][t-content],
+    and switch to the [*HTML tag open between start after state*][s-html-tag-open-between-start-after]
+*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
+
+    Unset `sizeScheme`, consume, and switch to the [*HTML tag open between state*][s-html-tag-open-between]
 *   ↪ **U+002B PLUS SIGN (`+`)**\
     ↪ **U+002E DOT (`.`)**
 
@@ -2975,8 +2986,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.45 HTML tag open inside or email atext state
 
-> ❗️ Todo: support whitespace, attributes, etc in HTML
+*   ↪ **[EOL][ceol]**
 
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a [*Content token*][t-content], and switch to the
+    [*HTML tag open between start after state*][s-html-tag-open-between-start-after]
+*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
+
+    Consume and switch to the [*HTML tag open between state*][s-html-tag-open-between]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2993,7 +3010,168 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.46 Autolink scheme inside or email atext state
+### 11.46 HTML tag open between start after state
+
+> **Note**: EOL is not possible.
+
+*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
+
+    Consume and switch to the [*HTML tag open between state*][s-html-tag-open-between]
+*   ↪ **Anything else**
+
+    Reconsume in the [*HTML tag open between state*][s-html-tag-open-between]
+
+### 11.47 HTML tag open between state
+
+*   ↪ **[EOL][ceol]**
+
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a [*Content token*][t-content], and switch to the
+    [*HTML tag open between start after state*][s-html-tag-open-between-start-after]
+*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
+
+    Consume
+*   ↪ **U+002F SLASH (`/`)**
+
+    Consume and switch to the [*HTML tag open self closing state*][s-html-tag-open-self-closing]
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+*   ↪ **[ASCII alpha][ascii-alpha]**\
+    ↪ **U+003A COLON (`:`)**\
+    ↪ **U+005F UNDERSCORE (`_`)**
+
+    Consume and switch to the [*HTML tag open attribute name state*][s-html-tag-open-attribute-name]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.48 HTML tag open attribute name state
+
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
+    ↪ **U+002D DASH (`-`)**\
+    ↪ **U+002E DOT (`.`)**\
+    ↪ **U+003A COLON (`:`)**\
+    ↪ **U+005F UNDERSCORE (`_`)**
+
+    Consume
+*   ↪ **Anything else**
+
+    Reconsume in the [*HTML tag open attribute name after state*][s-html-tag-open-attribute-name-after]
+
+### 11.49 HTML tag open attribute name after state
+
+*   ↪ **[EOL][ceol]**
+
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
+*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
+
+    Consume
+*   ↪ **U+002F SLASH (`/`)**
+
+    Consume and switch to the [*HTML tag open self closing state*][s-html-tag-open-self-closing]
+*   ↪ **U+003D EQUALS TO (`=`)**
+
+    Consume and switch to the [*HTML tag open attribute value before state*][s-html-tag-open-attribute-value-before]
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.50 HTML tag open attribute value before state
+
+*   ↪ **[EOL][ceol]**
+
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
+*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
+
+    Consume
+*   ↪ **U+0022 QUOTATION MARK (`"`)**
+
+    Consume and switch to the [*HTML tag open double quoted attribute value state*][s-html-tag-open-double-quoted-attribute-value]
+*   ↪ **U+0027 APOSTROPHE (`'`)**
+
+    Consume and switch to the [*HTML tag open single quoted attribute value state*][s-html-tag-open-single-quoted-attribute-value]
+*   ↪ **U+003C LESS THAN (`<`)**\
+    ↪ **U+003D EQUALS TO (`=`)**\
+    ↪ **U+003E GREATER THAN (`>`)**\
+    ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Consume and switch to the [*HTML tag open unquoted attribute value state*][s-html-tag-open-unquoted-attribute-value]
+
+### 11.51 HTML tag open double quoted attribute value state
+
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **[EOL][ceol]**
+
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
+*   ↪ **U+0022 QUOTATION MARK (`"`)**
+
+    Consume and switch to the [*HTML tag open between state*][s-html-tag-open-between]
+*   ↪ **Anything else**
+
+    Consume
+
+### 11.52 HTML tag open single quoted attribute value state
+
+*   ↪ **[EOF][ceof]**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **[EOL][ceol]**
+
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
+*   ↪ **U+0027 APOSTROPHE (`'`)**
+
+    Consume and switch to the [*HTML tag open between state*][s-html-tag-open-between]
+*   ↪ **Anything else**
+
+    Consume
+
+### 11.53 HTML tag open unquoted attribute value state
+
+*   ↪ **[EOF][ceof]**\
+    ↪ **U+0022 QUOTATION MARK (`"`)**\
+    ↪ **U+0027 APOSTROPHE (`'`)**\
+    ↪ **U+003C LESS THAN (`<`)**\
+    ↪ **U+003D EQUALS TO (`=`)**\
+    ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **[EOL][ceol]**
+
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a [*Content token*][t-content], and switch to the
+    [*HTML tag open between state*][s-html-tag-open-between]
+*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**\\
+
+    Consume and switch to the [*HTML tag open between state*][s-html-tag-open-between]
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Consume
+
+### 11.54 HTML tag open self closing state
+
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, signal [*Text HTML sign*][e-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Initial inline state*][s-initial-inline]
+
+### 11.55 Autolink scheme inside or email atext state
 
 *   ↪ **U+003A COLON (`:`)**
 
@@ -3017,7 +3195,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Unset `sizeScheme` and reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.47 Autolink URI inside state
+### 11.56 Autolink URI inside state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -3034,7 +3212,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Consume
 
-### 11.48 Autolink email atext state
+### 11.57 Autolink email atext state
 
 *   ↪ **U+0040 AT SIGN (`@`)**
 
@@ -3048,7 +3226,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.49 Autolink email label state
+### 11.58 Autolink email label state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -3077,7 +3255,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.50 Autolink email at sign or dot state
+### 11.59 Autolink email at sign or dot state
 
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
@@ -3089,7 +3267,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.51 Autolink email dash state
+### 11.60 Autolink email dash state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -4193,7 +4371,7 @@ This work is licensed under a
 
 [s-html-block-open-tag-name-inside]: #918-html-block-open-tag-name-inside-state
 
-[s-html-block-open-simple-self-closing-tag]: #919-html-block-open-simple-self-closing-tag-state
+[s-html-block-open-simple-self-closing]: #919-html-block-open-simple-self-closing-state
 
 [s-html-block-open-complete-attribute-before]: #920-html-block-open-complete-attribute-before-state
 
@@ -4209,7 +4387,7 @@ This work is licensed under a
 
 [s-html-block-open-complete-unquoted-attribute-value]: #926-html-block-open-complete-unquoted-attribute-value-state
 
-[s-html-block-open-complete-self-closing-tag]: #927-html-block-open-complete-self-closing-tag-state
+[s-html-block-open-complete-self-closing]: #927-html-block-open-complete-self-closing-state
 
 [s-html-block-open-complete-tag-after]: #928-html-block-open-complete-tag-after-state
 
@@ -4401,17 +4579,35 @@ This work is licensed under a
 
 [s-html-tag-open-inside-or-email-atext]: #1145-html-tag-open-inside-or-email-atext-state
 
-[s-autolink-scheme-inside-or-email-atext]: #1146-autolink-scheme-inside-or-email-atext-state
+[s-html-tag-open-between-start-after]: #1146-html-tag-open-between-start-after-state
 
-[s-autolink-uri-inside]: #1147-autolink-uri-inside-state
+[s-html-tag-open-between]: #1147-html-tag-open-between-state
 
-[s-autolink-email-atext]: #1148-autolink-email-atext-state
+[s-html-tag-open-attribute-name]: #1148-html-tag-open-attribute-name-state
 
-[s-autolink-email-label]: #1149-autolink-email-label-state
+[s-html-tag-open-attribute-name-after]: #1149-html-tag-open-attribute-name-after-state
 
-[s-autolink-email-at-sign-or-dot]: #1150-autolink-email-at-sign-or-dot-state
+[s-html-tag-open-attribute-value-before]: #1150-html-tag-open-attribute-value-before-state
 
-[s-autolink-email-dash]: #1151-autolink-email-dash-state
+[s-html-tag-open-double-quoted-attribute-value]: #1151-html-tag-open-double-quoted-attribute-value-state
+
+[s-html-tag-open-single-quoted-attribute-value]: #1152-html-tag-open-single-quoted-attribute-value-state
+
+[s-html-tag-open-unquoted-attribute-value]: #1153-html-tag-open-unquoted-attribute-value-state
+
+[s-html-tag-open-self-closing]: #1154-html-tag-open-self-closing-state
+
+[s-autolink-scheme-inside-or-email-atext]: #1155-autolink-scheme-inside-or-email-atext-state
+
+[s-autolink-uri-inside]: #1156-autolink-uri-inside-state
+
+[s-autolink-email-atext]: #1157-autolink-email-atext-state
+
+[s-autolink-email-label]: #1158-autolink-email-label-state
+
+[s-autolink-email-at-sign-or-dot]: #1159-autolink-email-at-sign-or-dot-state
+
+[s-autolink-email-dash]: #1160-autolink-email-dash-state
 
 [e-content-phrasing]: #121-content-phrasing-sign
 

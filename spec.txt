@@ -728,11 +728,11 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `tagName`, `endTag`
 
     If `tagName` is a [simple tag][], consume, and switch to the
-    s:html-block-open-simple-self-closing-tag.
+    s:html-block-open-simple-self-closing.
 
     Otherwise, if `tagName` is not a [simple tag][], `endTag` is not `true`, and
     the [current group][] is not a g:content, consume, and switch to the
-    s:html-block-open-complete-self-closing-tag.
+    s:html-block-open-complete-self-closing.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
@@ -756,7 +756,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the s:content-continuation
 
-### HTML block open simple self closing tag state
+### HTML block open simple self closing state
 
 *   ↪ **c:>**
 
@@ -781,7 +781,7 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `endTag`
 
     If `endTag` is not `true`, consume, and switch to the
-    s:html-block-open-complete-self-closing-tag.
+    s:html-block-open-complete-self-closing.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c::**\
@@ -830,7 +830,7 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `endTag`
 
     If `endTag` is not `true`, consume, and switch to the
-    s:html-block-open-complete-self-closing-tag.
+    s:html-block-open-complete-self-closing.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:=**
@@ -923,7 +923,7 @@ If the next few characters are:
 
     Consume
 
-### HTML block open complete self closing tag state
+### HTML block open complete self closing state
 
 *   ↪ **c:>**
 
@@ -1425,8 +1425,7 @@ document and must start in the s:initial-content.
 
 > **Note**: EOL is not possible.
 
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**
+*   ↪ **[c:EOF][]**
 
     Signal e:content-phrasing
 *   ↪ **c:HT**\
@@ -2067,9 +2066,6 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **[c:EOF][]**
 
     Unset `sizeOpen` and reconsume in the s:initial-inline
-*   ↪ **[c:EOL][]**
-
-    Enqueue an t:end-of-line and consume
 *   ↪ **c:`**
 
     Enqueue a t:sequence, let `sizeClose` be `1`, consume, and switch to the
@@ -2717,8 +2713,14 @@ phrasing) of a document and must start in the s:initial-inline.
 
 ### HTML tag open inside scheme inside or email atext state
 
-> ❗️ Todo: support whitespace, attributes, etc in HTML
+*   ↪ **[c:EOL][]**
 
+    Unset `sizeScheme`, enqueue an t:end-of-line, consume, enqueue a t:content,
+    and switch to the s:html-tag-open-between-start-after
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Unset `sizeScheme`, consume, and switch to the s:html-tag-open-between
 *   ↪ **c:+**\
     ↪ **c:.**
 
@@ -2750,8 +2752,14 @@ phrasing) of a document and must start in the s:initial-inline.
 
 ### HTML tag open inside or email atext state
 
-> ❗️ Todo: support whitespace, attributes, etc in HTML
+*   ↪ **[c:EOL][]**
 
+    Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
+    s:html-tag-open-between-start-after
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Consume and switch to the s:html-tag-open-between
 *   ↪ **c:@**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2764,6 +2772,167 @@ phrasing) of a document and must start in the s:initial-inline.
     ↪ **c:.**
 
     Consume and switch to the s:autolink-email-atext
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML tag open between start after state
+
+> **Note**: EOL is not possible.
+
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Consume and switch to the s:html-tag-open-between
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-tag-open-between
+
+### HTML tag open between state
+
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
+    s:html-tag-open-between-start-after
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Consume
+*   ↪ **c:/**
+
+    Consume and switch to the s:html-tag-open-self-closing
+*   ↪ **c:>**
+
+    Consume, signal e:text-html, and switch to the s:initial-inline
+*   ↪ **[ASCII alpha][]**\
+    ↪ **c::**\
+    ↪ **c:_**
+
+    Consume and switch to the s:html-tag-open-attribute-name
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML tag open attribute name state
+
+*   ↪ **[ASCII alphanumeric][]**\
+    ↪ **c:-**\
+    ↪ **c:.**\
+    ↪ **c::**\
+    ↪ **c:_**
+
+    Consume
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-tag-open-attribute-name-after
+
+### HTML tag open attribute name after state
+
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and enqueue a t:content
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Consume
+*   ↪ **c:/**
+
+    Consume and switch to the s:html-tag-open-self-closing
+*   ↪ **c:=**
+
+    Consume and switch to the s:html-tag-open-attribute-value-before
+*   ↪ **c:>**
+
+    Consume, signal e:text-html, and switch to the s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### HTML tag open attribute value before state
+
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and enqueue a t:content
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Consume
+*   ↪ **c:"**
+
+    Consume and switch to the s:html-tag-open-double-quoted-attribute-value
+*   ↪ **c:'**
+
+    Consume and switch to the s:html-tag-open-single-quoted-attribute-value
+*   ↪ **c:<**\
+    ↪ **c:=**\
+    ↪ **c:>**\
+    ↪ **c:`**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Consume and switch to the s:html-tag-open-unquoted-attribute-value
+
+### HTML tag open double quoted attribute value state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and enqueue a t:content
+*   ↪ **c:"**
+
+    Consume and switch to the s:html-tag-open-between
+*   ↪ **Anything else**
+
+    Consume
+
+### HTML tag open single quoted attribute value state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and enqueue a t:content
+*   ↪ **c:'**
+
+    Consume and switch to the s:html-tag-open-between
+*   ↪ **Anything else**
+
+    Consume
+
+### HTML tag open unquoted attribute value state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **c:"**\
+    ↪ **c:'**\
+    ↪ **c:<**\
+    ↪ **c:=**\
+    ↪ **c:`**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
+    s:html-tag-open-between
+*   ↪ **c:HT**\
+    ↪ **c:SP**\
+
+    Consume and switch to the s:html-tag-open-between
+*   ↪ **c:>**
+
+    Consume, signal e:text-html, and switch to the s:initial-inline
+*   ↪ **Anything else**
+
+    Consume
+
+### HTML tag open self closing state
+
+*   ↪ **c:>**
+
+    Consume, signal e:text-html, and switch to the s:initial-inline
 *   ↪ **Anything else**
 
     Reconsume in the s:initial-inline
@@ -2838,8 +3007,6 @@ phrasing) of a document and must start in the s:initial-inline.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
-
-    > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
     Unset `sizeLabel`, consume, signal e:text-autolink-email, and switch to the
     s:initial-inline
