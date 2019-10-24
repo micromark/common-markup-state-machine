@@ -3197,17 +3197,17 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.56 Autolink URI inside state
 
-*   ↪ **U+003E GREATER THAN (`>`)**
-
-    Consume, signal [*Text autolink URI sign*][e-text-autolink-uri], and switch to the
-    [*Initial inline state*][s-initial-inline]
-*   ↪ **[ASCII control][ascii-control]**\
-    ↪ **[EOF][ceof]**\
+*   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
+    ↪ **[ASCII control][ascii-control]**\
     ↪ **U+0020 SPACE (SP)**\
     ↪ **U+003C LESS THAN (`<`)**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
+*   ↪ **U+003E GREATER THAN (`>`)**
+
+    Consume, signal [*Text autolink URI sign*][e-text-autolink-uri], and switch to the
+    [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume
@@ -3241,8 +3241,6 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003E GREATER THAN (`>`)**
-
-    > ❗️ Todo: size between `@` and `>` can be at most 63 total.
 
     Unset `sizeLabel`, consume, signal [*Text autolink email sign*][e-text-autolink-email], and switch to the
     [*Initial inline state*][s-initial-inline]

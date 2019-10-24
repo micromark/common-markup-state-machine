@@ -2963,17 +2963,17 @@ phrasing) of a document and must start in the s:initial-inline.
 
 ### Autolink URI inside state
 
-*   ↪ **c:>**
-
-    Consume, signal e:text-autolink-uri, and switch to the
-    s:initial-inline
-*   ↪ **[ASCII control][]**\
-    ↪ **[c:EOF][]**\
+*   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**\
+    ↪ **[ASCII control][]**\
     ↪ **c:SP**\
     ↪ **c:<**
 
     Reconsume in the s:initial-inline
+*   ↪ **c:>**
+
+    Consume, signal e:text-autolink-uri, and switch to the
+    s:initial-inline
 *   ↪ **Anything else**
 
     Consume
