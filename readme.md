@@ -2192,8 +2192,6 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Escape backslash after state*][s-escape-backslash-after]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    > ❗️ Todo: support references, inlines, etc
-
     If parsing rich text, enqueue a [*Marker token*][t-marker], consume, and switch to the
     [*Link text or label after state*][s-link-text-or-label-after]
 
@@ -3323,14 +3321,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 ### 11.61 Link text or label after state
 
-*   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
-
-    Enqueue a [*Marker token*][t-marker], consume, emit [*Text link label open label*][l-text-link-label-open], and switch to the
-    [*Link label open after state*][s-link-label-open-after]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit [*Text link information open label*][l-text-link-information-open], and switch
     to the [*Link inline information open state*][s-link-inline-information-open]
+*   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
+
+    Enqueue a [*Marker token*][t-marker], consume, emit [*Text link label open label*][l-text-link-label-open], and switch to the
+    [*Link label open after state*][s-link-label-open-after]
 *   ↪ **Anything else**
 
     > ❗️ Todo: shortcut reference
@@ -3348,14 +3346,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Link inline information open after state*][s-link-inline-information-open-after]
-*   ↪ **U+003C LESS THAN (`<`)**
-
-    Emit a [*Text link destination quoted open label*][l-text-link-destination-quoted-open], enqueue a [*Marker token*][t-marker], consume, and
-    switch to the [*Link inline destination quoted open after state*][s-link-inline-destination-quoted-open-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link information close label*][l-text-link-information-close], and
     switch to the [*Initial inline state*][s-initial-inline]
+*   ↪ **U+003C LESS THAN (`<`)**
+
+    Emit a [*Text link destination quoted open label*][l-text-link-destination-quoted-open], enqueue a [*Marker token*][t-marker], consume, and
+    switch to the [*Link inline destination quoted open after state*][s-link-inline-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
@@ -3377,14 +3375,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **U+0020 SPACE (SP)**
 
     Consume
-*   ↪ **U+003C LESS THAN (`<`)**
-
-    Emit a [*Text link destination quoted open label*][l-text-link-destination-quoted-open], enqueue a [*Marker token*][t-marker], consume, and
-    switch to the [*Link inline destination quoted open after state*][s-link-inline-destination-quoted-open-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link information close label*][l-text-link-information-close], and
     switch to the [*Initial inline state*][s-initial-inline]
+*   ↪ **U+003C LESS THAN (`<`)**
+
+    Emit a [*Text link destination quoted open label*][l-text-link-destination-quoted-open], enqueue a [*Marker token*][t-marker], consume, and
+    switch to the [*Link inline destination quoted open after state*][s-link-inline-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]

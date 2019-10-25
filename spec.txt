@@ -1920,8 +1920,6 @@ phrasing) of a document and must start in the s:initial-inline.
     Enqueue a t:marker, consume, and switch to the s:escape-backslash-after
 *   ↪ **c:]**
 
-    > ❗️ Todo: support references, inlines, etc
-
     If parsing rich text, enqueue a t:marker, consume, and switch to the
     s:link-text-or-label-after
 
@@ -3051,14 +3049,14 @@ phrasing) of a document and must start in the s:initial-inline.
 
 ### Link text or label after state
 
-*   ↪ **c:[**
-
-    Enqueue a t:marker, consume, emit l:text-link-label-open, and switch to the
-    s:link-label-open-after
 *   ↪ **c:(**
 
     Enqueue a t:marker, consume, emit l:text-link-information-open, and switch
     to the s:link-inline-information-open
+*   ↪ **c:[**
+
+    Enqueue a t:marker, consume, emit l:text-link-label-open, and switch to the
+    s:link-label-open-after
 *   ↪ **Anything else**
 
     > ❗️ Todo: shortcut reference
@@ -3076,14 +3074,14 @@ phrasing) of a document and must start in the s:initial-inline.
 
     Enqueue a t:whitespace, consume, and switch to the
     s:link-inline-information-open-after
-*   ↪ **c:<**
-
-    Emit a l:text-link-destination-quoted-open, enqueue a t:marker, consume, and
-    switch to the s:link-inline-destination-quoted-open-after
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-link-information-close, and
     switch to the s:initial-inline
+*   ↪ **c:<**
+
+    Emit a l:text-link-destination-quoted-open, enqueue a t:marker, consume, and
+    switch to the s:link-inline-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
     Reconsume in the s:initial-inline
@@ -3105,14 +3103,14 @@ phrasing) of a document and must start in the s:initial-inline.
     ↪ **c:SP**
 
     Consume
-*   ↪ **c:<**
-
-    Emit a l:text-link-destination-quoted-open, enqueue a t:marker, consume, and
-    switch to the s:link-inline-destination-quoted-open-after
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-link-information-close, and
     switch to the s:initial-inline
+*   ↪ **c:<**
+
+    Emit a l:text-link-destination-quoted-open, enqueue a t:marker, consume, and
+    switch to the s:link-inline-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
     Reconsume in the s:initial-inline
