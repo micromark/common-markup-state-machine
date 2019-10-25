@@ -117,8 +117,14 @@ a prefix of the content.
 
 An [ASCII digit](#) is a character in the inclusive range c:0 to c:9.
 
-An [ASCII hex digit](#) is an [ASCII digit][] or a character in the
-inclusive ranges c:A to c:F or c:a to c:f.
+An [ASCII upper hex digit](#) is an [ASCII digit][] or a character in the
+inclusive range c:A to c:F.
+
+An [ASCII lower hex digit](#) is an [ASCII digit][] or a character in the
+inclusive range c:a to c:f.
+
+An [ASCII hex digit](#) is an [ASCII upper hex digit][] or an [ASCII lower hex
+digit][]
 
 An [ASCII upper alpha](#) is a character in the inclusive range c:A to c:Z.
 
@@ -1470,11 +1476,6 @@ document and must start in the s:initial-content.
 
 ### Definition label escape state
 
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Enqueue a t:whitespace, consume, and switch to the
-    s:definition-label-between
 *   ↪ **U+005C BACKSLASH (`\`)**\
     ↪ **c:]**
 
@@ -1921,8 +1922,8 @@ phrasing) of a document and must start in the s:initial-inline.
 
     > ❗️ Todo: support references, inlines, etc
 
-    If parsing rich text, enqueue a t:marker, consume, and emit
-    l:text-link-close
+    If parsing rich text, enqueue a t:marker, consume, and switch to the
+    s:link-text-or-label-after
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:_**
@@ -2131,16 +2132,6 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **[ASCII punctuation][]**
 
     Enqueue a t:content, consume, emit l:text-escape, and switch to the
-    s:initial-inline
-*   ↪ **Anything else**
-
-    Reconsume in the s:initial-inline
-
-### Image exclamation mark after state
-
-*   ↪ **c:[**
-
-    Enqueue a t:marker, consume, emit l:text-image-open, and switch to the
     s:initial-inline
 *   ↪ **Anything else**
 
@@ -3048,6 +3039,558 @@ phrasing) of a document and must start in the s:initial-inline.
 
     Unset `sizeLabel` and reconsume in the s:initial-inline
 
+### Image exclamation mark after state
+
+*   ↪ **c:[**
+
+    Enqueue a t:marker, consume, emit l:text-image-open, and switch to the
+    s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Link text or label after state
+
+*   ↪ **c:[**
+
+    Enqueue a t:marker, consume, emit l:text-link-label-open, and switch to the
+    s:link-label-open-after
+*   ↪ **c:(**
+
+    Enqueue a t:marker, consume, emit l:text-link-information-open, and switch
+    to the s:link-inline-information-open
+*   ↪ **Anything else**
+
+    > ❗️ Todo: shortcut reference
+
+### Link inline information open state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line and consume
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Enqueue a t:whitespace, consume, and switch to the
+    s:link-inline-information-open-after
+*   ↪ **c:<**
+
+    Emit a l:text-link-destination-quoted-open, enqueue a t:marker, consume, and
+    switch to the s:link-inline-destination-quoted-open-after
+*   ↪ **c:)**
+
+    Enqueue a t:marker, consume, emit a l:text-link-information-close, and
+    switch to the s:initial-inline
+*   ↪ **[ASCII control][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Let `balance` be `0`, emit a l:text-link-destination-unquoted-open, enqueue
+    a t:content and reconsume in the s:link-inline-destination-unquoted-inside
+
+### Link inline information open after state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and switch to the
+    s:link-inline-information-open
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Consume
+*   ↪ **c:<**
+
+    Emit a l:text-link-destination-quoted-open, enqueue a t:marker, consume, and
+    switch to the s:link-inline-destination-quoted-open-after
+*   ↪ **c:)**
+
+    Enqueue a t:marker, consume, emit a l:text-link-information-close, and
+    switch to the s:initial-inline
+*   ↪ **[ASCII control][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Let `balance` be `0`, emit a l:text-link-destination-unquoted-open, enqueue
+    a t:content and reconsume in the s:link-inline-destination-unquoted-inside
+
+### Link inline destination quoted open after state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **c:<**
+
+    Reconsume in the s:initial-inline
+*   ↪ **c:>**
+
+    Enqueue a t:marker, consume, emit a l:text-link-destination-quoted-close,
+    and switch to the s:link-inline-destination-quoted-close-after
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Enqueue a t:content, consume, and switch to the
+    s:link-inline-destination-quoted-escape
+*   ↪ **Anything else**
+
+    Enqueue a t:content, consume, and switch to the
+    s:link-inline-destination-quoted-inside
+
+### Link inline destination quoted inside state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **c:<**
+
+    Reconsume in the s:initial-inline
+*   ↪ **c:>**
+
+    Enqueue a t:marker, consume, emit a l:text-link-destination-quoted-close,
+    and switch to the s:link-inline-destination-quoted-close-after
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Consume and switch to the s:link-inline-destination-quoted-escape
+*   ↪ **Anything else**
+
+    Consume
+
+### Link inline destination quoted escape state
+
+*   ↪ **c:<**\
+    ↪ **c:>**\
+    ↪ **U+005C BACKSLASH (`\`)**
+
+    Consume and switch to the s:link-inline-destination-quoted-inside
+*   ↪ **Anything else**
+
+    Reconsume in the s:link-inline-destination-quoted-inside
+
+### Link inline destination quoted close after state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and switch to the
+    s:link-inline-information-between
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Enqueue a t:whitespace, consume, and switch to the
+    s:link-inline-information-between-after
+*   ↪ **c:)**
+
+    Enqueue a t:marker, consume, emit a l:text-link-information-close, and
+    switch to the s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Link inline information between state
+
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line and consume
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Enqueue a t:whitespace, consume, and switch to the
+    s:link-inline-information-between-after
+*   ↪ **Anything else**
+
+    Reconsume in the s:link-inline-information-between-after
+
+### Link inline information between after state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line and consume, and switch to the
+    s:link-inline-information-between
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Consume
+*   ↪ **c:"**
+
+    Emit a l:text-link-title-open, enqueue a t:marker, consume, and switch to
+    the s:link-inline-title-double-quoted-open-after
+*   ↪ **c:'**
+
+    Emit a l:text-link-title-open, enqueue a t:marker, consume, and switch to
+    the s:link-inline-title-single-quoted-open-after
+*   ↪ **c:(**
+
+    Emit a l:text-link-title-open, enqueue a t:marker, consume, and switch to
+    the s:link-inline-title-paren-quoted-open-after
+*   ↪ **c:)**
+
+    Enqueue a t:marker, consume, emit a l:text-link-information-close, and
+    switch to the s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Link inline destination unquoted inside state
+
+*   ↪ **[c:EOF][]**
+
+    Unset `balance` and reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Unset `balance`, emit a l:text-link-destination-unquoted-close, and
+    reconsume in the s:link-inline-information-between
+*   ↪ **c:(**
+
+    Increment `balance` by `1` and consume
+*   ↪ **c:)**
+
+    If `balance` is `0`, unset `balance`, emit a
+    l:text-link-destination-unquoted-close, enqueue a t:marker, consume, emit a
+    l:text-link-information-close, and switch to the s:initial-inline
+
+    Otherwise, decrement `balance` by `1`, and consume
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Consume and switch to the s:link-inline-destination-unquoted-escape
+*   ↪ **[ASCII control][]**
+
+    Unset `balance` and reconsume in the s:initial-inline
+*   ↪ **Anything else**
+
+    Consume
+
+### Link inline destination unquoted escape state
+
+*   ↪ **c:(**\
+    ↪ **c:)**\
+    ↪ **U+005C BACKSLASH (`\`)**
+
+    Consume and switch to the s:link-inline-destination-unquoted-inside
+*   ↪ **Anything else**
+
+    Reconsume in the s:link-inline-destination-unquoted-inside
+
+### Link inline title double quoted open after state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line and consume
+*   ↪ **c:"**
+
+    Enqueue a t:marker, consume, emit a l:text-link-title-close, and switch to
+    the s:link-inline-title-close-after
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Enqueue a t:content, consume, and switch to the
+    s:link-inline-title-double-quoted-escape
+*   ↪ **Anything else**
+
+    Enqueue a t:content, consume, and switch to the
+    s:link-inline-title-double-quoted-inside
+
+### Link inline title double quoted inside state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and switch to the
+    s:link-inline-title-double-quoted-open-after
+*   ↪ **c:"**
+
+    Enqueue a t:marker, consume, emit a l:text-link-title-close, and switch to
+    the s:link-inline-title-close-after
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Consume and switch to the s:link-inline-title-double-quoted-escape
+*   ↪ **Anything else**
+
+    Consume
+
+### Link inline title double quoted escape state
+
+*   ↪ **c:"**\
+    ↪ **U+005C BACKSLASH (`\`)**
+
+    Consume and switch to the s:link-inline-title-double-quoted-open-after
+*   ↪ **Anything else**
+
+    Reconsume in the s:link-inline-title-double-quoted-open-after
+
+### Link inline title single quoted open after state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line and consume
+*   ↪ **c:'**
+
+    Enqueue a t:marker, consume, emit a l:text-link-title-close, and switch to
+    the s:link-inline-title-close-after
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Enqueue a t:content, consume, and switch to the
+    s:link-inline-title-single-quoted-escape
+*   ↪ **Anything else**
+
+    Enqueue a t:content, consume, and switch to the
+    s:link-inline-title-single-quoted-inside
+
+### Link inline title single quoted inside state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and switch to the
+    s:link-inline-title-single-quoted-open-after
+*   ↪ **c:'**
+
+    Enqueue a t:marker, consume, emit a l:text-link-title-close, and switch to
+    the s:link-inline-title-close-after
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Consume and switch to the s:link-inline-title-single-quoted-escape
+*   ↪ **Anything else**
+
+    Consume
+
+### Link inline title single quoted escape state
+
+*   ↪ **c:'**\
+    ↪ **U+005C BACKSLASH (`\`)**
+
+    Consume and switch to the s:link-inline-title-single-quoted-open-after
+*   ↪ **Anything else**
+
+    Reconsume in the s:link-inline-title-single-quoted-open-after
+
+### Link inline title paren quoted open after state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line and consume
+*   ↪ **c:)**
+
+    Enqueue a t:marker, consume, emit a l:text-link-title-close, and switch to
+    the s:link-inline-title-close-after
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Enqueue a t:content, consume, and switch to the
+    s:link-inline-title-paren-quoted-escape
+*   ↪ **Anything else**
+
+    Enqueue a t:content, consume, and switch to the
+    s:link-inline-title-paren-quoted-inside
+
+### Link inline title paren quoted inside state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and switch to the
+    s:link-inline-title-paren-quoted-open-after
+*   ↪ **c:)**
+
+    Enqueue a t:marker, consume, emit a l:text-link-title-close, and switch to
+    the s:link-inline-title-close-after
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Consume and switch to the s:link-inline-title-paren-quoted-escape
+*   ↪ **Anything else**
+
+    Consume
+
+### Link inline title paren quoted escape state
+
+*   ↪ **c:)**\
+    ↪ **U+005C BACKSLASH (`\`)**
+
+    Consume and switch to the s:link-inline-title-paren-quoted-open-after
+*   ↪ **Anything else**
+
+    Reconsume in the s:link-inline-title-paren-quoted-open-after
+
+### Link inline title close after state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line and consume
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Enqueue a t:whitespace, consume, and switch to the s:link-inline-after
+*   ↪ **c:)**
+
+    Enqueue a t:marker, consume, emit a l:text-link-information-close, and
+    switch to the s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Link inline after state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Reconsume in the s:link-inline-title-close-after
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Consume
+*   ↪ **c:)**
+
+    Enqueue a t:marker, consume, emit a l:text-link-information-close, and
+    switch to the s:initial-inline
+*   ↪ **Anything else**
+
+    Reconsume in the s:initial-inline
+
+### Link label open after state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line and consume
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Enqueue a t:whitespace, consume, and switch to the s:link-label-before
+*   ↪ **c:]**
+
+    Enqueue a t:marker, consume, emit a l:text-link-label-close, and switch to
+    the s:initial-inline
+*   ↪ **Anything else**
+
+    Enqueue a t:content, consume, and switch to the s:link-label-inside
+
+### Link label before state
+
+> **Note**: EOL is not possible.
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **c:]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Consume
+*   ↪ **Anything else**
+
+    Enqueue a t:content, consume, and switch to the s:link-label-inside
+
+### Link label inside state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and switch to the
+    s:link-label-inside-start-after
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Enqueue a t:whitespace, consume, and switch to the s:link-label-between
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Consume and switch to the s:link-label-escape
+*   ↪ **c:]**
+
+    Enqueue a t:marker, consume, emit a l:text-link-label-close, and switch to
+    the s:initial-inline
+*   ↪ **Anything else**
+
+    Consume
+
+### Link label inside start after state
+
+> **Note**: EOL is not possible.
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Enqueue a t:whitespace, consume, and switch to the s:link-label-between
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Consume and switch to the s:link-label-escape
+*   ↪ **c:]**
+
+    Enqueue a t:marker, consume, emit a l:text-link-label-close, and switch to
+    the s:initial-inline
+*   ↪ **Anything else**
+
+    Enqueue a t:content, consume, and switch to the s:link-label-inside
+
+### Link label between state
+
+*   ↪ **[c:EOF][]**
+
+    Reconsume in the s:initial-inline
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and switch to the
+    s:link-label-inside-start-after
+*   ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Consume
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Enqueue a t:content, consume, and switch to the s:link-label-escape
+*   ↪ **c:]**
+
+    Enqueue a t:marker, consume, emit a l:text-link-label-close, and switch to
+    the s:initial-inline
+*   ↪ **Anything else**
+
+    Enqueue a t:content, consume, and switch to the s:link-label-inside
+
+### Link label escape state
+
+*   ↪ **U+005C BACKSLASH (`\`)**\
+    ↪ **c:]**
+
+    Consume and switch to the s:link-label-inside
+*   ↪ **Anything else**
+
+    Reconsume in the s:link-label-inside
+
 ## Labels
 
 ### Content phrasing label
@@ -3111,6 +3654,46 @@ When a l:text-image-open is received, …
 ### Text link close label
 
 When a l:text-link-close is received, …
+
+### Text link label open label
+
+When a l:text-link-label-open is received, …
+
+### Text link label close label
+
+When a l:text-link-label-close is received, …
+
+### Text link information open label
+
+When a l:text-link-information-open is received, …
+
+### Text link destination quoted open label
+
+When a l:text-link-destination-quoted-open is received, …
+
+### Text link destination quoted close label
+
+When a l:text-link-destination-quoted-close is received, …
+
+### Text link destination unquoted open label
+
+When a l:text-link-destination-unquoted-open is received, …
+
+### Text link destination unquoted close label
+
+When a l:text-link-destination-unquoted-close is received, …
+
+### Text link title open label
+
+When a l:text-link-title-open is received, …
+
+### Text link title close label
+
+When a l:text-link-title-close is received, …
+
+### Text link information close label
+
+When a l:text-link-information-close is received, …
 
 ### Text emphasis label
 

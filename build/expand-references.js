@@ -9,12 +9,9 @@ function expandStates() {
 
   function transform(tree) {
     var slugs = {}
-    var types = ['state', 'sign', 'token', 'group']
-    var overwrite = {sign: 'e'}
+    var types = ['state', 'label', 'token', 'group']
     var re = new RegExp(
-      '(' +
-        types.map(d => (overwrite[d] || d).charAt(0)).join('|') +
-        '):([a-z-]+)',
+      '(' + types.map(d => d.charAt(0)).join('|') + '):([a-z-]+)',
       'g'
     )
 
@@ -42,7 +39,7 @@ function expandStates() {
 
         if (new RegExp('^\\d+(?:-[a-z]+)+-' + d + '$').test(id)) {
           key =
-            (overwrite[d] || d).charAt(0) +
+            d.charAt(0) +
             '-' +
             id.replace(/^\d+-/, '').replace(new RegExp('-' + d + '$'), '')
 
