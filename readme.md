@@ -16,7 +16,7 @@ Common Markup parser.
 >
 > *   <a id="stack-of-continuation" href="#stack-of-continuation">**Stack of continuation**</a> (`>` and `␠␠` for blockquote and list items)
 > *   Extensions
-> *   Emphasis, strong, links, images, hard line breaks
+> *   Emphasis, strong, hard line breaks
 > *   Lots of infra algorithms
 
 ## Table of contents
@@ -177,34 +177,34 @@ Common Markup parser.
     *   [11.58 Autolink email at sign or dot state](#1158-autolink-email-at-sign-or-dot-state)
     *   [11.59 Autolink email dash state](#1159-autolink-email-dash-state)
     *   [11.60 Image exclamation mark after state](#1160-image-exclamation-mark-after-state)
-    *   [11.61 Link text or label after state](#1161-link-text-or-label-after-state)
-    *   [11.62 Link inline information open state](#1162-link-inline-information-open-state)
-    *   [11.63 Link inline information open after state](#1163-link-inline-information-open-after-state)
-    *   [11.64 Link inline destination quoted open after state](#1164-link-inline-destination-quoted-open-after-state)
-    *   [11.65 Link inline destination quoted inside state](#1165-link-inline-destination-quoted-inside-state)
-    *   [11.66 Link inline destination quoted escape state](#1166-link-inline-destination-quoted-escape-state)
-    *   [11.67 Link inline destination quoted close after state](#1167-link-inline-destination-quoted-close-after-state)
-    *   [11.68 Link inline information between state](#1168-link-inline-information-between-state)
-    *   [11.69 Link inline information between after state](#1169-link-inline-information-between-after-state)
-    *   [11.70 Link inline destination unquoted inside state](#1170-link-inline-destination-unquoted-inside-state)
-    *   [11.71 Link inline destination unquoted escape state](#1171-link-inline-destination-unquoted-escape-state)
-    *   [11.72 Link inline title double quoted open after state](#1172-link-inline-title-double-quoted-open-after-state)
-    *   [11.73 Link inline title double quoted inside state](#1173-link-inline-title-double-quoted-inside-state)
-    *   [11.74 Link inline title double quoted escape state](#1174-link-inline-title-double-quoted-escape-state)
-    *   [11.75 Link inline title single quoted open after state](#1175-link-inline-title-single-quoted-open-after-state)
-    *   [11.76 Link inline title single quoted inside state](#1176-link-inline-title-single-quoted-inside-state)
-    *   [11.77 Link inline title single quoted escape state](#1177-link-inline-title-single-quoted-escape-state)
-    *   [11.78 Link inline title paren quoted open after state](#1178-link-inline-title-paren-quoted-open-after-state)
-    *   [11.79 Link inline title paren quoted inside state](#1179-link-inline-title-paren-quoted-inside-state)
-    *   [11.80 Link inline title paren quoted escape state](#1180-link-inline-title-paren-quoted-escape-state)
-    *   [11.81 Link inline title close after state](#1181-link-inline-title-close-after-state)
-    *   [11.82 Link inline after state](#1182-link-inline-after-state)
-    *   [11.83 Link label open after state](#1183-link-label-open-after-state)
-    *   [11.84 Link label before state](#1184-link-label-before-state)
-    *   [11.85 Link label inside state](#1185-link-label-inside-state)
-    *   [11.86 Link label inside start after state](#1186-link-label-inside-start-after-state)
-    *   [11.87 Link label between state](#1187-link-label-between-state)
-    *   [11.88 Link label escape state](#1188-link-label-escape-state)
+    *   [11.61 Resource text or label after state](#1161-resource-text-or-label-after-state)
+    *   [11.62 Resource information open state](#1162-resource-information-open-state)
+    *   [11.63 Resource information open after state](#1163-resource-information-open-after-state)
+    *   [11.64 Resource destination quoted open after state](#1164-resource-destination-quoted-open-after-state)
+    *   [11.65 Resource destination quoted inside state](#1165-resource-destination-quoted-inside-state)
+    *   [11.66 Resource destination quoted escape state](#1166-resource-destination-quoted-escape-state)
+    *   [11.67 Resource destination quoted close after state](#1167-resource-destination-quoted-close-after-state)
+    *   [11.68 Resource information between state](#1168-resource-information-between-state)
+    *   [11.69 Resource information between after state](#1169-resource-information-between-after-state)
+    *   [11.70 Resource destination unquoted inside state](#1170-resource-destination-unquoted-inside-state)
+    *   [11.71 Resource destination unquoted escape state](#1171-resource-destination-unquoted-escape-state)
+    *   [11.72 Resource title double quoted open after state](#1172-resource-title-double-quoted-open-after-state)
+    *   [11.73 Resource title double quoted inside state](#1173-resource-title-double-quoted-inside-state)
+    *   [11.74 Resource title double quoted escape state](#1174-resource-title-double-quoted-escape-state)
+    *   [11.75 Resource title single quoted open after state](#1175-resource-title-single-quoted-open-after-state)
+    *   [11.76 Resource title single quoted inside state](#1176-resource-title-single-quoted-inside-state)
+    *   [11.77 Resource title single quoted escape state](#1177-resource-title-single-quoted-escape-state)
+    *   [11.78 Resource title paren quoted open after state](#1178-resource-title-paren-quoted-open-after-state)
+    *   [11.79 Resource title paren quoted inside state](#1179-resource-title-paren-quoted-inside-state)
+    *   [11.80 Resource title paren quoted escape state](#1180-resource-title-paren-quoted-escape-state)
+    *   [11.81 Resource title close after state](#1181-resource-title-close-after-state)
+    *   [11.82 Resource information close before state](#1182-resource-information-close-before-state)
+    *   [11.83 Reference label open after state](#1183-reference-label-open-after-state)
+    *   [11.84 Reference label before state](#1184-reference-label-before-state)
+    *   [11.85 Reference label inside state](#1185-reference-label-inside-state)
+    *   [11.86 Reference label inside start after state](#1186-reference-label-inside-start-after-state)
+    *   [11.87 Reference label between state](#1187-reference-label-between-state)
+    *   [11.88 Reference label escape state](#1188-reference-label-escape-state)
 *   [12 Labels](#12-labels)
     *   [12.1 Content phrasing label](#121-content-phrasing-label)
     *   [12.2 Content definition label](#122-content-definition-label)
@@ -219,17 +219,17 @@ Common Markup parser.
     *   [12.11 Content definition title close label](#1211-content-definition-title-close-label)
     *   [12.12 Text link open label](#1212-text-link-open-label)
     *   [12.13 Text image open label](#1213-text-image-open-label)
-    *   [12.14 Text link close label](#1214-text-link-close-label)
-    *   [12.15 Text link label open label](#1215-text-link-label-open-label)
-    *   [12.16 Text link label close label](#1216-text-link-label-close-label)
-    *   [12.17 Text link information open label](#1217-text-link-information-open-label)
-    *   [12.18 Text link destination quoted open label](#1218-text-link-destination-quoted-open-label)
-    *   [12.19 Text link destination quoted close label](#1219-text-link-destination-quoted-close-label)
-    *   [12.20 Text link destination unquoted open label](#1220-text-link-destination-unquoted-open-label)
-    *   [12.21 Text link destination unquoted close label](#1221-text-link-destination-unquoted-close-label)
-    *   [12.22 Text link title open label](#1222-text-link-title-open-label)
-    *   [12.23 Text link title close label](#1223-text-link-title-close-label)
-    *   [12.24 Text link information close label](#1224-text-link-information-close-label)
+    *   [12.14 Text resource close label](#1214-text-resource-close-label)
+    *   [12.15 Text reference label open label](#1215-text-reference-label-open-label)
+    *   [12.16 Text reference label close label](#1216-text-reference-label-close-label)
+    *   [12.17 Text resource information open label](#1217-text-resource-information-open-label)
+    *   [12.18 Text resource destination quoted open label](#1218-text-resource-destination-quoted-open-label)
+    *   [12.19 Text resource destination quoted close label](#1219-text-resource-destination-quoted-close-label)
+    *   [12.20 Text resource destination unquoted open label](#1220-text-resource-destination-unquoted-open-label)
+    *   [12.21 Text resource destination unquoted close label](#1221-text-resource-destination-unquoted-close-label)
+    *   [12.22 Text resource title open label](#1222-text-resource-title-open-label)
+    *   [12.23 Text resource title close label](#1223-text-resource-title-close-label)
+    *   [12.24 Text resource information close label](#1224-text-resource-information-close-label)
     *   [12.25 Text emphasis label](#1225-text-emphasis-label)
     *   [12.26 Text character reference label](#1226-text-character-reference-label)
     *   [12.27 Text escape label](#1227-text-escape-label)
@@ -2193,7 +2193,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
     If parsing rich text, enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Link text or label after state*][s-link-text-or-label-after]
+    [*Resource text or label after state*][s-resource-text-or-label-after]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005F UNDERSCORE (`_`)**
@@ -3319,21 +3319,21 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.61 Link text or label after state
+### 11.61 Resource text or label after state
 
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit [*Text link information open label*][l-text-link-information-open], and switch
-    to the [*Link inline information open state*][s-link-inline-information-open]
+    Enqueue a [*Marker token*][t-marker], consume, emit [*Text resource information open label*][l-text-resource-information-open], and
+    switch to the [*Resource information open state*][s-resource-information-open]
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit [*Text link label open label*][l-text-link-label-open], and switch to the
-    [*Link label open after state*][s-link-label-open-after]
+    Enqueue a [*Marker token*][t-marker], consume, emit [*Text reference label open label*][l-text-reference-label-open], and switch to
+    the [*Reference label open after state*][s-reference-label-open-after]
 *   ↪ **Anything else**
 
     > ❗️ Todo: shortcut reference
 
-### 11.62 Link inline information open state
+### 11.62 Resource information open state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3345,24 +3345,25 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **U+0020 SPACE (SP)**
 
     Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Link inline information open after state*][s-link-inline-information-open-after]
+    [*Resource information open after state*][s-resource-information-open-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link information close label*][l-text-link-information-close], and
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
     switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Emit a [*Text link destination quoted open label*][l-text-link-destination-quoted-open], enqueue a [*Marker token*][t-marker], consume, and
-    switch to the [*Link inline destination quoted open after state*][s-link-inline-destination-quoted-open-after]
+    Emit a [*Text resource destination quoted open label*][l-text-resource-destination-quoted-open], enqueue a [*Marker token*][t-marker], consume,
+    and switch to the [*Resource destination quoted open after state*][s-resource-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, emit a [*Text link destination unquoted open label*][l-text-link-destination-unquoted-open], enqueue
-    a [*Content token*][t-content] and reconsume in the [*Link inline destination unquoted inside state*][s-link-inline-destination-unquoted-inside]
+    Let `balance` be `0`, emit a [*Text resource destination unquoted open label*][l-text-resource-destination-unquoted-open],
+    enqueue a [*Content token*][t-content] and reconsume in the
+    [*Resource destination unquoted inside state*][s-resource-destination-unquoted-inside]
 
-### 11.63 Link inline information open after state
+### 11.63 Resource information open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3370,28 +3371,29 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Link inline information open state*][s-link-inline-information-open]
+    [*Resource information open state*][s-resource-information-open]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link information close label*][l-text-link-information-close], and
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
     switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Emit a [*Text link destination quoted open label*][l-text-link-destination-quoted-open], enqueue a [*Marker token*][t-marker], consume, and
-    switch to the [*Link inline destination quoted open after state*][s-link-inline-destination-quoted-open-after]
+    Emit a [*Text resource destination quoted open label*][l-text-resource-destination-quoted-open], enqueue a [*Marker token*][t-marker], consume,
+    and switch to the [*Resource destination quoted open after state*][s-resource-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, emit a [*Text link destination unquoted open label*][l-text-link-destination-unquoted-open], enqueue
-    a [*Content token*][t-content] and reconsume in the [*Link inline destination unquoted inside state*][s-link-inline-destination-unquoted-inside]
+    Let `balance` be `0`, emit a [*Text resource destination unquoted open label*][l-text-resource-destination-unquoted-open],
+    enqueue a [*Content token*][t-content] and reconsume in the
+    [*Resource destination unquoted inside state*][s-resource-destination-unquoted-inside]
 
-### 11.64 Link inline destination quoted open after state
+### 11.64 Resource destination quoted open after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -3400,18 +3402,19 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link destination quoted close label*][l-text-link-destination-quoted-close],
-    and switch to the [*Link inline destination quoted close after state*][s-link-inline-destination-quoted-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, emit a
+    [*Text resource destination quoted close label*][l-text-resource-destination-quoted-close], and switch to the
+    [*Resource destination quoted close after state*][s-resource-destination-quoted-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Link inline destination quoted escape state*][s-link-inline-destination-quoted-escape]
+    [*Resource destination quoted escape state*][s-resource-destination-quoted-escape]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Link inline destination quoted inside state*][s-link-inline-destination-quoted-inside]
+    [*Resource destination quoted inside state*][s-resource-destination-quoted-inside]
 
-### 11.65 Link inline destination quoted inside state
+### 11.65 Resource destination quoted inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -3420,27 +3423,28 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link destination quoted close label*][l-text-link-destination-quoted-close],
-    and switch to the [*Link inline destination quoted close after state*][s-link-inline-destination-quoted-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, emit a
+    [*Text resource destination quoted close label*][l-text-resource-destination-quoted-close], and switch to the
+    [*Resource destination quoted close after state*][s-resource-destination-quoted-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Link inline destination quoted escape state*][s-link-inline-destination-quoted-escape]
+    Consume and switch to the [*Resource destination quoted escape state*][s-resource-destination-quoted-escape]
 *   ↪ **Anything else**
 
     Consume
 
-### 11.66 Link inline destination quoted escape state
+### 11.66 Resource destination quoted escape state
 
 *   ↪ **U+003C LESS THAN (`<`)**\
     ↪ **U+003E GREATER THAN (`>`)**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Link inline destination quoted inside state*][s-link-inline-destination-quoted-inside]
+    Consume and switch to the [*Resource destination quoted inside state*][s-resource-destination-quoted-inside]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Link inline destination quoted inside state*][s-link-inline-destination-quoted-inside]
+    Reconsume in the [*Resource destination quoted inside state*][s-resource-destination-quoted-inside]
 
-### 11.67 Link inline destination quoted close after state
+### 11.67 Resource destination quoted close after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3448,21 +3452,21 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Link inline information between state*][s-link-inline-information-between]
+    [*Resource information between state*][s-resource-information-between]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Link inline information between after state*][s-link-inline-information-between-after]
+    [*Resource information between after state*][s-resource-information-between-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link information close label*][l-text-link-information-close], and
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
     switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.68 Link inline information between state
+### 11.68 Resource information between state
 
 *   ↪ **[EOL][ceol]**
 
@@ -3471,12 +3475,12 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **U+0020 SPACE (SP)**
 
     Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Link inline information between after state*][s-link-inline-information-between-after]
+    [*Resource information between after state*][s-resource-information-between-after]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Link inline information between after state*][s-link-inline-information-between-after]
+    Reconsume in the [*Resource information between after state*][s-resource-information-between-after]
 
-### 11.69 Link inline information between after state
+### 11.69 Resource information between after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3484,32 +3488,32 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume, and switch to the
-    [*Link inline information between state*][s-link-inline-information-between]
+    [*Resource information between state*][s-resource-information-between]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Emit a [*Text link title open label*][l-text-link-title-open], enqueue a [*Marker token*][t-marker], consume, and switch to
-    the [*Link inline title double quoted open after state*][s-link-inline-title-double-quoted-open-after]
+    Emit a [*Text resource title open label*][l-text-resource-title-open], enqueue a [*Marker token*][t-marker], consume, and switch
+    to the [*Resource title double quoted open after state*][s-resource-title-double-quoted-open-after]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Emit a [*Text link title open label*][l-text-link-title-open], enqueue a [*Marker token*][t-marker], consume, and switch to
-    the [*Link inline title single quoted open after state*][s-link-inline-title-single-quoted-open-after]
+    Emit a [*Text resource title open label*][l-text-resource-title-open], enqueue a [*Marker token*][t-marker], consume, and switch
+    to the [*Resource title single quoted open after state*][s-resource-title-single-quoted-open-after]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
-    Emit a [*Text link title open label*][l-text-link-title-open], enqueue a [*Marker token*][t-marker], consume, and switch to
-    the [*Link inline title paren quoted open after state*][s-link-inline-title-paren-quoted-open-after]
+    Emit a [*Text resource title open label*][l-text-resource-title-open], enqueue a [*Marker token*][t-marker], consume, and switch
+    to the [*Resource title paren quoted open after state*][s-resource-title-paren-quoted-open-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link information close label*][l-text-link-information-close], and
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
     switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.70 Link inline destination unquoted inside state
+### 11.70 Resource destination unquoted inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3518,21 +3522,21 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Unset `balance`, emit a [*Text link destination unquoted close label*][l-text-link-destination-unquoted-close], and
-    reconsume in the [*Link inline information between state*][s-link-inline-information-between]
+    Unset `balance`, emit a [*Text resource destination unquoted close label*][l-text-resource-destination-unquoted-close], and
+    reconsume in the [*Resource information between state*][s-resource-information-between]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
     Increment `balance` by `1` and consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
     If `balance` is `0`, unset `balance`, emit a
-    [*Text link destination unquoted close label*][l-text-link-destination-unquoted-close], enqueue a [*Marker token*][t-marker], consume, emit a
-    [*Text link information close label*][l-text-link-information-close], and switch to the [*Initial inline state*][s-initial-inline]
+    [*Text resource destination unquoted close label*][l-text-resource-destination-unquoted-close], enqueue a [*Marker token*][t-marker], consume,
+    emit a [*Text resource information close label*][l-text-resource-information-close], and switch to the [*Initial inline state*][s-initial-inline]
 
     Otherwise, decrement `balance` by `1`, and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Link inline destination unquoted escape state*][s-link-inline-destination-unquoted-escape]
+    Consume and switch to the [*Resource destination unquoted escape state*][s-resource-destination-unquoted-escape]
 *   ↪ **[ASCII control][ascii-control]**
 
     Unset `balance` and reconsume in the [*Initial inline state*][s-initial-inline]
@@ -3540,18 +3544,18 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     Consume
 
-### 11.71 Link inline destination unquoted escape state
+### 11.71 Resource destination unquoted escape state
 
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**\
     ↪ **U+0029 RIGHT PARENTHESIS (`)`)**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Link inline destination unquoted inside state*][s-link-inline-destination-unquoted-inside]
+    Consume and switch to the [*Resource destination unquoted inside state*][s-resource-destination-unquoted-inside]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Link inline destination unquoted inside state*][s-link-inline-destination-unquoted-inside]
+    Reconsume in the [*Resource destination unquoted inside state*][s-resource-destination-unquoted-inside]
 
-### 11.72 Link inline title double quoted open after state
+### 11.72 Resource title double quoted open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3561,18 +3565,18 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link title close label*][l-text-link-title-close], and switch to
-    the [*Link inline title close after state*][s-link-inline-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource title close label*][l-text-resource-title-close], and switch
+    to the [*Resource title close after state*][s-resource-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Link inline title double quoted escape state*][s-link-inline-title-double-quoted-escape]
+    [*Resource title double quoted escape state*][s-resource-title-double-quoted-escape]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Link inline title double quoted inside state*][s-link-inline-title-double-quoted-inside]
+    [*Resource title double quoted inside state*][s-resource-title-double-quoted-inside]
 
-### 11.73 Link inline title double quoted inside state
+### 11.73 Resource title double quoted inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3580,29 +3584,29 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Link inline title double quoted open after state*][s-link-inline-title-double-quoted-open-after]
+    [*Resource title double quoted open after state*][s-resource-title-double-quoted-open-after]
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link title close label*][l-text-link-title-close], and switch to
-    the [*Link inline title close after state*][s-link-inline-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource title close label*][l-text-resource-title-close], and switch
+    to the [*Resource title close after state*][s-resource-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Link inline title double quoted escape state*][s-link-inline-title-double-quoted-escape]
+    Consume and switch to the [*Resource title double quoted escape state*][s-resource-title-double-quoted-escape]
 *   ↪ **Anything else**
 
     Consume
 
-### 11.74 Link inline title double quoted escape state
+### 11.74 Resource title double quoted escape state
 
 *   ↪ **U+0022 QUOTATION MARK (`"`)**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Link inline title double quoted open after state*][s-link-inline-title-double-quoted-open-after]
+    Consume and switch to the [*Resource title double quoted open after state*][s-resource-title-double-quoted-open-after]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Link inline title double quoted open after state*][s-link-inline-title-double-quoted-open-after]
+    Reconsume in the [*Resource title double quoted open after state*][s-resource-title-double-quoted-open-after]
 
-### 11.75 Link inline title single quoted open after state
+### 11.75 Resource title single quoted open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3612,18 +3616,18 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link title close label*][l-text-link-title-close], and switch to
-    the [*Link inline title close after state*][s-link-inline-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource title close label*][l-text-resource-title-close], and switch
+    to the [*Resource title close after state*][s-resource-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Link inline title single quoted escape state*][s-link-inline-title-single-quoted-escape]
+    [*Resource title single quoted escape state*][s-resource-title-single-quoted-escape]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Link inline title single quoted inside state*][s-link-inline-title-single-quoted-inside]
+    [*Resource title single quoted inside state*][s-resource-title-single-quoted-inside]
 
-### 11.76 Link inline title single quoted inside state
+### 11.76 Resource title single quoted inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3631,29 +3635,29 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Link inline title single quoted open after state*][s-link-inline-title-single-quoted-open-after]
+    [*Resource title single quoted open after state*][s-resource-title-single-quoted-open-after]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link title close label*][l-text-link-title-close], and switch to
-    the [*Link inline title close after state*][s-link-inline-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource title close label*][l-text-resource-title-close], and switch
+    to the [*Resource title close after state*][s-resource-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Link inline title single quoted escape state*][s-link-inline-title-single-quoted-escape]
+    Consume and switch to the [*Resource title single quoted escape state*][s-resource-title-single-quoted-escape]
 *   ↪ **Anything else**
 
     Consume
 
-### 11.77 Link inline title single quoted escape state
+### 11.77 Resource title single quoted escape state
 
 *   ↪ **U+0027 APOSTROPHE (`'`)**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Link inline title single quoted open after state*][s-link-inline-title-single-quoted-open-after]
+    Consume and switch to the [*Resource title single quoted open after state*][s-resource-title-single-quoted-open-after]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Link inline title single quoted open after state*][s-link-inline-title-single-quoted-open-after]
+    Reconsume in the [*Resource title single quoted open after state*][s-resource-title-single-quoted-open-after]
 
-### 11.78 Link inline title paren quoted open after state
+### 11.78 Resource title paren quoted open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3663,18 +3667,18 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link title close label*][l-text-link-title-close], and switch to
-    the [*Link inline title close after state*][s-link-inline-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource title close label*][l-text-resource-title-close], and switch
+    to the [*Resource title close after state*][s-resource-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Link inline title paren quoted escape state*][s-link-inline-title-paren-quoted-escape]
+    [*Resource title paren quoted escape state*][s-resource-title-paren-quoted-escape]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Link inline title paren quoted inside state*][s-link-inline-title-paren-quoted-inside]
+    [*Resource title paren quoted inside state*][s-resource-title-paren-quoted-inside]
 
-### 11.79 Link inline title paren quoted inside state
+### 11.79 Resource title paren quoted inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3682,29 +3686,29 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Link inline title paren quoted open after state*][s-link-inline-title-paren-quoted-open-after]
+    [*Resource title paren quoted open after state*][s-resource-title-paren-quoted-open-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link title close label*][l-text-link-title-close], and switch to
-    the [*Link inline title close after state*][s-link-inline-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource title close label*][l-text-resource-title-close], and switch
+    to the [*Resource title close after state*][s-resource-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Link inline title paren quoted escape state*][s-link-inline-title-paren-quoted-escape]
+    Consume and switch to the [*Resource title paren quoted escape state*][s-resource-title-paren-quoted-escape]
 *   ↪ **Anything else**
 
     Consume
 
-### 11.80 Link inline title paren quoted escape state
+### 11.80 Resource title paren quoted escape state
 
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Link inline title paren quoted open after state*][s-link-inline-title-paren-quoted-open-after]
+    Consume and switch to the [*Resource title paren quoted open after state*][s-resource-title-paren-quoted-open-after]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Link inline title paren quoted open after state*][s-link-inline-title-paren-quoted-open-after]
+    Reconsume in the [*Resource title paren quoted open after state*][s-resource-title-paren-quoted-open-after]
 
-### 11.81 Link inline title close after state
+### 11.81 Resource title close after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3715,36 +3719,37 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Link inline after state*][s-link-inline-after]
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
+    [*Resource information close before state*][s-resource-information-close-before]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link information close label*][l-text-link-information-close], and
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
     switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.82 Link inline after state
+### 11.82 Resource information close before state
 
 *   ↪ **[EOF][ceof]**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 *   ↪ **[EOL][ceol]**
 
-    Reconsume in the [*Link inline title close after state*][s-link-inline-title-close-after]
+    Reconsume in the [*Resource title close after state*][s-resource-title-close-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link information close label*][l-text-link-information-close], and
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
     switch to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Reconsume in the [*Initial inline state*][s-initial-inline]
 
-### 11.83 Link label open after state
+### 11.83 Reference label open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3755,16 +3760,16 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Link label before state*][s-link-label-before]
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Reference label before state*][s-reference-label-before]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link label close label*][l-text-link-label-close], and switch to
-    the [*Initial inline state*][s-initial-inline]
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text reference label close label*][l-text-reference-label-close], and switch
+    to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content token*][t-content], consume, and switch to the [*Link label inside state*][s-link-label-inside]
+    Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
 
-### 11.84 Link label before state
+### 11.84 Reference label before state
 
 > **Note**: EOL is not possible.
 
@@ -3779,9 +3784,9 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume
 *   ↪ **Anything else**
 
-    Enqueue a [*Content token*][t-content], consume, and switch to the [*Link label inside state*][s-link-label-inside]
+    Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
 
-### 11.85 Link label inside state
+### 11.85 Reference label inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3789,23 +3794,23 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Link label inside start after state*][s-link-label-inside-start-after]
+    [*Reference label inside start after state*][s-reference-label-inside-start-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Link label between state*][s-link-label-between]
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Reference label between state*][s-reference-label-between]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Link label escape state*][s-link-label-escape]
+    Consume and switch to the [*Reference label escape state*][s-reference-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link label close label*][l-text-link-label-close], and switch to
-    the [*Initial inline state*][s-initial-inline]
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text reference label close label*][l-text-reference-label-close], and switch
+    to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
     Consume
 
-### 11.86 Link label inside start after state
+### 11.86 Reference label inside start after state
 
 > **Note**: EOL is not possible.
 
@@ -3815,19 +3820,19 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Link label between state*][s-link-label-between]
+    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Reference label between state*][s-reference-label-between]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Link label escape state*][s-link-label-escape]
+    Consume and switch to the [*Reference label escape state*][s-reference-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link label close label*][l-text-link-label-close], and switch to
-    the [*Initial inline state*][s-initial-inline]
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text reference label close label*][l-text-reference-label-close], and switch
+    to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content token*][t-content], consume, and switch to the [*Link label inside state*][s-link-label-inside]
+    Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
 
-### 11.87 Link label between state
+### 11.87 Reference label between state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3835,31 +3840,31 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Link label inside start after state*][s-link-label-inside-start-after]
+    [*Reference label inside start after state*][s-reference-label-inside-start-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Enqueue a [*Content token*][t-content], consume, and switch to the [*Link label escape state*][s-link-label-escape]
+    Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label escape state*][s-reference-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text link label close label*][l-text-link-label-close], and switch to
-    the [*Initial inline state*][s-initial-inline]
+    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text reference label close label*][l-text-reference-label-close], and switch
+    to the [*Initial inline state*][s-initial-inline]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content token*][t-content], consume, and switch to the [*Link label inside state*][s-link-label-inside]
+    Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
 
-### 11.88 Link label escape state
+### 11.88 Reference label escape state
 
 *   ↪ **U+005C BACKSLASH (`\`)**\
     ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Consume and switch to the [*Link label inside state*][s-link-label-inside]
+    Consume and switch to the [*Reference label inside state*][s-reference-label-inside]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Link label inside state*][s-link-label-inside]
+    Reconsume in the [*Reference label inside state*][s-reference-label-inside]
 
 ## 12 Labels
 
@@ -3921,49 +3926,49 @@ When a [*Text link open label*][l-text-link-open] is received, …
 
 When a [*Text image open label*][l-text-image-open] is received, …
 
-### 12.14 Text link close label
+### 12.14 Text resource close label
 
-When a [*Text link close label*][l-text-link-close] is received, …
+When a [*Text resource close label*][l-text-resource-close] is received, …
 
-### 12.15 Text link label open label
+### 12.15 Text reference label open label
 
-When a [*Text link label open label*][l-text-link-label-open] is received, …
+When a [*Text reference label open label*][l-text-reference-label-open] is received, …
 
-### 12.16 Text link label close label
+### 12.16 Text reference label close label
 
-When a [*Text link label close label*][l-text-link-label-close] is received, …
+When a [*Text reference label close label*][l-text-reference-label-close] is received, …
 
-### 12.17 Text link information open label
+### 12.17 Text resource information open label
 
-When a [*Text link information open label*][l-text-link-information-open] is received, …
+When a [*Text resource information open label*][l-text-resource-information-open] is received, …
 
-### 12.18 Text link destination quoted open label
+### 12.18 Text resource destination quoted open label
 
-When a [*Text link destination quoted open label*][l-text-link-destination-quoted-open] is received, …
+When a [*Text resource destination quoted open label*][l-text-resource-destination-quoted-open] is received, …
 
-### 12.19 Text link destination quoted close label
+### 12.19 Text resource destination quoted close label
 
-When a [*Text link destination quoted close label*][l-text-link-destination-quoted-close] is received, …
+When a [*Text resource destination quoted close label*][l-text-resource-destination-quoted-close] is received, …
 
-### 12.20 Text link destination unquoted open label
+### 12.20 Text resource destination unquoted open label
 
-When a [*Text link destination unquoted open label*][l-text-link-destination-unquoted-open] is received, …
+When a [*Text resource destination unquoted open label*][l-text-resource-destination-unquoted-open] is received, …
 
-### 12.21 Text link destination unquoted close label
+### 12.21 Text resource destination unquoted close label
 
-When a [*Text link destination unquoted close label*][l-text-link-destination-unquoted-close] is received, …
+When a [*Text resource destination unquoted close label*][l-text-resource-destination-unquoted-close] is received, …
 
-### 12.22 Text link title open label
+### 12.22 Text resource title open label
 
-When a [*Text link title open label*][l-text-link-title-open] is received, …
+When a [*Text resource title open label*][l-text-resource-title-open] is received, …
 
-### 12.23 Text link title close label
+### 12.23 Text resource title close label
 
-When a [*Text link title close label*][l-text-link-title-close] is received, …
+When a [*Text resource title close label*][l-text-resource-title-close] is received, …
 
-### 12.24 Text link information close label
+### 12.24 Text resource information close label
 
-When a [*Text link information close label*][l-text-link-information-close] is received, …
+When a [*Text resource information close label*][l-text-resource-information-close] is received, …
 
 ### 12.25 Text emphasis label
 
@@ -5230,61 +5235,61 @@ This work is licensed under a
 
 [s-image-exclamation-mark-after]: #1160-image-exclamation-mark-after-state
 
-[s-link-text-or-label-after]: #1161-link-text-or-label-after-state
+[s-resource-text-or-label-after]: #1161-resource-text-or-label-after-state
 
-[s-link-inline-information-open]: #1162-link-inline-information-open-state
+[s-resource-information-open]: #1162-resource-information-open-state
 
-[s-link-inline-information-open-after]: #1163-link-inline-information-open-after-state
+[s-resource-information-open-after]: #1163-resource-information-open-after-state
 
-[s-link-inline-destination-quoted-open-after]: #1164-link-inline-destination-quoted-open-after-state
+[s-resource-destination-quoted-open-after]: #1164-resource-destination-quoted-open-after-state
 
-[s-link-inline-destination-quoted-inside]: #1165-link-inline-destination-quoted-inside-state
+[s-resource-destination-quoted-inside]: #1165-resource-destination-quoted-inside-state
 
-[s-link-inline-destination-quoted-escape]: #1166-link-inline-destination-quoted-escape-state
+[s-resource-destination-quoted-escape]: #1166-resource-destination-quoted-escape-state
 
-[s-link-inline-destination-quoted-close-after]: #1167-link-inline-destination-quoted-close-after-state
+[s-resource-destination-quoted-close-after]: #1167-resource-destination-quoted-close-after-state
 
-[s-link-inline-information-between]: #1168-link-inline-information-between-state
+[s-resource-information-between]: #1168-resource-information-between-state
 
-[s-link-inline-information-between-after]: #1169-link-inline-information-between-after-state
+[s-resource-information-between-after]: #1169-resource-information-between-after-state
 
-[s-link-inline-destination-unquoted-inside]: #1170-link-inline-destination-unquoted-inside-state
+[s-resource-destination-unquoted-inside]: #1170-resource-destination-unquoted-inside-state
 
-[s-link-inline-destination-unquoted-escape]: #1171-link-inline-destination-unquoted-escape-state
+[s-resource-destination-unquoted-escape]: #1171-resource-destination-unquoted-escape-state
 
-[s-link-inline-title-double-quoted-open-after]: #1172-link-inline-title-double-quoted-open-after-state
+[s-resource-title-double-quoted-open-after]: #1172-resource-title-double-quoted-open-after-state
 
-[s-link-inline-title-double-quoted-inside]: #1173-link-inline-title-double-quoted-inside-state
+[s-resource-title-double-quoted-inside]: #1173-resource-title-double-quoted-inside-state
 
-[s-link-inline-title-double-quoted-escape]: #1174-link-inline-title-double-quoted-escape-state
+[s-resource-title-double-quoted-escape]: #1174-resource-title-double-quoted-escape-state
 
-[s-link-inline-title-single-quoted-open-after]: #1175-link-inline-title-single-quoted-open-after-state
+[s-resource-title-single-quoted-open-after]: #1175-resource-title-single-quoted-open-after-state
 
-[s-link-inline-title-single-quoted-inside]: #1176-link-inline-title-single-quoted-inside-state
+[s-resource-title-single-quoted-inside]: #1176-resource-title-single-quoted-inside-state
 
-[s-link-inline-title-single-quoted-escape]: #1177-link-inline-title-single-quoted-escape-state
+[s-resource-title-single-quoted-escape]: #1177-resource-title-single-quoted-escape-state
 
-[s-link-inline-title-paren-quoted-open-after]: #1178-link-inline-title-paren-quoted-open-after-state
+[s-resource-title-paren-quoted-open-after]: #1178-resource-title-paren-quoted-open-after-state
 
-[s-link-inline-title-paren-quoted-inside]: #1179-link-inline-title-paren-quoted-inside-state
+[s-resource-title-paren-quoted-inside]: #1179-resource-title-paren-quoted-inside-state
 
-[s-link-inline-title-paren-quoted-escape]: #1180-link-inline-title-paren-quoted-escape-state
+[s-resource-title-paren-quoted-escape]: #1180-resource-title-paren-quoted-escape-state
 
-[s-link-inline-title-close-after]: #1181-link-inline-title-close-after-state
+[s-resource-title-close-after]: #1181-resource-title-close-after-state
 
-[s-link-inline-after]: #1182-link-inline-after-state
+[s-resource-information-close-before]: #1182-resource-information-close-before-state
 
-[s-link-label-open-after]: #1183-link-label-open-after-state
+[s-reference-label-open-after]: #1183-reference-label-open-after-state
 
-[s-link-label-before]: #1184-link-label-before-state
+[s-reference-label-before]: #1184-reference-label-before-state
 
-[s-link-label-inside]: #1185-link-label-inside-state
+[s-reference-label-inside]: #1185-reference-label-inside-state
 
-[s-link-label-inside-start-after]: #1186-link-label-inside-start-after-state
+[s-reference-label-inside-start-after]: #1186-reference-label-inside-start-after-state
 
-[s-link-label-between]: #1187-link-label-between-state
+[s-reference-label-between]: #1187-reference-label-between-state
 
-[s-link-label-escape]: #1188-link-label-escape-state
+[s-reference-label-escape]: #1188-reference-label-escape-state
 
 [l-content-phrasing]: #121-content-phrasing-label
 
@@ -5312,27 +5317,27 @@ This work is licensed under a
 
 [l-text-image-open]: #1213-text-image-open-label
 
-[l-text-link-close]: #1214-text-link-close-label
+[l-text-resource-close]: #1214-text-resource-close-label
 
-[l-text-link-label-open]: #1215-text-link-label-open-label
+[l-text-reference-label-open]: #1215-text-reference-label-open-label
 
-[l-text-link-label-close]: #1216-text-link-label-close-label
+[l-text-reference-label-close]: #1216-text-reference-label-close-label
 
-[l-text-link-information-open]: #1217-text-link-information-open-label
+[l-text-resource-information-open]: #1217-text-resource-information-open-label
 
-[l-text-link-destination-quoted-open]: #1218-text-link-destination-quoted-open-label
+[l-text-resource-destination-quoted-open]: #1218-text-resource-destination-quoted-open-label
 
-[l-text-link-destination-quoted-close]: #1219-text-link-destination-quoted-close-label
+[l-text-resource-destination-quoted-close]: #1219-text-resource-destination-quoted-close-label
 
-[l-text-link-destination-unquoted-open]: #1220-text-link-destination-unquoted-open-label
+[l-text-resource-destination-unquoted-open]: #1220-text-resource-destination-unquoted-open-label
 
-[l-text-link-destination-unquoted-close]: #1221-text-link-destination-unquoted-close-label
+[l-text-resource-destination-unquoted-close]: #1221-text-resource-destination-unquoted-close-label
 
-[l-text-link-title-open]: #1222-text-link-title-open-label
+[l-text-resource-title-open]: #1222-text-resource-title-open-label
 
-[l-text-link-title-close]: #1223-text-link-title-close-label
+[l-text-resource-title-close]: #1223-text-resource-title-close-label
 
-[l-text-link-information-close]: #1224-text-link-information-close-label
+[l-text-resource-information-close]: #1224-text-resource-information-close-label
 
 [l-text-emphasis]: #1225-text-emphasis-label
 
