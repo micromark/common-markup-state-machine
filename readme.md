@@ -244,7 +244,7 @@ Common Markup parser.
     *   [13.4 Process as an asterisk line opening](#134-process-as-an-asterisk-line-opening)
     *   [13.5 Process as a Fenced code fence](#135-process-as-a-fenced-code-fence)
     *   [13.6 Process as Content](#136-process-as-content)
-    *   [13.7 Process as Raw text](#137-process-as-raw-text)
+    *   [13.7 Process as plain text](#137-process-as-plain-text)
     *   [13.8 Process as Phrasing](#138-process-as-phrasing)
     *   [13.9 Process as Text](#139-process-as-text)
 *   [14 Tokens](#14-tokens)
@@ -2150,8 +2150,8 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 ## 11 Text state machine
 
-The <a id="text-state-machine" href="#text-state-machine">**text state machine**</a> is used to tokenize inline values (raw text or rich
-text) of a document and must start in the [*Initial text state*][s-initial-text].
+The <a id="text-state-machine" href="#text-state-machine">**text state machine**</a> is used to tokenize inline values (plain text or
+rich text) of a document and must start in the [*Initial text state*][s-initial-text].
 
 ### 11.1 Initial text state
 
@@ -4086,7 +4086,7 @@ To <a id="process-as-a-fenced-code-fence" href="#process-as-a-fenced-code-fence"
         position of the token at `fenceEnd`, `end` is the end position of the
         token at `langEnd`
     *   Open a [*Fenced code language group*][g-fenced-code-language]
-    *   [Process as raw text][process-as-raw-text] with `lines` set to a list with a single entry
+    *   [Process as plain text][process-as-plain-text] with `lines` set to a list with a single entry
         `lang`
     *   Close
 *   If `metaStart` points to a place:
@@ -4096,7 +4096,7 @@ To <a id="process-as-a-fenced-code-fence" href="#process-as-a-fenced-code-fence"
         position of the token at `metaStart`, `end` is the end position of the
         token at `lineEnd`
     *   Open a [*Fenced code metadata group*][g-fenced-code-metadata]
-    *   [Process as Raw text][process-as-raw-text] with `lines` set to a list with a single entry
+    *   [Process as plain text][process-as-plain-text] with `lines` set to a list with a single entry
         `meta`
     *   Close
 *   If there is a token at `lineEnd`, emit it.
@@ -4104,10 +4104,10 @@ To <a id="process-as-a-fenced-code-fence" href="#process-as-a-fenced-code-fence"
 
 ### 13.6 Process as Content
 
-### 13.7 Process as Raw text
+### 13.7 Process as plain text
 
-To <a id="process-as-raw-text" href="#process-as-raw-text">**process as Raw text**</a> is to [process as Text][process-as-text] given `lines` and `kind`
-`raw`.
+To <a id="process-as-plain-text" href="#process-as-plain-text">**process as plain text**</a> is to [process as Text][process-as-text] given `lines` and `kind`
+`plain`.
 
 ### 13.8 Process as Phrasing
 
@@ -4951,7 +4951,7 @@ This work is licensed under a
 
 [process-as-a-fenced-code-fence]: #process-as-a-fenced-code-fence
 
-[process-as-raw-text]: #process-as-raw-text
+[process-as-plain-text]: #process-as-plain-text
 
 [process-as-phrasing]: #process-as-phrasing
 

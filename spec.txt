@@ -1878,8 +1878,8 @@ document and must start in the s:initial-content.
 
 ## Text state machine
 
-The [text state machine](#) is used to tokenize inline values (raw text or rich
-text) of a document and must start in the s:initial-text.
+The [text state machine](#) is used to tokenize inline values (plain text or
+rich text) of a document and must start in the s:initial-text.
 
 ### Initial text state
 
@@ -3814,7 +3814,7 @@ To [process as a Fenced code fence](#) is to perform the following steps:
         position of the token at `fenceEnd`, `end` is the end position of the
         token at `langEnd`
     *   Open a g:fenced-code-language
-    *   [Process as raw text][] with `lines` set to a list with a single entry
+    *   [Process as plain text][] with `lines` set to a list with a single entry
         `lang`
     *   Close
 *   If `metaStart` points to a place:
@@ -3824,7 +3824,7 @@ To [process as a Fenced code fence](#) is to perform the following steps:
         position of the token at `metaStart`, `end` is the end position of the
         token at `lineEnd`
     *   Open a g:fenced-code-metadata
-    *   [Process as Raw text][] with `lines` set to a list with a single entry
+    *   [Process as plain text][] with `lines` set to a list with a single entry
         `meta`
     *   Close
 *   If there is a token at `lineEnd`, emit it.
@@ -3832,10 +3832,10 @@ To [process as a Fenced code fence](#) is to perform the following steps:
 
 ### Process as Content
 
-### Process as Raw text
+### Process as plain text
 
-To [process as Raw text](#) is to [process as Text][] given `lines` and `kind`
-`raw`.
+To [process as plain text](#) is to [process as Text][] given `lines` and `kind`
+`plain`.
 
 ### Process as Phrasing
 
