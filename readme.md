@@ -116,8 +116,8 @@ Common Markup parser.
     *   [10.27 Definition title close after state](#1027-definition-title-close-after-state)
     *   [10.28 Definition after state](#1028-definition-after-state)
     *   [10.29 Phrasing content state](#1029-phrasing-content-state)
-*   [11 Inline state machine](#11-inline-state-machine)
-    *   [11.1 Initial inline state](#111-initial-inline-state)
+*   [11 Text state machine](#11-text-state-machine)
+    *   [11.1 Initial text state](#111-initial-text-state)
     *   [11.2 Emphasis asterisk state](#112-emphasis-asterisk-state)
     *   [11.3 Character reference state](#113-character-reference-state)
     *   [11.4 Character reference named state](#114-character-reference-named-state)
@@ -591,7 +591,7 @@ Implementations must act as if they use several state machines to tokenize
 common markup.
 For the main structure of a document, the [block state machine][block-state-machine] is used.
 When content is closed, the [content state machine][content-state-machine] is used.
-In certain constructs, the [inline state machine][inline-state-machine] is used.
+In certain constructs, the [text state machine][text-state-machine] is used.
 
 Most states consume the [input character][input-character], which may have various side
 effects, and either remain in the state to consume the next character, switch to
@@ -2148,12 +2148,12 @@ document and must start in the [*Initial content state*][s-initial-content].
 
 > ❗️ Todo: define.
 
-## 11 Inline state machine
+## 11 Text state machine
 
-The <a id="inline-state-machine" href="#inline-state-machine">**inline state machine**</a> is used to tokenize inline values (raw text or
-phrasing) of a document and must start in the [*Initial inline state*][s-initial-inline].
+The <a id="text-state-machine" href="#text-state-machine">**text state machine**</a> is used to tokenize inline values (raw text or rich
+text) of a document and must start in the [*Initial text state*][s-initial-text].
 
-### 11.1 Initial inline state
+### 11.1 Initial text state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2219,7 +2219,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume
 *   ↪ **Anything else**
 
-    Emit a [*Text emphasis label*][l-text-emphasis] and reconsume in the [*Initial inline state*][s-initial-inline]
+    Emit a [*Text emphasis label*][l-text-emphasis] and reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.3 Character reference state
 
@@ -2232,7 +2232,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     enqueue a [*Content token*][t-content], consume, and switch to the [*Character reference named state*][s-character-reference-named]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.4 Character reference named state
 
@@ -2240,7 +2240,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     If `entityName` is a [character reference name][character-reference-name], unset `entityName`,
     enqueue a [*Marker token*][t-marker], consume, emit [*Text character reference label*][l-text-character-reference], and switch
-    to the [*Initial inline state*][s-initial-inline]
+    to the [*Initial text state*][s-initial-text]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
@@ -2248,7 +2248,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Append the character to `entityName` and consume
 *   ↪ **Anything else**
 
-    Unset `entityName` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `entityName` and reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.5 Character reference numeric state
 
@@ -2263,7 +2263,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     the [*Character reference decimal state*][s-character-reference-decimal]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.6 Character reference hexadecimal start state
 
@@ -2272,14 +2272,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Enqueue a [*Content token*][t-content] and reconsume in the [*Character reference hexadecimal state*][s-character-reference-hexadecimal]
 *   ↪ **Anything else**
 
-    Unset `characterReferenceCode` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `characterReferenceCode` and reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.7 Character reference hexadecimal state
 
 *   ↪ **U+003B SEMICOLON (`;`)**
 
     Unset `characterReferenceCode`, enqueue a [*Marker token*][t-marker], consume, emit
-    [*Text character reference label*][l-text-character-reference], and switch to the [*Initial inline state*][s-initial-inline]
+    [*Text character reference label*][l-text-character-reference], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **[ASCII digit][ascii-digit]**
 
     Multiply `characterReferenceCode` by `16`, add a numeric version of the
@@ -2297,14 +2297,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     `characterReferenceCode`, and consume
 *   ↪ **Anything else**
 
-    Unset `characterReferenceCode` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `characterReferenceCode` and reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.8 Character reference decimal state
 
 *   ↪ **U+003B SEMICOLON (`;`)**
 
     Unset `characterReferenceCode`, enqueue a [*Marker token*][t-marker], consume, emit
-    [*Text character reference label*][l-text-character-reference], and switch to the [*Initial inline state*][s-initial-inline]
+    [*Text character reference label*][l-text-character-reference], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **[ASCII digit][ascii-digit]**
 
     Multiply `characterReferenceCode` by `10`, add a numeric version of the
@@ -2312,13 +2312,13 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     `characterReferenceCode`, and consume
 *   ↪ **Anything else**
 
-    Unset `characterReferenceCode` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `characterReferenceCode` and reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.9 Code span open state
 
 *   ↪ **[EOF][ceof]**
 
-    Unset `sizeOpen` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeOpen` and reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
@@ -2336,7 +2336,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Unset `sizeOpen` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeOpen` and reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
     Enqueue a [*Sequence token*][t-sequence], let `sizeClose` be `1`, consume, and switch to the
@@ -2349,7 +2349,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Unset `sizeOpen` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeOpen` and reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
@@ -2367,14 +2367,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOF][ceof]**
 
     If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
-    [*Text code label*][l-text-code], and reconsume in the [*Initial inline state*][s-initial-inline]
+    [*Text code label*][l-text-code], and reconsume in the [*Initial text state*][s-initial-text]
 
     Otherwise, unset `sizeOpen`, unset `sizeClose`, and reconsume in the
-    [*Initial inline state*][s-initial-inline]
+    [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
-    [*Text code label*][l-text-code], and reconsume in the [*Initial inline state*][s-initial-inline]
+    [*Text code label*][l-text-code], and reconsume in the [*Initial text state*][s-initial-text]
 
     Otherwise, unset `sizeClose`, enqueue an [*End-of-line token*][t-end-of-line], consume, and switch
     to the [*Code span inside start after state*][s-code-span-inside-start-after]
@@ -2384,7 +2384,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **Anything else**
 
     If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
-    [*Text code label*][l-text-code], and reconsume in the [*Initial inline state*][s-initial-inline]
+    [*Text code label*][l-text-code], and reconsume in the [*Initial text state*][s-initial-text]
 
     Otherwise, unset `sizeClose`, consume, and switch to the [*Code span inside state*][s-code-span-inside]
 
@@ -2395,17 +2395,17 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume
 *   ↪ **Anything else**
 
-    Emit a [*Text emphasis label*][l-text-emphasis] and reconsume in the [*Initial inline state*][s-initial-inline]
+    Emit a [*Text emphasis label*][l-text-emphasis] and reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.14 Escape backslash after state
 
 *   ↪ **[ASCII punctuation][ascii-punctuation]**
 
     Enqueue a [*Content token*][t-content], consume, emit [*Text escape label*][l-text-escape], and switch to the
-    [*Initial inline state*][s-initial-inline]
+    [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.15 HTML or autolink less than after state
 
@@ -2428,14 +2428,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.16 HTML instruction or email atext state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
     Consume and switch to the [*HTML instruction close or email atext state*][s-html-instruction-close-or-email-atext]
@@ -2456,10 +2456,10 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
     Consume
@@ -2480,7 +2480,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
 
-    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
     Unset `sizeLabel`, consume, and switch to the [*HTML instruction close state*][s-html-instruction-close]
@@ -2499,7 +2499,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
 
-    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+002D DASH (`-`)**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2515,7 +2515,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     Unset `sizeLabel`, consume, emit [*Text autolink email label*][l-text-autolink-email], and switch to the
-    [*Initial inline state*][s-initial-inline]
+    [*Initial text state*][s-initial-text]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
     Unset `sizeLabel`, consume, and switch to the [*HTML instruction close state*][s-html-instruction-close]
@@ -2534,7 +2534,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
 
-    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+002D DASH (`-`)**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2558,7 +2558,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -2573,14 +2573,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a [*Content token*][t-content], and switch to the
     [*HTML instruction state*][s-html-instruction]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
     Consume
@@ -2607,7 +2607,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.24 HTML comment open inside or email atext state
 
@@ -2624,13 +2624,13 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.25 HTML comment or email atext state
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+002D DASH (`-`)**
 
     Consume and switch to the [*HTML comment close inside or email atext state*][s-html-comment-close-inside-or-email-atext]
@@ -2650,7 +2650,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+002D DASH (`-`)**
 
     Consume and switch to the [*HTML comment close or email atext state*][s-html-comment-close-or-email-atext]
@@ -2675,7 +2675,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2686,13 +2686,13 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.28 HTML comment or email at sign or dot state
 
 *   ↪ **[EOF][ceof]**
 
-    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+002D DASH (`-`)**
 
     Unset `sizeLabel`, consume, and switch to the [*HTML comment close inside state*][s-html-comment-close-inside]
@@ -2710,7 +2710,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+002D DASH (`-`)**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2726,7 +2726,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     Unset `sizeLabel`, consume, emit [*Text autolink email label*][l-text-autolink-email], and switch to the
-    [*Initial inline state*][s-initial-inline]
+    [*Initial text state*][s-initial-text]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2742,7 +2742,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **[EOF][ceof]**\
     ↪ **U+003E GREATER THAN (`>`)**
 
-    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+002D DASH (`-`)**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2769,7 +2769,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     Unset `sizeLabel`, consume, emit [*Text HTML label*][l-text-html], and switch to the
-    [*Initial inline state*][s-initial-inline]
+    [*Initial text state*][s-initial-text]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2778,13 +2778,13 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.32 HTML comment state
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
@@ -2799,7 +2799,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a [*Content token*][t-content], and switch to the
@@ -2820,22 +2820,22 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.35 HTML CDATA state
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
 *   ↪ **`]]>` (two of U+005D RIGHT SQUARE BRACKET (`]`), with a U+003E GREATER THAN (`>`) after)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
     Consume
@@ -2860,7 +2860,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.37 HTML declaration between state
 
@@ -2873,7 +2873,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
     Reconsume in the [*HTML declaration content state*][s-html-declaration-content]
@@ -2882,13 +2882,13 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
     Consume
@@ -2908,7 +2908,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.40 HTML tag close inside or email atext state
 
@@ -2919,7 +2919,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Reconsume in the [*HTML tag close between state*][s-html-tag-close-between]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2934,7 +2934,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.41 HTML tag close between state
 
@@ -2944,10 +2944,10 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.42 HTML tag open scheme or email atext state
 
@@ -2959,7 +2959,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     Unset `sizeScheme`, consume, emit [*Text HTML label*][l-text-html], and switch to the
-    [*Initial inline state*][s-initial-inline]
+    [*Initial text state*][s-initial-text]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
     ↪ **U+002D DASH (`-`)**
 
@@ -2970,7 +2970,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Unset `sizeScheme`, consume, and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
 
-    Unset `sizeScheme` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeScheme` and reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.43 HTML tag open inside scheme inside or email atext state
 
@@ -3009,7 +3009,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Unset `sizeScheme`, consume, and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
 
-    Unset `sizeScheme` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeScheme` and reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.44 HTML tag open inside or email atext state
 
@@ -3035,7 +3035,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.45 HTML tag open between start after state
 
@@ -3064,7 +3064,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML tag open self closing state*][s-html-tag-open-self-closing]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **[ASCII alpha][ascii-alpha]**\
     ↪ **U+003A COLON (`:`)**\
     ↪ **U+005F UNDERSCORE (`_`)**
@@ -3072,7 +3072,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML tag open attribute name state*][s-html-tag-open-attribute-name]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.47 HTML tag open attribute name state
 
@@ -3104,10 +3104,10 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML tag open attribute value before state*][s-html-tag-open-attribute-value-before]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.49 HTML tag open attribute value before state
 
@@ -3129,7 +3129,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **U+003E GREATER THAN (`>`)**\
     ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
     Consume and switch to the [*HTML tag open unquoted attribute value state*][s-html-tag-open-unquoted-attribute-value]
@@ -3138,7 +3138,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
@@ -3153,7 +3153,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a [*Content token*][t-content]
@@ -3173,7 +3173,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **U+003D EQUALS TO (`=`)**\
     ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a [*Content token*][t-content], and switch to the
@@ -3184,7 +3184,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*HTML tag open between state*][s-html-tag-open-between]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
     Consume
@@ -3193,10 +3193,10 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial inline state*][s-initial-inline]
+    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.54 Autolink scheme inside or email atext state
 
@@ -3220,7 +3220,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Unset `sizeScheme`, consume, and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
 
-    Unset `sizeScheme` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeScheme` and reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.55 Autolink URI inside state
 
@@ -3230,11 +3230,11 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **U+0020 SPACE (SP)**\
     ↪ **U+003C LESS THAN (`<`)**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     Consume, emit [*Text autolink URI label*][l-text-autolink-uri], and switch to the
-    [*Initial inline state*][s-initial-inline]
+    [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
     Consume
@@ -3251,7 +3251,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.57 Autolink email label state
 
@@ -3270,7 +3270,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     Unset `sizeLabel`, consume, emit [*Text autolink email label*][l-text-autolink-email], and switch to the
-    [*Initial inline state*][s-initial-inline]
+    [*Initial text state*][s-initial-text]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1` and consume
@@ -3278,7 +3278,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.58 Autolink email at sign or dot state
 
@@ -3290,7 +3290,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.59 Autolink email dash state
 
@@ -3307,17 +3307,17 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Unset `sizeLabel` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `sizeLabel` and reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.60 Image exclamation mark after state
 
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit [*Text image open label*][l-text-image-open], and switch to the
-    [*Initial inline state*][s-initial-inline]
+    [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.61 Resource text or label after state
 
@@ -3337,7 +3337,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -3349,14 +3349,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
-    switch to the [*Initial inline state*][s-initial-inline]
+    switch to the [*Initial text state*][s-initial-text]
 *   ↪ **U+003C LESS THAN (`<`)**
 
     Emit a [*Text resource destination quoted open label*][l-text-resource-destination-quoted-open], enqueue a [*Marker token*][t-marker], consume,
     and switch to the [*Resource destination quoted open after state*][s-resource-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
     Let `balance` be `0`, emit a [*Text resource destination unquoted open label*][l-text-resource-destination-unquoted-open],
@@ -3367,7 +3367,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
@@ -3379,14 +3379,14 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
-    switch to the [*Initial inline state*][s-initial-inline]
+    switch to the [*Initial text state*][s-initial-text]
 *   ↪ **U+003C LESS THAN (`<`)**
 
     Emit a [*Text resource destination quoted open label*][l-text-resource-destination-quoted-open], enqueue a [*Marker token*][t-marker], consume,
     and switch to the [*Resource destination quoted open after state*][s-resource-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
     Let `balance` be `0`, emit a [*Text resource destination unquoted open label*][l-text-resource-destination-unquoted-open],
@@ -3399,7 +3399,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **[EOL][ceol]**\
     ↪ **U+003C LESS THAN (`<`)**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit a
@@ -3420,7 +3420,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **[EOL][ceol]**\
     ↪ **U+003C LESS THAN (`<`)**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit a
@@ -3448,7 +3448,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
@@ -3461,10 +3461,10 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
-    switch to the [*Initial inline state*][s-initial-inline]
+    switch to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.68 Resource information between state
 
@@ -3484,7 +3484,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume, and switch to the
@@ -3508,16 +3508,16 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
-    switch to the [*Initial inline state*][s-initial-inline]
+    switch to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.70 Resource destination unquoted inside state
 
 *   ↪ **[EOF][ceof]**
 
-    Unset `balance` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `balance` and reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -3531,7 +3531,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
     If `balance` is `0`, unset `balance`, emit a
     [*Text resource destination unquoted close label*][l-text-resource-destination-unquoted-close], enqueue a [*Marker token*][t-marker], consume,
-    emit a [*Text resource information close label*][l-text-resource-information-close], and switch to the [*Initial inline state*][s-initial-inline]
+    emit a [*Text resource information close label*][l-text-resource-information-close], and switch to the [*Initial text state*][s-initial-text]
 
     Otherwise, decrement `balance` by `1`, and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -3539,7 +3539,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     Consume and switch to the [*Resource destination unquoted escape state*][s-resource-destination-unquoted-escape]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Unset `balance` and reconsume in the [*Initial inline state*][s-initial-inline]
+    Unset `balance` and reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
     Consume
@@ -3559,7 +3559,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -3580,7 +3580,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
@@ -3610,7 +3610,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -3631,7 +3631,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
@@ -3661,7 +3661,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -3682,7 +3682,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
@@ -3712,7 +3712,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -3724,16 +3724,16 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
-    switch to the [*Initial inline state*][s-initial-inline]
+    switch to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.82 Resource information close before state
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Reconsume in the [*Resource title close after state*][s-resource-title-close-after]
@@ -3744,16 +3744,16 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
-    switch to the [*Initial inline state*][s-initial-inline]
+    switch to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 
 ### 11.83 Reference label open after state
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -3764,7 +3764,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit a [*Text reference label close label*][l-text-reference-label-close], and switch
-    to the [*Initial inline state*][s-initial-inline]
+    to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
@@ -3777,7 +3777,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
     ↪ **[EOL][ceol]**\
     ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -3790,7 +3790,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
@@ -3805,7 +3805,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit a [*Text reference label close label*][l-text-reference-label-close], and switch
-    to the [*Initial inline state*][s-initial-inline]
+    to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
     Consume
@@ -3816,7 +3816,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -3827,7 +3827,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit a [*Text reference label close label*][l-text-reference-label-close], and switch
-    to the [*Initial inline state*][s-initial-inline]
+    to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
@@ -3836,7 +3836,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 
 *   ↪ **[EOF][ceof]**
 
-    Reconsume in the [*Initial inline state*][s-initial-inline]
+    Reconsume in the [*Initial text state*][s-initial-text]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
@@ -3851,7 +3851,7 @@ phrasing) of a document and must start in the [*Initial inline state*][s-initial
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
     Enqueue a [*Marker token*][t-marker], consume, emit a [*Text reference label close label*][l-text-reference-label-close], and switch
-    to the [*Initial inline state*][s-initial-inline]
+    to the [*Initial text state*][s-initial-text]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
@@ -4939,7 +4939,7 @@ This work is licensed under a
 
 [content-state-machine]: #content-state-machine
 
-[inline-state-machine]: #inline-state-machine
+[text-state-machine]: #text-state-machine
 
 [process-as-an-atx-heading]: #process-as-an-atx-heading
 
@@ -5115,7 +5115,7 @@ This work is licensed under a
 
 [s-phrasing-content]: #1029-phrasing-content-state
 
-[s-initial-inline]: #111-initial-inline-state
+[s-initial-text]: #111-initial-text-state
 
 [s-emphasis-asterisk]: #112-emphasis-asterisk-state
 

@@ -318,7 +318,7 @@ Implementations must act as if they use several state machines to tokenize
 common markup.
 For the main structure of a document, the [block state machine][] is used.
 When content is closed, the [content state machine][] is used.
-In certain constructs, the [inline state machine][] is used.
+In certain constructs, the [text state machine][] is used.
 
 Most states consume the [input character][], which may have various side
 effects, and either remain in the state to consume the next character, switch to
@@ -1876,12 +1876,12 @@ document and must start in the s:initial-content.
 
 > ❗️ Todo: define.
 
-## Inline state machine
+## Text state machine
 
-The [inline state machine](#) is used to tokenize inline values (raw text or
-phrasing) of a document and must start in the s:initial-inline.
+The [text state machine](#) is used to tokenize inline values (raw text or rich
+text) of a document and must start in the s:initial-text.
 
-### Initial inline state
+### Initial text state
 
 *   ↪ **[c:EOF][]**
 
@@ -1947,7 +1947,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume
 *   ↪ **Anything else**
 
-    Emit a l:text-emphasis and reconsume in the s:initial-inline
+    Emit a l:text-emphasis and reconsume in the s:initial-text
 
 ### Character reference state
 
@@ -1960,7 +1960,7 @@ phrasing) of a document and must start in the s:initial-inline.
     enqueue a t:content, consume, and switch to the s:character-reference-named
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### Character reference named state
 
@@ -1968,7 +1968,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
     If `entityName` is a [character reference name][], unset `entityName`,
     enqueue a t:marker, consume, emit l:text-character-reference, and switch
-    to the s:initial-inline
+    to the s:initial-text
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **[ASCII alphanumeric][]**
@@ -1976,7 +1976,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Append the character to `entityName` and consume
 *   ↪ **Anything else**
 
-    Unset `entityName` and reconsume in the s:initial-inline
+    Unset `entityName` and reconsume in the s:initial-text
 
 ### Character reference numeric state
 
@@ -1991,7 +1991,7 @@ phrasing) of a document and must start in the s:initial-inline.
     the s:character-reference-decimal
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### Character reference hexadecimal start state
 
@@ -2000,14 +2000,14 @@ phrasing) of a document and must start in the s:initial-inline.
     Enqueue a t:content and reconsume in the s:character-reference-hexadecimal
 *   ↪ **Anything else**
 
-    Unset `characterReferenceCode` and reconsume in the s:initial-inline
+    Unset `characterReferenceCode` and reconsume in the s:initial-text
 
 ### Character reference hexadecimal state
 
 *   ↪ **c:;**
 
     Unset `characterReferenceCode`, enqueue a t:marker, consume, emit
-    l:text-character-reference, and switch to the s:initial-inline
+    l:text-character-reference, and switch to the s:initial-text
 *   ↪ **[ASCII digit][]**
 
     Multiply `characterReferenceCode` by `16`, add a numeric version of the
@@ -2025,14 +2025,14 @@ phrasing) of a document and must start in the s:initial-inline.
     `characterReferenceCode`, and consume
 *   ↪ **Anything else**
 
-    Unset `characterReferenceCode` and reconsume in the s:initial-inline
+    Unset `characterReferenceCode` and reconsume in the s:initial-text
 
 ### Character reference decimal state
 
 *   ↪ **c:;**
 
     Unset `characterReferenceCode`, enqueue a t:marker, consume, emit
-    l:text-character-reference, and switch to the s:initial-inline
+    l:text-character-reference, and switch to the s:initial-text
 *   ↪ **[ASCII digit][]**
 
     Multiply `characterReferenceCode` by `10`, add a numeric version of the
@@ -2040,13 +2040,13 @@ phrasing) of a document and must start in the s:initial-inline.
     `characterReferenceCode`, and consume
 *   ↪ **Anything else**
 
-    Unset `characterReferenceCode` and reconsume in the s:initial-inline
+    Unset `characterReferenceCode` and reconsume in the s:initial-text
 
 ### Code span open state
 
 *   ↪ **[c:EOF][]**
 
-    Unset `sizeOpen` and reconsume in the s:initial-inline
+    Unset `sizeOpen` and reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -2064,7 +2064,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Unset `sizeOpen` and reconsume in the s:initial-inline
+    Unset `sizeOpen` and reconsume in the s:initial-text
 *   ↪ **c:`**
 
     Enqueue a t:sequence, let `sizeClose` be `1`, consume, and switch to the
@@ -2077,7 +2077,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Unset `sizeOpen` and reconsume in the s:initial-inline
+    Unset `sizeOpen` and reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -2095,14 +2095,14 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **[c:EOF][]**
 
     If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
-    l:text-code, and reconsume in the s:initial-inline
+    l:text-code, and reconsume in the s:initial-text
 
     Otherwise, unset `sizeOpen`, unset `sizeClose`, and reconsume in the
-    s:initial-inline
+    s:initial-text
 *   ↪ **[c:EOL][]**
 
     If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
-    l:text-code, and reconsume in the s:initial-inline
+    l:text-code, and reconsume in the s:initial-text
 
     Otherwise, unset `sizeClose`, enqueue an t:end-of-line, consume, and switch
     to the s:code-span-inside-start-after
@@ -2112,7 +2112,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **Anything else**
 
     If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
-    l:text-code, and reconsume in the s:initial-inline
+    l:text-code, and reconsume in the s:initial-text
 
     Otherwise, unset `sizeClose`, consume, and switch to the s:code-span-inside
 
@@ -2123,17 +2123,17 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume
 *   ↪ **Anything else**
 
-    Emit a l:text-emphasis and reconsume in the s:initial-inline
+    Emit a l:text-emphasis and reconsume in the s:initial-text
 
 ### Escape backslash after state
 
 *   ↪ **[ASCII punctuation][]**
 
     Enqueue a t:content, consume, emit l:text-escape, and switch to the
-    s:initial-inline
+    s:initial-text
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### HTML or autolink less than after state
 
@@ -2156,14 +2156,14 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### HTML instruction or email atext state
 
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **c:?**
 
     Consume and switch to the s:html-instruction-close-or-email-atext
@@ -2184,10 +2184,10 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-text
 *   ↪ **c:?**
 
     Consume
@@ -2208,7 +2208,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Unset `sizeLabel` and reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-text
 *   ↪ **c:?**
 
     Unset `sizeLabel`, consume, and switch to the s:html-instruction-close
@@ -2227,7 +2227,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Unset `sizeLabel` and reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-text
 *   ↪ **c:-**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2243,7 +2243,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:>**
 
     Unset `sizeLabel`, consume, emit l:text-autolink-email, and switch to the
-    s:initial-inline
+    s:initial-text
 *   ↪ **c:?**
 
     Unset `sizeLabel`, consume, and switch to the s:html-instruction-close
@@ -2262,7 +2262,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Unset `sizeLabel` and reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-text
 *   ↪ **c:-**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2286,7 +2286,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -2301,14 +2301,14 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
     s:html-instruction
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-text
 *   ↪ **Anything else**
 
     Consume
@@ -2335,7 +2335,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### HTML comment open inside or email atext state
 
@@ -2352,13 +2352,13 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### HTML comment or email atext state
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **c:-**
 
     Consume and switch to the s:html-comment-close-inside-or-email-atext
@@ -2378,7 +2378,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **c:-**
 
     Consume and switch to the s:html-comment-close-or-email-atext
@@ -2403,7 +2403,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-text
 *   ↪ **c:@**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2414,13 +2414,13 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### HTML comment or email at sign or dot state
 
 *   ↪ **[c:EOF][]**
 
-    Unset `sizeLabel` and reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-text
 *   ↪ **c:-**
 
     Unset `sizeLabel`, consume, and switch to the s:html-comment-close-inside
@@ -2438,7 +2438,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Unset `sizeLabel` and reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-text
 *   ↪ **c:-**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2454,7 +2454,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:>**
 
     Unset `sizeLabel`, consume, emit l:text-autolink-email, and switch to the
-    s:initial-inline
+    s:initial-text
 *   ↪ **[ASCII alphanumeric][]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2470,7 +2470,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **[c:EOF][]**\
     ↪ **c:>**
 
-    Unset `sizeLabel` and reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-text
 *   ↪ **c:-**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2497,7 +2497,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:>**
 
     Unset `sizeLabel`, consume, emit l:text-html, and switch to the
-    s:initial-inline
+    s:initial-text
 *   ↪ **[ASCII alphanumeric][]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2506,13 +2506,13 @@ phrasing) of a document and must start in the s:initial-inline.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Unset `sizeLabel` and reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-text
 
 ### HTML comment state
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and enqueue a t:content
@@ -2527,7 +2527,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
@@ -2548,22 +2548,22 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-text
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### HTML CDATA state
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and enqueue a t:content
 *   ↪ **`]]>` (two of c:], with a c:> after)**
 
-    Consume, emit l:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-text
 *   ↪ **Anything else**
 
     Consume
@@ -2588,7 +2588,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### HTML declaration between state
 
@@ -2601,7 +2601,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-text
 *   ↪ **Anything else**
 
     Reconsume in the s:html-declaration-content
@@ -2610,13 +2610,13 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and enqueue a t:content
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-text
 *   ↪ **Anything else**
 
     Consume
@@ -2636,7 +2636,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### HTML tag close inside or email atext state
 
@@ -2647,7 +2647,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Reconsume in the s:html-tag-close-between
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-text
 *   ↪ **c:@**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2662,7 +2662,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### HTML tag close between state
 
@@ -2672,10 +2672,10 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-text
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### HTML tag open scheme or email atext state
 
@@ -2687,7 +2687,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:>**
 
     Unset `sizeScheme`, consume, emit l:text-html, and switch to the
-    s:initial-inline
+    s:initial-text
 *   ↪ **[ASCII alphanumeric][]**\
     ↪ **c:-**
 
@@ -2698,7 +2698,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Unset `sizeScheme` and reconsume in the s:initial-inline
+    Unset `sizeScheme` and reconsume in the s:initial-text
 
 ### HTML tag open inside scheme inside or email atext state
 
@@ -2737,7 +2737,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Unset `sizeScheme` and reconsume in the s:initial-inline
+    Unset `sizeScheme` and reconsume in the s:initial-text
 
 ### HTML tag open inside or email atext state
 
@@ -2763,7 +2763,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### HTML tag open between start after state
 
@@ -2792,7 +2792,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-tag-open-self-closing
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-text
 *   ↪ **[ASCII alpha][]**\
     ↪ **c::**\
     ↪ **c:_**
@@ -2800,7 +2800,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-tag-open-attribute-name
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### HTML tag open attribute name state
 
@@ -2832,10 +2832,10 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-tag-open-attribute-value-before
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-text
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### HTML tag open attribute value before state
 
@@ -2857,7 +2857,7 @@ phrasing) of a document and must start in the s:initial-inline.
     ↪ **c:>**\
     ↪ **c:`**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **Anything else**
 
     Consume and switch to the s:html-tag-open-unquoted-attribute-value
@@ -2866,7 +2866,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and enqueue a t:content
@@ -2881,7 +2881,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and enqueue a t:content
@@ -2901,7 +2901,7 @@ phrasing) of a document and must start in the s:initial-inline.
     ↪ **c:=**\
     ↪ **c:`**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
@@ -2912,7 +2912,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:html-tag-open-between
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-text
 *   ↪ **Anything else**
 
     Consume
@@ -2921,10 +2921,10 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-inline
+    Consume, emit l:text-html, and switch to the s:initial-text
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### Autolink scheme inside or email atext state
 
@@ -2948,7 +2948,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Unset `sizeScheme` and reconsume in the s:initial-inline
+    Unset `sizeScheme` and reconsume in the s:initial-text
 
 ### Autolink URI inside state
 
@@ -2958,11 +2958,11 @@ phrasing) of a document and must start in the s:initial-inline.
     ↪ **c:SP**\
     ↪ **c:<**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **c:>**
 
     Consume, emit l:text-autolink-uri, and switch to the
-    s:initial-inline
+    s:initial-text
 *   ↪ **Anything else**
 
     Consume
@@ -2979,7 +2979,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### Autolink email label state
 
@@ -2998,7 +2998,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:>**
 
     Unset `sizeLabel`, consume, emit l:text-autolink-email, and switch to the
-    s:initial-inline
+    s:initial-text
 *   ↪ **[ASCII alphanumeric][]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1` and consume
@@ -3006,7 +3006,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Unset `sizeLabel` and reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-text
 
 ### Autolink email at sign or dot state
 
@@ -3018,7 +3018,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Unset `sizeLabel` and reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-text
 
 ### Autolink email dash state
 
@@ -3035,17 +3035,17 @@ phrasing) of a document and must start in the s:initial-inline.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Unset `sizeLabel` and reconsume in the s:initial-inline
+    Unset `sizeLabel` and reconsume in the s:initial-text
 
 ### Image exclamation mark after state
 
 *   ↪ **c:[**
 
     Enqueue a t:marker, consume, emit l:text-image-open, and switch to the
-    s:initial-inline
+    s:initial-text
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### Resource text or label after state
 
@@ -3065,7 +3065,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -3077,14 +3077,14 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:initial-inline
+    switch to the s:initial-text
 *   ↪ **c:<**
 
     Emit a l:text-resource-destination-quoted-open, enqueue a t:marker, consume,
     and switch to the s:resource-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **Anything else**
 
     Let `balance` be `0`, emit a l:text-resource-destination-unquoted-open,
@@ -3095,7 +3095,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -3107,14 +3107,14 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:initial-inline
+    switch to the s:initial-text
 *   ↪ **c:<**
 
     Emit a l:text-resource-destination-quoted-open, enqueue a t:marker, consume,
     and switch to the s:resource-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **Anything else**
 
     Let `balance` be `0`, emit a l:text-resource-destination-unquoted-open,
@@ -3127,7 +3127,7 @@ phrasing) of a document and must start in the s:initial-inline.
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **c:>**
 
     Enqueue a t:marker, consume, emit a
@@ -3148,7 +3148,7 @@ phrasing) of a document and must start in the s:initial-inline.
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **c:>**
 
     Enqueue a t:marker, consume, emit a
@@ -3176,7 +3176,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -3189,10 +3189,10 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:initial-inline
+    switch to the s:initial-text
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### Resource information between state
 
@@ -3212,7 +3212,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume, and switch to the
@@ -3236,16 +3236,16 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:initial-inline
+    switch to the s:initial-text
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### Resource destination unquoted inside state
 
 *   ↪ **[c:EOF][]**
 
-    Unset `balance` and reconsume in the s:initial-inline
+    Unset `balance` and reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**\
     ↪ **c:HT**\
     ↪ **c:SP**
@@ -3259,7 +3259,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
     If `balance` is `0`, unset `balance`, emit a
     l:text-resource-destination-unquoted-close, enqueue a t:marker, consume,
-    emit a l:text-resource-information-close, and switch to the s:initial-inline
+    emit a l:text-resource-information-close, and switch to the s:initial-text
 
     Otherwise, decrement `balance` by `1`, and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -3267,7 +3267,7 @@ phrasing) of a document and must start in the s:initial-inline.
     Consume and switch to the s:resource-destination-unquoted-escape
 *   ↪ **[ASCII control][]**
 
-    Unset `balance` and reconsume in the s:initial-inline
+    Unset `balance` and reconsume in the s:initial-text
 *   ↪ **Anything else**
 
     Consume
@@ -3287,7 +3287,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -3308,7 +3308,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -3338,7 +3338,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -3359,7 +3359,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -3389,7 +3389,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -3410,7 +3410,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -3440,7 +3440,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -3452,16 +3452,16 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:initial-inline
+    switch to the s:initial-text
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### Resource information close before state
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Reconsume in the s:resource-title-close-after
@@ -3472,16 +3472,16 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:initial-inline
+    switch to the s:initial-text
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 
 ### Reference label open after state
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -3492,7 +3492,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:]**
 
     Enqueue a t:marker, consume, emit a l:text-reference-label-close, and switch
-    to the s:initial-inline
+    to the s:initial-text
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:reference-label-inside
@@ -3505,7 +3505,7 @@ phrasing) of a document and must start in the s:initial-inline.
     ↪ **[c:EOL][]**\
     ↪ **c:]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3518,7 +3518,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -3533,7 +3533,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:]**
 
     Enqueue a t:marker, consume, emit a l:text-reference-label-close, and switch
-    to the s:initial-inline
+    to the s:initial-text
 *   ↪ **Anything else**
 
     Consume
@@ -3544,7 +3544,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3555,7 +3555,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:]**
 
     Enqueue a t:marker, consume, emit a l:text-reference-label-close, and switch
-    to the s:initial-inline
+    to the s:initial-text
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:reference-label-inside
@@ -3564,7 +3564,7 @@ phrasing) of a document and must start in the s:initial-inline.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-inline
+    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -3579,7 +3579,7 @@ phrasing) of a document and must start in the s:initial-inline.
 *   ↪ **c:]**
 
     Enqueue a t:marker, consume, emit a l:text-reference-label-close, and switch
-    to the s:initial-inline
+    to the s:initial-text
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:reference-label-inside
