@@ -118,93 +118,95 @@ Common Markup parser.
     *   [10.29 Phrasing content state](#1029-phrasing-content-state)
 *   [11 Text state machine](#11-text-state-machine)
     *   [11.1 Initial text state](#111-initial-text-state)
-    *   [11.2 Emphasis asterisk state](#112-emphasis-asterisk-state)
-    *   [11.3 Character reference state](#113-character-reference-state)
-    *   [11.4 Character reference named state](#114-character-reference-named-state)
-    *   [11.5 Character reference numeric state](#115-character-reference-numeric-state)
-    *   [11.6 Character reference hexadecimal start state](#116-character-reference-hexadecimal-start-state)
-    *   [11.7 Character reference hexadecimal state](#117-character-reference-hexadecimal-state)
-    *   [11.8 Character reference decimal state](#118-character-reference-decimal-state)
-    *   [11.9 Code span open state](#119-code-span-open-state)
-    *   [11.10 Code span inside start after state](#1110-code-span-inside-start-after-state)
-    *   [11.11 Code span inside state](#1111-code-span-inside-state)
-    *   [11.12 Code span close state](#1112-code-span-close-state)
-    *   [11.13 Emphasis underscore state](#1113-emphasis-underscore-state)
-    *   [11.14 Escape backslash after state](#1114-escape-backslash-after-state)
-    *   [11.15 HTML or autolink less than after state](#1115-html-or-autolink-less-than-after-state)
-    *   [11.16 HTML instruction or email atext state](#1116-html-instruction-or-email-atext-state)
-    *   [11.17 HTML instruction close or email atext state](#1117-html-instruction-close-or-email-atext-state)
-    *   [11.18 HTML instruction or email at sign or dot state](#1118-html-instruction-or-email-at-sign-or-dot-state)
-    *   [11.19 HTML instruction or email label state](#1119-html-instruction-or-email-label-state)
-    *   [11.20 HTML instruction or email dash state](#1120-html-instruction-or-email-dash-state)
-    *   [11.21 HTML instruction state](#1121-html-instruction-state)
-    *   [11.22 HTML instruction close state](#1122-html-instruction-close-state)
-    *   [11.23 HTML declaration or email atext state](#1123-html-declaration-or-email-atext-state)
-    *   [11.24 HTML comment open inside or email atext state](#1124-html-comment-open-inside-or-email-atext-state)
-    *   [11.25 HTML comment or email atext state](#1125-html-comment-or-email-atext-state)
-    *   [11.26 HTML comment close inside or email atext state](#1126-html-comment-close-inside-or-email-atext-state)
-    *   [11.27 HTML comment close or email atext state](#1127-html-comment-close-or-email-atext-state)
-    *   [11.28 HTML comment or email at sign or dot state](#1128-html-comment-or-email-at-sign-or-dot-state)
-    *   [11.29 HTML comment or email label state](#1129-html-comment-or-email-label-state)
-    *   [11.30 HTML comment close inside or email label dash state](#1130-html-comment-close-inside-or-email-label-dash-state)
-    *   [11.31 HTML comment close or email label dash state](#1131-html-comment-close-or-email-label-dash-state)
-    *   [11.32 HTML comment state](#1132-html-comment-state)
-    *   [11.33 HTML comment close inside state](#1133-html-comment-close-inside-state)
-    *   [11.34 HTML comment close state](#1134-html-comment-close-state)
-    *   [11.35 HTML CDATA state](#1135-html-cdata-state)
-    *   [11.36 HTML declaration name or email atext state](#1136-html-declaration-name-or-email-atext-state)
-    *   [11.37 HTML declaration between state](#1137-html-declaration-between-state)
-    *   [11.38 HTML declaration content state](#1138-html-declaration-content-state)
-    *   [11.39 HTML tag close or email atext state](#1139-html-tag-close-or-email-atext-state)
-    *   [11.40 HTML tag close inside or email atext state](#1140-html-tag-close-inside-or-email-atext-state)
-    *   [11.41 HTML tag close between state](#1141-html-tag-close-between-state)
-    *   [11.42 HTML tag open scheme or email atext state](#1142-html-tag-open-scheme-or-email-atext-state)
-    *   [11.43 HTML tag open inside scheme inside or email atext state](#1143-html-tag-open-inside-scheme-inside-or-email-atext-state)
-    *   [11.44 HTML tag open inside or email atext state](#1144-html-tag-open-inside-or-email-atext-state)
-    *   [11.45 HTML tag open between start after state](#1145-html-tag-open-between-start-after-state)
-    *   [11.46 HTML tag open between state](#1146-html-tag-open-between-state)
-    *   [11.47 HTML tag open attribute name state](#1147-html-tag-open-attribute-name-state)
-    *   [11.48 HTML tag open attribute name after state](#1148-html-tag-open-attribute-name-after-state)
-    *   [11.49 HTML tag open attribute value before state](#1149-html-tag-open-attribute-value-before-state)
-    *   [11.50 HTML tag open double quoted attribute value state](#1150-html-tag-open-double-quoted-attribute-value-state)
-    *   [11.51 HTML tag open single quoted attribute value state](#1151-html-tag-open-single-quoted-attribute-value-state)
-    *   [11.52 HTML tag open unquoted attribute value state](#1152-html-tag-open-unquoted-attribute-value-state)
-    *   [11.53 HTML tag open self closing state](#1153-html-tag-open-self-closing-state)
-    *   [11.54 Autolink scheme inside or email atext state](#1154-autolink-scheme-inside-or-email-atext-state)
-    *   [11.55 Autolink URI inside state](#1155-autolink-uri-inside-state)
-    *   [11.56 Autolink email atext state](#1156-autolink-email-atext-state)
-    *   [11.57 Autolink email label state](#1157-autolink-email-label-state)
-    *   [11.58 Autolink email at sign or dot state](#1158-autolink-email-at-sign-or-dot-state)
-    *   [11.59 Autolink email dash state](#1159-autolink-email-dash-state)
-    *   [11.60 Image exclamation mark after state](#1160-image-exclamation-mark-after-state)
-    *   [11.61 Resource text or label after state](#1161-resource-text-or-label-after-state)
-    *   [11.62 Resource information open state](#1162-resource-information-open-state)
-    *   [11.63 Resource information open after state](#1163-resource-information-open-after-state)
-    *   [11.64 Resource destination quoted open after state](#1164-resource-destination-quoted-open-after-state)
-    *   [11.65 Resource destination quoted inside state](#1165-resource-destination-quoted-inside-state)
-    *   [11.66 Resource destination quoted escape state](#1166-resource-destination-quoted-escape-state)
-    *   [11.67 Resource destination quoted close after state](#1167-resource-destination-quoted-close-after-state)
-    *   [11.68 Resource information between state](#1168-resource-information-between-state)
-    *   [11.69 Resource information between after state](#1169-resource-information-between-after-state)
-    *   [11.70 Resource destination unquoted inside state](#1170-resource-destination-unquoted-inside-state)
-    *   [11.71 Resource destination unquoted escape state](#1171-resource-destination-unquoted-escape-state)
-    *   [11.72 Resource title double quoted open after state](#1172-resource-title-double-quoted-open-after-state)
-    *   [11.73 Resource title double quoted inside state](#1173-resource-title-double-quoted-inside-state)
-    *   [11.74 Resource title double quoted escape state](#1174-resource-title-double-quoted-escape-state)
-    *   [11.75 Resource title single quoted open after state](#1175-resource-title-single-quoted-open-after-state)
-    *   [11.76 Resource title single quoted inside state](#1176-resource-title-single-quoted-inside-state)
-    *   [11.77 Resource title single quoted escape state](#1177-resource-title-single-quoted-escape-state)
-    *   [11.78 Resource title paren quoted open after state](#1178-resource-title-paren-quoted-open-after-state)
-    *   [11.79 Resource title paren quoted inside state](#1179-resource-title-paren-quoted-inside-state)
-    *   [11.80 Resource title paren quoted escape state](#1180-resource-title-paren-quoted-escape-state)
-    *   [11.81 Resource title close after state](#1181-resource-title-close-after-state)
-    *   [11.82 Resource information close before state](#1182-resource-information-close-before-state)
-    *   [11.83 Reference label open after state](#1183-reference-label-open-after-state)
-    *   [11.84 Reference label before state](#1184-reference-label-before-state)
-    *   [11.85 Reference label inside state](#1185-reference-label-inside-state)
-    *   [11.86 Reference label inside start after state](#1186-reference-label-inside-start-after-state)
-    *   [11.87 Reference label between state](#1187-reference-label-between-state)
-    *   [11.88 Reference label escape state](#1188-reference-label-escape-state)
+    *   [11.2 Plain text state](#112-plain-text-state)
+    *   [11.3 Rich text state](#113-rich-text-state)
+    *   [11.4 Emphasis asterisk state](#114-emphasis-asterisk-state)
+    *   [11.5 Character reference state](#115-character-reference-state)
+    *   [11.6 Character reference named state](#116-character-reference-named-state)
+    *   [11.7 Character reference numeric state](#117-character-reference-numeric-state)
+    *   [11.8 Character reference hexadecimal start state](#118-character-reference-hexadecimal-start-state)
+    *   [11.9 Character reference hexadecimal state](#119-character-reference-hexadecimal-state)
+    *   [11.10 Character reference decimal state](#1110-character-reference-decimal-state)
+    *   [11.11 Code span open state](#1111-code-span-open-state)
+    *   [11.12 Code span inside start after state](#1112-code-span-inside-start-after-state)
+    *   [11.13 Code span inside state](#1113-code-span-inside-state)
+    *   [11.14 Code span close state](#1114-code-span-close-state)
+    *   [11.15 Emphasis underscore state](#1115-emphasis-underscore-state)
+    *   [11.16 Escape backslash after state](#1116-escape-backslash-after-state)
+    *   [11.17 HTML or autolink less than after state](#1117-html-or-autolink-less-than-after-state)
+    *   [11.18 HTML instruction or email atext state](#1118-html-instruction-or-email-atext-state)
+    *   [11.19 HTML instruction close or email atext state](#1119-html-instruction-close-or-email-atext-state)
+    *   [11.20 HTML instruction or email at sign or dot state](#1120-html-instruction-or-email-at-sign-or-dot-state)
+    *   [11.21 HTML instruction or email label state](#1121-html-instruction-or-email-label-state)
+    *   [11.22 HTML instruction or email dash state](#1122-html-instruction-or-email-dash-state)
+    *   [11.23 HTML instruction state](#1123-html-instruction-state)
+    *   [11.24 HTML instruction close state](#1124-html-instruction-close-state)
+    *   [11.25 HTML declaration or email atext state](#1125-html-declaration-or-email-atext-state)
+    *   [11.26 HTML comment open inside or email atext state](#1126-html-comment-open-inside-or-email-atext-state)
+    *   [11.27 HTML comment or email atext state](#1127-html-comment-or-email-atext-state)
+    *   [11.28 HTML comment close inside or email atext state](#1128-html-comment-close-inside-or-email-atext-state)
+    *   [11.29 HTML comment close or email atext state](#1129-html-comment-close-or-email-atext-state)
+    *   [11.30 HTML comment or email at sign or dot state](#1130-html-comment-or-email-at-sign-or-dot-state)
+    *   [11.31 HTML comment or email label state](#1131-html-comment-or-email-label-state)
+    *   [11.32 HTML comment close inside or email label dash state](#1132-html-comment-close-inside-or-email-label-dash-state)
+    *   [11.33 HTML comment close or email label dash state](#1133-html-comment-close-or-email-label-dash-state)
+    *   [11.34 HTML comment state](#1134-html-comment-state)
+    *   [11.35 HTML comment close inside state](#1135-html-comment-close-inside-state)
+    *   [11.36 HTML comment close state](#1136-html-comment-close-state)
+    *   [11.37 HTML CDATA state](#1137-html-cdata-state)
+    *   [11.38 HTML declaration name or email atext state](#1138-html-declaration-name-or-email-atext-state)
+    *   [11.39 HTML declaration between state](#1139-html-declaration-between-state)
+    *   [11.40 HTML declaration content state](#1140-html-declaration-content-state)
+    *   [11.41 HTML tag close or email atext state](#1141-html-tag-close-or-email-atext-state)
+    *   [11.42 HTML tag close inside or email atext state](#1142-html-tag-close-inside-or-email-atext-state)
+    *   [11.43 HTML tag close between state](#1143-html-tag-close-between-state)
+    *   [11.44 HTML tag open scheme or email atext state](#1144-html-tag-open-scheme-or-email-atext-state)
+    *   [11.45 HTML tag open inside scheme inside or email atext state](#1145-html-tag-open-inside-scheme-inside-or-email-atext-state)
+    *   [11.46 HTML tag open inside or email atext state](#1146-html-tag-open-inside-or-email-atext-state)
+    *   [11.47 HTML tag open between start after state](#1147-html-tag-open-between-start-after-state)
+    *   [11.48 HTML tag open between state](#1148-html-tag-open-between-state)
+    *   [11.49 HTML tag open attribute name state](#1149-html-tag-open-attribute-name-state)
+    *   [11.50 HTML tag open attribute name after state](#1150-html-tag-open-attribute-name-after-state)
+    *   [11.51 HTML tag open attribute value before state](#1151-html-tag-open-attribute-value-before-state)
+    *   [11.52 HTML tag open double quoted attribute value state](#1152-html-tag-open-double-quoted-attribute-value-state)
+    *   [11.53 HTML tag open single quoted attribute value state](#1153-html-tag-open-single-quoted-attribute-value-state)
+    *   [11.54 HTML tag open unquoted attribute value state](#1154-html-tag-open-unquoted-attribute-value-state)
+    *   [11.55 HTML tag open self closing state](#1155-html-tag-open-self-closing-state)
+    *   [11.56 Autolink scheme inside or email atext state](#1156-autolink-scheme-inside-or-email-atext-state)
+    *   [11.57 Autolink URI inside state](#1157-autolink-uri-inside-state)
+    *   [11.58 Autolink email atext state](#1158-autolink-email-atext-state)
+    *   [11.59 Autolink email label state](#1159-autolink-email-label-state)
+    *   [11.60 Autolink email at sign or dot state](#1160-autolink-email-at-sign-or-dot-state)
+    *   [11.61 Autolink email dash state](#1161-autolink-email-dash-state)
+    *   [11.62 Image exclamation mark after state](#1162-image-exclamation-mark-after-state)
+    *   [11.63 Resource text or label after state](#1163-resource-text-or-label-after-state)
+    *   [11.64 Resource information open state](#1164-resource-information-open-state)
+    *   [11.65 Resource information open after state](#1165-resource-information-open-after-state)
+    *   [11.66 Resource destination quoted open after state](#1166-resource-destination-quoted-open-after-state)
+    *   [11.67 Resource destination quoted inside state](#1167-resource-destination-quoted-inside-state)
+    *   [11.68 Resource destination quoted escape state](#1168-resource-destination-quoted-escape-state)
+    *   [11.69 Resource destination quoted close after state](#1169-resource-destination-quoted-close-after-state)
+    *   [11.70 Resource information between state](#1170-resource-information-between-state)
+    *   [11.71 Resource information between after state](#1171-resource-information-between-after-state)
+    *   [11.72 Resource destination unquoted inside state](#1172-resource-destination-unquoted-inside-state)
+    *   [11.73 Resource destination unquoted escape state](#1173-resource-destination-unquoted-escape-state)
+    *   [11.74 Resource title double quoted open after state](#1174-resource-title-double-quoted-open-after-state)
+    *   [11.75 Resource title double quoted inside state](#1175-resource-title-double-quoted-inside-state)
+    *   [11.76 Resource title double quoted escape state](#1176-resource-title-double-quoted-escape-state)
+    *   [11.77 Resource title single quoted open after state](#1177-resource-title-single-quoted-open-after-state)
+    *   [11.78 Resource title single quoted inside state](#1178-resource-title-single-quoted-inside-state)
+    *   [11.79 Resource title single quoted escape state](#1179-resource-title-single-quoted-escape-state)
+    *   [11.80 Resource title paren quoted open after state](#1180-resource-title-paren-quoted-open-after-state)
+    *   [11.81 Resource title paren quoted inside state](#1181-resource-title-paren-quoted-inside-state)
+    *   [11.82 Resource title paren quoted escape state](#1182-resource-title-paren-quoted-escape-state)
+    *   [11.83 Resource title close after state](#1183-resource-title-close-after-state)
+    *   [11.84 Resource information close before state](#1184-resource-information-close-before-state)
+    *   [11.85 Reference label open after state](#1185-reference-label-open-after-state)
+    *   [11.86 Reference label before state](#1186-reference-label-before-state)
+    *   [11.87 Reference label inside state](#1187-reference-label-inside-state)
+    *   [11.88 Reference label inside start after state](#1188-reference-label-inside-start-after-state)
+    *   [11.89 Reference label between state](#1189-reference-label-between-state)
+    *   [11.90 Reference label escape state](#1190-reference-label-escape-state)
 *   [12 Labels](#12-labels)
     *   [12.1 Content phrasing label](#121-content-phrasing-label)
     *   [12.2 Content definition label](#122-content-definition-label)
@@ -2155,6 +2157,29 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
 ### 11.1 Initial text state
 
+The [*Initial text state*][s-initial-text] is either the [*Plain text state*][s-plain-text] or the [*Rich text state*][s-rich-text], depending on
+which type of text is parsed.
+
+### 11.2 Plain text state
+
+*   ↪ **[EOF][ceof]**
+
+    Enqueue an [*End-of-file token*][t-end-of-file] and emit
+*   ↪ **[EOL][ceol]**
+
+    Enqueue an [*End-of-line token*][t-end-of-line] and consume
+*   ↪ **U+0026 AMPERSAND (`&`)**
+
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Character reference state*][s-character-reference]
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Escape backslash after state*][s-escape-backslash-after]
+*   ↪ **Anything else**
+
+    > ❗️ Todo: handle
+
+### 11.3 Rich text state
+
 *   ↪ **[EOF][ceof]**
 
     Enqueue an [*End-of-file token*][t-end-of-file] and emit
@@ -2163,56 +2188,40 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0021 EXCLAMATION MARK (`!`)**
 
-    If parsing rich text, enqueue a [*Marker token*][t-marker], consume, and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
     [*Image exclamation mark after state*][s-image-exclamation-mark-after]
-
-    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+0026 AMPERSAND (`&`)**
 
     Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Character reference state*][s-character-reference]
 *   ↪ **U+002A ASTERISK (`*`)**
 
-    If parsing rich text, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
-    [*Emphasis asterisk state*][s-emphasis-asterisk]
-
-    Otherwise, treat it as per the “anything else” entry below
+    Enqueue a [*Sequence token*][t-sequence], consume, and switch to the [*Emphasis asterisk state*][s-emphasis-asterisk]
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    If parsing rich text, enqueue a [*Content token*][t-content], consume, and switch to the
+    Enqueue a [*Content token*][t-content], consume, and switch to the
     [*HTML or autolink less than after state*][s-html-or-autolink-less-than-after]
-
-    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    If parsing rich text, enqueue a [*Marker token*][t-marker], consume, emit [*Text link open label*][l-text-link-open]
-
-    Otherwise, treat it as per the “anything else” entry below
+    Enqueue a [*Marker token*][t-marker], consume, emit [*Text link open label*][l-text-link-open]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Escape backslash after state*][s-escape-backslash-after]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    If parsing rich text, enqueue a [*Marker token*][t-marker], consume, and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
     [*Resource text or label after state*][s-resource-text-or-label-after]
-
-    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+005F UNDERSCORE (`_`)**
 
-    If parsing rich text, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
-    [*Emphasis underscore state*][s-emphasis-underscore]
-
-    Otherwise, treat it as per the “anything else” entry below
+    Enqueue a [*Sequence token*][t-sequence], consume, and switch to the [*Emphasis underscore state*][s-emphasis-underscore]
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
-    If parsing rich text, let `sizeOpen` be `1`, enqueue a [*Sequence token*][t-sequence], consume,
-    and switch to the [*Code span open state*][s-code-span-open]
-
-    Otherwise, treat it as per the “anything else” entry below
+    Let `sizeOpen` be `1`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
+    [*Code span open state*][s-code-span-open]
 *   ↪ **Anything else**
 
     > ❗️ Todo: handle
 
-### 11.2 Emphasis asterisk state
+### 11.4 Emphasis asterisk state
 
 *   ↪ **U+002A ASTERISK (`*`)**
 
@@ -2221,7 +2230,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Emit a [*Text emphasis label*][l-text-emphasis] and reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.3 Character reference state
+### 11.5 Character reference state
 
 *   ↪ **U+0023 NUMBER SIGN (`#`)**
 
@@ -2234,7 +2243,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.4 Character reference named state
+### 11.6 Character reference named state
 
 *   ↪ **U+003B SEMICOLON (`;`)**
 
@@ -2250,7 +2259,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `entityName` and reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.5 Character reference numeric state
+### 11.7 Character reference numeric state
 
 *   ↪ **U+0058 (`X`)**\
     ↪ **U+0078 (`x`)**
@@ -2265,7 +2274,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.6 Character reference hexadecimal start state
+### 11.8 Character reference hexadecimal start state
 
 *   ↪ **[ASCII hex digit][ascii-hex-digit]**
 
@@ -2274,7 +2283,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `characterReferenceCode` and reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.7 Character reference hexadecimal state
+### 11.9 Character reference hexadecimal state
 
 *   ↪ **U+003B SEMICOLON (`;`)**
 
@@ -2299,7 +2308,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `characterReferenceCode` and reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.8 Character reference decimal state
+### 11.10 Character reference decimal state
 
 *   ↪ **U+003B SEMICOLON (`;`)**
 
@@ -2314,7 +2323,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `characterReferenceCode` and reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.9 Code span open state
+### 11.11 Code span open state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2330,7 +2339,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Code span inside state*][s-code-span-inside]
 
-### 11.10 Code span inside start after state
+### 11.12 Code span inside start after state
 
 > **Note**: EOL is not possible.
 
@@ -2345,7 +2354,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Code span inside state*][s-code-span-inside]
 
-### 11.11 Code span inside state
+### 11.13 Code span inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2362,7 +2371,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.12 Code span close state
+### 11.14 Code span close state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2388,7 +2397,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Otherwise, unset `sizeClose`, consume, and switch to the [*Code span inside state*][s-code-span-inside]
 
-### 11.13 Emphasis underscore state
+### 11.15 Emphasis underscore state
 
 *   ↪ **U+005F UNDERSCORE (`_`)**
 
@@ -2397,7 +2406,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Emit a [*Text emphasis label*][l-text-emphasis] and reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.14 Escape backslash after state
+### 11.16 Escape backslash after state
 
 *   ↪ **[ASCII punctuation][ascii-punctuation]**
 
@@ -2407,7 +2416,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.15 HTML or autolink less than after state
+### 11.17 HTML or autolink less than after state
 
 *   ↪ **U+0021 EXCLAMATION MARK (`!`)**
 
@@ -2430,7 +2439,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.16 HTML instruction or email atext state
+### 11.18 HTML instruction or email atext state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
@@ -2451,7 +2460,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume and switch to the [*HTML instruction state*][s-html-instruction]
 
-### 11.17 HTML instruction close or email atext state
+### 11.19 HTML instruction close or email atext state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
@@ -2475,7 +2484,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume and switch to the [*HTML instruction state*][s-html-instruction]
 
-### 11.18 HTML instruction or email at sign or dot state
+### 11.20 HTML instruction or email at sign or dot state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
@@ -2494,7 +2503,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `sizeLabel`, consume, and switch to the [*HTML instruction state*][s-html-instruction]
 
-### 11.19 HTML instruction or email label state
+### 11.21 HTML instruction or email label state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
@@ -2529,7 +2538,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `sizeLabel`, consume, and switch to the [*HTML instruction state*][s-html-instruction]
 
-### 11.20 HTML instruction or email dash state
+### 11.22 HTML instruction or email dash state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
@@ -2554,7 +2563,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `sizeLabel`, consume, and switch to the [*HTML instruction state*][s-html-instruction]
 
-### 11.21 HTML instruction state
+### 11.23 HTML instruction state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2569,7 +2578,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.22 HTML instruction close state
+### 11.24 HTML instruction close state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2585,7 +2594,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.23 HTML declaration or email atext state
+### 11.25 HTML declaration or email atext state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -2609,7 +2618,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.24 HTML comment open inside or email atext state
+### 11.26 HTML comment open inside or email atext state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -2626,7 +2635,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.25 HTML comment or email atext state
+### 11.27 HTML comment or email atext state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2646,7 +2655,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*HTML comment state*][s-html-comment]
 
-### 11.26 HTML comment close inside or email atext state
+### 11.28 HTML comment close inside or email atext state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2666,7 +2675,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*HTML comment state*][s-html-comment]
 
-### 11.27 HTML comment close or email atext state
+### 11.29 HTML comment close or email atext state
 
 > **Note**: a comment may not contain two dashes (`--`), and may not end in a
 > dash (which would result in `--->`).
@@ -2688,7 +2697,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.28 HTML comment or email at sign or dot state
+### 11.30 HTML comment or email at sign or dot state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2706,7 +2715,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `sizeLabel` and reconsume in the [*HTML comment state*][s-html-comment]
 
-### 11.29 HTML comment or email label state
+### 11.31 HTML comment or email label state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2737,7 +2746,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `sizeLabel` and reconsume in the [*HTML comment state*][s-html-comment]
 
-### 11.30 HTML comment close inside or email label dash state
+### 11.32 HTML comment close inside or email label dash state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+003E GREATER THAN (`>`)**
@@ -2759,7 +2768,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `sizeLabel` and reconsume in the [*HTML comment state*][s-html-comment]
 
-### 11.31 HTML comment close or email label dash state
+### 11.33 HTML comment close or email label dash state
 
 > **Note**: a comment may not contain two dashes (`--`), and may not end in a
 > dash (which would result in `--->`).
@@ -2780,7 +2789,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `sizeLabel` and reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.32 HTML comment state
+### 11.34 HTML comment state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2795,7 +2804,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.33 HTML comment close inside state
+### 11.35 HTML comment close inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2811,7 +2820,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.34 HTML comment close state
+### 11.36 HTML comment close state
 
 > **Note**: a comment may not contain two dashes (`--`), and may not end in a
 > dash (which would result in `--->`).
@@ -2825,7 +2834,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.35 HTML CDATA state
+### 11.37 HTML CDATA state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2840,7 +2849,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.36 HTML declaration name or email atext state
+### 11.38 HTML declaration name or email atext state
 
 *   ↪ **[EOL][ceol]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
@@ -2862,7 +2871,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.37 HTML declaration between state
+### 11.39 HTML declaration between state
 
 *   ↪ **[EOL][ceol]**
 
@@ -2878,7 +2887,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*HTML declaration content state*][s-html-declaration-content]
 
-### 11.38 HTML declaration content state
+### 11.40 HTML declaration content state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2893,7 +2902,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.39 HTML tag close or email atext state
+### 11.41 HTML tag close or email atext state
 
 *   ↪ **U+0040 AT SIGN (`@`)**
 
@@ -2910,7 +2919,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.40 HTML tag close inside or email atext state
+### 11.42 HTML tag close inside or email atext state
 
 *   ↪ **[EOL][ceol]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
@@ -2936,7 +2945,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.41 HTML tag close between state
+### 11.43 HTML tag close between state
 
 > **Note**: an EOL would technically be allowed here, but anything else isn’t,
 > and as a `>` after an EOL would start a blockquote, practically it’s not
@@ -2949,7 +2958,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.42 HTML tag open scheme or email atext state
+### 11.44 HTML tag open scheme or email atext state
 
 *   ↪ **U+002B PLUS SIGN (`+`)**\
     ↪ **U+002E DOT (`.`)**
@@ -2972,7 +2981,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `sizeScheme` and reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.43 HTML tag open inside scheme inside or email atext state
+### 11.45 HTML tag open inside scheme inside or email atext state
 
 *   ↪ **[EOL][ceol]**
 
@@ -3011,7 +3020,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `sizeScheme` and reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.44 HTML tag open inside or email atext state
+### 11.46 HTML tag open inside or email atext state
 
 *   ↪ **[EOL][ceol]**
 
@@ -3037,7 +3046,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.45 HTML tag open between start after state
+### 11.47 HTML tag open between start after state
 
 > **Note**: EOL is not possible.
 
@@ -3049,7 +3058,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*HTML tag open between state*][s-html-tag-open-between]
 
-### 11.46 HTML tag open between state
+### 11.48 HTML tag open between state
 
 *   ↪ **[EOL][ceol]**
 
@@ -3074,7 +3083,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.47 HTML tag open attribute name state
+### 11.49 HTML tag open attribute name state
 
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
     ↪ **U+002D DASH (`-`)**\
@@ -3087,7 +3096,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*HTML tag open attribute name after state*][s-html-tag-open-attribute-name-after]
 
-### 11.48 HTML tag open attribute name after state
+### 11.50 HTML tag open attribute name after state
 
 *   ↪ **[EOL][ceol]**
 
@@ -3109,7 +3118,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.49 HTML tag open attribute value before state
+### 11.51 HTML tag open attribute value before state
 
 *   ↪ **[EOL][ceol]**
 
@@ -3134,7 +3143,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume and switch to the [*HTML tag open unquoted attribute value state*][s-html-tag-open-unquoted-attribute-value]
 
-### 11.50 HTML tag open double quoted attribute value state
+### 11.52 HTML tag open double quoted attribute value state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3149,7 +3158,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.51 HTML tag open single quoted attribute value state
+### 11.53 HTML tag open single quoted attribute value state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3164,7 +3173,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.52 HTML tag open unquoted attribute value state
+### 11.54 HTML tag open unquoted attribute value state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+0022 QUOTATION MARK (`"`)**\
@@ -3189,7 +3198,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.53 HTML tag open self closing state
+### 11.55 HTML tag open self closing state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -3198,7 +3207,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.54 Autolink scheme inside or email atext state
+### 11.56 Autolink scheme inside or email atext state
 
 *   ↪ **U+003A COLON (`:`)**
 
@@ -3222,7 +3231,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `sizeScheme` and reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.55 Autolink URI inside state
+### 11.57 Autolink URI inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -3239,7 +3248,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.56 Autolink email atext state
+### 11.58 Autolink email atext state
 
 *   ↪ **U+0040 AT SIGN (`@`)**
 
@@ -3253,7 +3262,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.57 Autolink email label state
+### 11.59 Autolink email label state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -3280,7 +3289,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `sizeLabel` and reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.58 Autolink email at sign or dot state
+### 11.60 Autolink email at sign or dot state
 
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
@@ -3292,7 +3301,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `sizeLabel` and reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.59 Autolink email dash state
+### 11.61 Autolink email dash state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -3309,7 +3318,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Unset `sizeLabel` and reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.60 Image exclamation mark after state
+### 11.62 Image exclamation mark after state
 
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
@@ -3319,7 +3328,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.61 Resource text or label after state
+### 11.63 Resource text or label after state
 
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
@@ -3333,7 +3342,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     > ❗️ Todo: shortcut reference
 
-### 11.62 Resource information open state
+### 11.64 Resource information open state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3363,7 +3372,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
     enqueue a [*Content token*][t-content] and reconsume in the
     [*Resource destination unquoted inside state*][s-resource-destination-unquoted-inside]
 
-### 11.63 Resource information open after state
+### 11.65 Resource information open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3393,7 +3402,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
     enqueue a [*Content token*][t-content] and reconsume in the
     [*Resource destination unquoted inside state*][s-resource-destination-unquoted-inside]
 
-### 11.64 Resource destination quoted open after state
+### 11.66 Resource destination quoted open after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -3414,7 +3423,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
     Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Resource destination quoted inside state*][s-resource-destination-quoted-inside]
 
-### 11.65 Resource destination quoted inside state
+### 11.67 Resource destination quoted inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -3433,7 +3442,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.66 Resource destination quoted escape state
+### 11.68 Resource destination quoted escape state
 
 *   ↪ **U+003C LESS THAN (`<`)**\
     ↪ **U+003E GREATER THAN (`>`)**\
@@ -3444,7 +3453,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Resource destination quoted inside state*][s-resource-destination-quoted-inside]
 
-### 11.67 Resource destination quoted close after state
+### 11.69 Resource destination quoted close after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3466,7 +3475,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.68 Resource information between state
+### 11.70 Resource information between state
 
 *   ↪ **[EOL][ceol]**
 
@@ -3480,7 +3489,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Resource information between after state*][s-resource-information-between-after]
 
-### 11.69 Resource information between after state
+### 11.71 Resource information between after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3513,7 +3522,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.70 Resource destination unquoted inside state
+### 11.72 Resource destination unquoted inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3544,7 +3553,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.71 Resource destination unquoted escape state
+### 11.73 Resource destination unquoted escape state
 
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**\
     ↪ **U+0029 RIGHT PARENTHESIS (`)`)**\
@@ -3555,7 +3564,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Resource destination unquoted inside state*][s-resource-destination-unquoted-inside]
 
-### 11.72 Resource title double quoted open after state
+### 11.74 Resource title double quoted open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3576,7 +3585,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
     Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Resource title double quoted inside state*][s-resource-title-double-quoted-inside]
 
-### 11.73 Resource title double quoted inside state
+### 11.75 Resource title double quoted inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3596,7 +3605,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.74 Resource title double quoted escape state
+### 11.76 Resource title double quoted escape state
 
 *   ↪ **U+0022 QUOTATION MARK (`"`)**\
     ↪ **U+005C BACKSLASH (`\`)**
@@ -3606,7 +3615,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Resource title double quoted open after state*][s-resource-title-double-quoted-open-after]
 
-### 11.75 Resource title single quoted open after state
+### 11.77 Resource title single quoted open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3627,7 +3636,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
     Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Resource title single quoted inside state*][s-resource-title-single-quoted-inside]
 
-### 11.76 Resource title single quoted inside state
+### 11.78 Resource title single quoted inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3647,7 +3656,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.77 Resource title single quoted escape state
+### 11.79 Resource title single quoted escape state
 
 *   ↪ **U+0027 APOSTROPHE (`'`)**\
     ↪ **U+005C BACKSLASH (`\`)**
@@ -3657,7 +3666,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Resource title single quoted open after state*][s-resource-title-single-quoted-open-after]
 
-### 11.78 Resource title paren quoted open after state
+### 11.80 Resource title paren quoted open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3678,7 +3687,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
     Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Resource title paren quoted inside state*][s-resource-title-paren-quoted-inside]
 
-### 11.79 Resource title paren quoted inside state
+### 11.81 Resource title paren quoted inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3698,7 +3707,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.80 Resource title paren quoted escape state
+### 11.82 Resource title paren quoted escape state
 
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**\
     ↪ **U+005C BACKSLASH (`\`)**
@@ -3708,7 +3717,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Resource title paren quoted open after state*][s-resource-title-paren-quoted-open-after]
 
-### 11.81 Resource title close after state
+### 11.83 Resource title close after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3729,7 +3738,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.82 Resource information close before state
+### 11.84 Resource information close before state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3749,7 +3758,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Reconsume in the [*Initial text state*][s-initial-text]
 
-### 11.83 Reference label open after state
+### 11.85 Reference label open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3769,7 +3778,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
 
-### 11.84 Reference label before state
+### 11.86 Reference label before state
 
 > **Note**: EOL is not possible.
 
@@ -3786,7 +3795,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
 
-### 11.85 Reference label inside state
+### 11.87 Reference label inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3810,7 +3819,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Consume
 
-### 11.86 Reference label inside start after state
+### 11.88 Reference label inside start after state
 
 > **Note**: EOL is not possible.
 
@@ -3832,7 +3841,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
 
-### 11.87 Reference label between state
+### 11.89 Reference label between state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3856,7 +3865,7 @@ rich text) of a document and must start in the [*Initial text state*][s-initial-
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
 
-### 11.88 Reference label escape state
+### 11.90 Reference label escape state
 
 *   ↪ **U+005C BACKSLASH (`\`)**\
     ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
@@ -5117,179 +5126,183 @@ This work is licensed under a
 
 [s-initial-text]: #111-initial-text-state
 
-[s-emphasis-asterisk]: #112-emphasis-asterisk-state
+[s-plain-text]: #112-plain-text-state
 
-[s-character-reference]: #113-character-reference-state
+[s-rich-text]: #113-rich-text-state
 
-[s-character-reference-named]: #114-character-reference-named-state
+[s-emphasis-asterisk]: #114-emphasis-asterisk-state
 
-[s-character-reference-numeric]: #115-character-reference-numeric-state
+[s-character-reference]: #115-character-reference-state
 
-[s-character-reference-hexadecimal-start]: #116-character-reference-hexadecimal-start-state
+[s-character-reference-named]: #116-character-reference-named-state
 
-[s-character-reference-hexadecimal]: #117-character-reference-hexadecimal-state
+[s-character-reference-numeric]: #117-character-reference-numeric-state
 
-[s-character-reference-decimal]: #118-character-reference-decimal-state
+[s-character-reference-hexadecimal-start]: #118-character-reference-hexadecimal-start-state
 
-[s-code-span-open]: #119-code-span-open-state
+[s-character-reference-hexadecimal]: #119-character-reference-hexadecimal-state
 
-[s-code-span-inside-start-after]: #1110-code-span-inside-start-after-state
+[s-character-reference-decimal]: #1110-character-reference-decimal-state
 
-[s-code-span-inside]: #1111-code-span-inside-state
+[s-code-span-open]: #1111-code-span-open-state
 
-[s-code-span-close]: #1112-code-span-close-state
+[s-code-span-inside-start-after]: #1112-code-span-inside-start-after-state
 
-[s-emphasis-underscore]: #1113-emphasis-underscore-state
+[s-code-span-inside]: #1113-code-span-inside-state
 
-[s-escape-backslash-after]: #1114-escape-backslash-after-state
+[s-code-span-close]: #1114-code-span-close-state
 
-[s-html-or-autolink-less-than-after]: #1115-html-or-autolink-less-than-after-state
+[s-emphasis-underscore]: #1115-emphasis-underscore-state
 
-[s-html-instruction-or-email-atext]: #1116-html-instruction-or-email-atext-state
+[s-escape-backslash-after]: #1116-escape-backslash-after-state
 
-[s-html-instruction-close-or-email-atext]: #1117-html-instruction-close-or-email-atext-state
+[s-html-or-autolink-less-than-after]: #1117-html-or-autolink-less-than-after-state
 
-[s-html-instruction-or-email-at-sign-or-dot]: #1118-html-instruction-or-email-at-sign-or-dot-state
+[s-html-instruction-or-email-atext]: #1118-html-instruction-or-email-atext-state
 
-[s-html-instruction-or-email-label]: #1119-html-instruction-or-email-label-state
+[s-html-instruction-close-or-email-atext]: #1119-html-instruction-close-or-email-atext-state
 
-[s-html-instruction-or-email-dash]: #1120-html-instruction-or-email-dash-state
+[s-html-instruction-or-email-at-sign-or-dot]: #1120-html-instruction-or-email-at-sign-or-dot-state
 
-[s-html-instruction]: #1121-html-instruction-state
+[s-html-instruction-or-email-label]: #1121-html-instruction-or-email-label-state
 
-[s-html-instruction-close]: #1122-html-instruction-close-state
+[s-html-instruction-or-email-dash]: #1122-html-instruction-or-email-dash-state
 
-[s-html-declaration-or-email-atext]: #1123-html-declaration-or-email-atext-state
+[s-html-instruction]: #1123-html-instruction-state
 
-[s-html-comment-open-inside-or-email-atext]: #1124-html-comment-open-inside-or-email-atext-state
+[s-html-instruction-close]: #1124-html-instruction-close-state
 
-[s-html-comment-or-email-atext]: #1125-html-comment-or-email-atext-state
+[s-html-declaration-or-email-atext]: #1125-html-declaration-or-email-atext-state
 
-[s-html-comment-close-inside-or-email-atext]: #1126-html-comment-close-inside-or-email-atext-state
+[s-html-comment-open-inside-or-email-atext]: #1126-html-comment-open-inside-or-email-atext-state
 
-[s-html-comment-close-or-email-atext]: #1127-html-comment-close-or-email-atext-state
+[s-html-comment-or-email-atext]: #1127-html-comment-or-email-atext-state
 
-[s-html-comment-or-email-at-sign-or-dot]: #1128-html-comment-or-email-at-sign-or-dot-state
+[s-html-comment-close-inside-or-email-atext]: #1128-html-comment-close-inside-or-email-atext-state
 
-[s-html-comment-or-email-label]: #1129-html-comment-or-email-label-state
+[s-html-comment-close-or-email-atext]: #1129-html-comment-close-or-email-atext-state
 
-[s-html-comment-close-inside-or-email-label-dash]: #1130-html-comment-close-inside-or-email-label-dash-state
+[s-html-comment-or-email-at-sign-or-dot]: #1130-html-comment-or-email-at-sign-or-dot-state
 
-[s-html-comment-close-or-email-label-dash]: #1131-html-comment-close-or-email-label-dash-state
+[s-html-comment-or-email-label]: #1131-html-comment-or-email-label-state
 
-[s-html-comment]: #1132-html-comment-state
+[s-html-comment-close-inside-or-email-label-dash]: #1132-html-comment-close-inside-or-email-label-dash-state
 
-[s-html-comment-close-inside]: #1133-html-comment-close-inside-state
+[s-html-comment-close-or-email-label-dash]: #1133-html-comment-close-or-email-label-dash-state
 
-[s-html-comment-close]: #1134-html-comment-close-state
+[s-html-comment]: #1134-html-comment-state
 
-[s-html-cdata]: #1135-html-cdata-state
+[s-html-comment-close-inside]: #1135-html-comment-close-inside-state
 
-[s-html-declaration-name-or-email-atext]: #1136-html-declaration-name-or-email-atext-state
+[s-html-comment-close]: #1136-html-comment-close-state
 
-[s-html-declaration-between]: #1137-html-declaration-between-state
+[s-html-cdata]: #1137-html-cdata-state
 
-[s-html-declaration-content]: #1138-html-declaration-content-state
+[s-html-declaration-name-or-email-atext]: #1138-html-declaration-name-or-email-atext-state
 
-[s-html-tag-close-or-email-atext]: #1139-html-tag-close-or-email-atext-state
+[s-html-declaration-between]: #1139-html-declaration-between-state
 
-[s-html-tag-close-inside-or-email-atext]: #1140-html-tag-close-inside-or-email-atext-state
+[s-html-declaration-content]: #1140-html-declaration-content-state
 
-[s-html-tag-close-between]: #1141-html-tag-close-between-state
+[s-html-tag-close-or-email-atext]: #1141-html-tag-close-or-email-atext-state
 
-[s-html-tag-open-scheme-or-email-atext]: #1142-html-tag-open-scheme-or-email-atext-state
+[s-html-tag-close-inside-or-email-atext]: #1142-html-tag-close-inside-or-email-atext-state
 
-[s-html-tag-open-inside-scheme-inside-or-email-atext]: #1143-html-tag-open-inside-scheme-inside-or-email-atext-state
+[s-html-tag-close-between]: #1143-html-tag-close-between-state
 
-[s-html-tag-open-inside-or-email-atext]: #1144-html-tag-open-inside-or-email-atext-state
+[s-html-tag-open-scheme-or-email-atext]: #1144-html-tag-open-scheme-or-email-atext-state
 
-[s-html-tag-open-between-start-after]: #1145-html-tag-open-between-start-after-state
+[s-html-tag-open-inside-scheme-inside-or-email-atext]: #1145-html-tag-open-inside-scheme-inside-or-email-atext-state
 
-[s-html-tag-open-between]: #1146-html-tag-open-between-state
+[s-html-tag-open-inside-or-email-atext]: #1146-html-tag-open-inside-or-email-atext-state
 
-[s-html-tag-open-attribute-name]: #1147-html-tag-open-attribute-name-state
+[s-html-tag-open-between-start-after]: #1147-html-tag-open-between-start-after-state
 
-[s-html-tag-open-attribute-name-after]: #1148-html-tag-open-attribute-name-after-state
+[s-html-tag-open-between]: #1148-html-tag-open-between-state
 
-[s-html-tag-open-attribute-value-before]: #1149-html-tag-open-attribute-value-before-state
+[s-html-tag-open-attribute-name]: #1149-html-tag-open-attribute-name-state
 
-[s-html-tag-open-double-quoted-attribute-value]: #1150-html-tag-open-double-quoted-attribute-value-state
+[s-html-tag-open-attribute-name-after]: #1150-html-tag-open-attribute-name-after-state
 
-[s-html-tag-open-single-quoted-attribute-value]: #1151-html-tag-open-single-quoted-attribute-value-state
+[s-html-tag-open-attribute-value-before]: #1151-html-tag-open-attribute-value-before-state
 
-[s-html-tag-open-unquoted-attribute-value]: #1152-html-tag-open-unquoted-attribute-value-state
+[s-html-tag-open-double-quoted-attribute-value]: #1152-html-tag-open-double-quoted-attribute-value-state
 
-[s-html-tag-open-self-closing]: #1153-html-tag-open-self-closing-state
+[s-html-tag-open-single-quoted-attribute-value]: #1153-html-tag-open-single-quoted-attribute-value-state
 
-[s-autolink-scheme-inside-or-email-atext]: #1154-autolink-scheme-inside-or-email-atext-state
+[s-html-tag-open-unquoted-attribute-value]: #1154-html-tag-open-unquoted-attribute-value-state
 
-[s-autolink-uri-inside]: #1155-autolink-uri-inside-state
+[s-html-tag-open-self-closing]: #1155-html-tag-open-self-closing-state
 
-[s-autolink-email-atext]: #1156-autolink-email-atext-state
+[s-autolink-scheme-inside-or-email-atext]: #1156-autolink-scheme-inside-or-email-atext-state
 
-[s-autolink-email-label]: #1157-autolink-email-label-state
+[s-autolink-uri-inside]: #1157-autolink-uri-inside-state
 
-[s-autolink-email-at-sign-or-dot]: #1158-autolink-email-at-sign-or-dot-state
+[s-autolink-email-atext]: #1158-autolink-email-atext-state
 
-[s-autolink-email-dash]: #1159-autolink-email-dash-state
+[s-autolink-email-label]: #1159-autolink-email-label-state
 
-[s-image-exclamation-mark-after]: #1160-image-exclamation-mark-after-state
+[s-autolink-email-at-sign-or-dot]: #1160-autolink-email-at-sign-or-dot-state
 
-[s-resource-text-or-label-after]: #1161-resource-text-or-label-after-state
+[s-autolink-email-dash]: #1161-autolink-email-dash-state
 
-[s-resource-information-open]: #1162-resource-information-open-state
+[s-image-exclamation-mark-after]: #1162-image-exclamation-mark-after-state
 
-[s-resource-information-open-after]: #1163-resource-information-open-after-state
+[s-resource-text-or-label-after]: #1163-resource-text-or-label-after-state
 
-[s-resource-destination-quoted-open-after]: #1164-resource-destination-quoted-open-after-state
+[s-resource-information-open]: #1164-resource-information-open-state
 
-[s-resource-destination-quoted-inside]: #1165-resource-destination-quoted-inside-state
+[s-resource-information-open-after]: #1165-resource-information-open-after-state
 
-[s-resource-destination-quoted-escape]: #1166-resource-destination-quoted-escape-state
+[s-resource-destination-quoted-open-after]: #1166-resource-destination-quoted-open-after-state
 
-[s-resource-destination-quoted-close-after]: #1167-resource-destination-quoted-close-after-state
+[s-resource-destination-quoted-inside]: #1167-resource-destination-quoted-inside-state
 
-[s-resource-information-between]: #1168-resource-information-between-state
+[s-resource-destination-quoted-escape]: #1168-resource-destination-quoted-escape-state
 
-[s-resource-information-between-after]: #1169-resource-information-between-after-state
+[s-resource-destination-quoted-close-after]: #1169-resource-destination-quoted-close-after-state
 
-[s-resource-destination-unquoted-inside]: #1170-resource-destination-unquoted-inside-state
+[s-resource-information-between]: #1170-resource-information-between-state
 
-[s-resource-destination-unquoted-escape]: #1171-resource-destination-unquoted-escape-state
+[s-resource-information-between-after]: #1171-resource-information-between-after-state
 
-[s-resource-title-double-quoted-open-after]: #1172-resource-title-double-quoted-open-after-state
+[s-resource-destination-unquoted-inside]: #1172-resource-destination-unquoted-inside-state
 
-[s-resource-title-double-quoted-inside]: #1173-resource-title-double-quoted-inside-state
+[s-resource-destination-unquoted-escape]: #1173-resource-destination-unquoted-escape-state
 
-[s-resource-title-double-quoted-escape]: #1174-resource-title-double-quoted-escape-state
+[s-resource-title-double-quoted-open-after]: #1174-resource-title-double-quoted-open-after-state
 
-[s-resource-title-single-quoted-open-after]: #1175-resource-title-single-quoted-open-after-state
+[s-resource-title-double-quoted-inside]: #1175-resource-title-double-quoted-inside-state
 
-[s-resource-title-single-quoted-inside]: #1176-resource-title-single-quoted-inside-state
+[s-resource-title-double-quoted-escape]: #1176-resource-title-double-quoted-escape-state
 
-[s-resource-title-single-quoted-escape]: #1177-resource-title-single-quoted-escape-state
+[s-resource-title-single-quoted-open-after]: #1177-resource-title-single-quoted-open-after-state
 
-[s-resource-title-paren-quoted-open-after]: #1178-resource-title-paren-quoted-open-after-state
+[s-resource-title-single-quoted-inside]: #1178-resource-title-single-quoted-inside-state
 
-[s-resource-title-paren-quoted-inside]: #1179-resource-title-paren-quoted-inside-state
+[s-resource-title-single-quoted-escape]: #1179-resource-title-single-quoted-escape-state
 
-[s-resource-title-paren-quoted-escape]: #1180-resource-title-paren-quoted-escape-state
+[s-resource-title-paren-quoted-open-after]: #1180-resource-title-paren-quoted-open-after-state
 
-[s-resource-title-close-after]: #1181-resource-title-close-after-state
+[s-resource-title-paren-quoted-inside]: #1181-resource-title-paren-quoted-inside-state
 
-[s-resource-information-close-before]: #1182-resource-information-close-before-state
+[s-resource-title-paren-quoted-escape]: #1182-resource-title-paren-quoted-escape-state
 
-[s-reference-label-open-after]: #1183-reference-label-open-after-state
+[s-resource-title-close-after]: #1183-resource-title-close-after-state
 
-[s-reference-label-before]: #1184-reference-label-before-state
+[s-resource-information-close-before]: #1184-resource-information-close-before-state
 
-[s-reference-label-inside]: #1185-reference-label-inside-state
+[s-reference-label-open-after]: #1185-reference-label-open-after-state
 
-[s-reference-label-inside-start-after]: #1186-reference-label-inside-start-after-state
+[s-reference-label-before]: #1186-reference-label-before-state
 
-[s-reference-label-between]: #1187-reference-label-between-state
+[s-reference-label-inside]: #1187-reference-label-inside-state
 
-[s-reference-label-escape]: #1188-reference-label-escape-state
+[s-reference-label-inside-start-after]: #1188-reference-label-inside-start-after-state
+
+[s-reference-label-between]: #1189-reference-label-between-state
+
+[s-reference-label-escape]: #1190-reference-label-escape-state
 
 [l-content-phrasing]: #121-content-phrasing-label
 

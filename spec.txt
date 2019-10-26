@@ -1883,6 +1883,29 @@ rich text) of a document and must start in the s:initial-text.
 
 ### Initial text state
 
+The s:initial-text is either the s:plain-text or the s:rich-text, depending on
+which type of text is parsed.
+
+### Plain text state
+
+*   ↪ **[c:EOF][]**
+
+    Enqueue an t:end-of-file and emit
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line and consume
+*   ↪ **c:&**
+
+    Enqueue a t:marker, consume, and switch to the s:character-reference
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Enqueue a t:marker, consume, and switch to the s:escape-backslash-after
+*   ↪ **Anything else**
+
+    > ❗️ Todo: handle
+
+### Rich text state
+
 *   ↪ **[c:EOF][]**
 
     Enqueue an t:end-of-file and emit
@@ -1891,51 +1914,35 @@ rich text) of a document and must start in the s:initial-text.
     Enqueue an t:end-of-line and consume
 *   ↪ **c:!**
 
-    If parsing rich text, enqueue a t:marker, consume, and switch to the
+    Enqueue a t:marker, consume, and switch to the
     s:image-exclamation-mark-after
-
-    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:&**
 
     Enqueue a t:marker, consume, and switch to the s:character-reference
 *   ↪ **c:***
 
-    If parsing rich text, enqueue a t:sequence, consume, and switch to the
-    s:emphasis-asterisk
-
-    Otherwise, treat it as per the “anything else” entry below
+    Enqueue a t:sequence, consume, and switch to the s:emphasis-asterisk
 *   ↪ **c:<**
 
-    If parsing rich text, enqueue a t:content, consume, and switch to the
+    Enqueue a t:content, consume, and switch to the
     s:html-or-autolink-less-than-after
-
-    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:[**
 
-    If parsing rich text, enqueue a t:marker, consume, emit l:text-link-open
-
-    Otherwise, treat it as per the “anything else” entry below
+    Enqueue a t:marker, consume, emit l:text-link-open
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a t:marker, consume, and switch to the s:escape-backslash-after
 *   ↪ **c:]**
 
-    If parsing rich text, enqueue a t:marker, consume, and switch to the
+    Enqueue a t:marker, consume, and switch to the
     s:resource-text-or-label-after
-
-    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:_**
 
-    If parsing rich text, enqueue a t:sequence, consume, and switch to the
-    s:emphasis-underscore
-
-    Otherwise, treat it as per the “anything else” entry below
+    Enqueue a t:sequence, consume, and switch to the s:emphasis-underscore
 *   ↪ **c:`**
 
-    If parsing rich text, let `sizeOpen` be `1`, enqueue a t:sequence, consume,
-    and switch to the s:code-span-open
-
-    Otherwise, treat it as per the “anything else” entry below
+    Let `sizeOpen` be `1`, enqueue a t:sequence, consume, and switch to the
+    s:code-span-open
 *   ↪ **Anything else**
 
     > ❗️ Todo: handle
