@@ -56,7 +56,7 @@ Common Markup parser.
     *   [9.16 HTML block open character data inside state](#916-html-block-open-character-data-inside-state)
     *   [9.17 HTML block open close tag start state](#917-html-block-open-close-tag-start-state)
     *   [9.18 HTML block open tag name inside state](#918-html-block-open-tag-name-inside-state)
-    *   [9.19 HTML block open simple self closing state](#919-html-block-open-simple-self-closing-state)
+    *   [9.19 HTML block open basic self closing state](#919-html-block-open-basic-self-closing-state)
     *   [9.20 HTML block open complete attribute before state](#920-html-block-open-complete-attribute-before-state)
     *   [9.21 HTML block open complete attribute name state](#921-html-block-open-complete-attribute-name-state)
     *   [9.22 HTML block open complete attribute name after state](#922-html-block-open-complete-attribute-name-after-state)
@@ -287,7 +287,7 @@ Common Markup parser.
     *   [15.29 HTML inline group](#1529-html-inline-group)
 *   [16 Appendix](#16-appendix)
     *   [16.1 Raw tags](#161-raw-tags)
-    *   [16.2 Simple tags](#162-simple-tags)
+    *   [16.2 Basic tags](#162-basic-tags)
     *   [16.3 Named character references](#163-named-character-references)
 *   [17 References](#17-references)
 *   [18 Acknowledgments](#18-acknowledgments)
@@ -977,7 +977,7 @@ If the next few characters are:
     If `tagName` is a [raw tag][raw-tag] and `endTag` is not `true`, let `kind` be `1`,
     open an [*HTML group*][g-html], and reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line].
 
-    Otherwise, if `tagName` is a [simple tag][simple-tag], let `kind` be `6`, open an
+    Otherwise, if `tagName` is a [basic tag][basic-tag], let `kind` be `6`, open an
     [*HTML group*][g-html], and reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line].
 
     Otherwise, treat it as per the “anything else” entry below
@@ -1005,10 +1005,10 @@ If the next few characters are:
 
     > ❗️ Todo: Define shared space: `tagName`, `endTag`
 
-    If `tagName` is a [simple tag][simple-tag], consume, and switch to the
-    [*HTML block open simple self closing state*][s-html-block-open-simple-self-closing].
+    If `tagName` is a [basic tag][basic-tag], consume, and switch to the
+    [*HTML block open basic self closing state*][s-html-block-open-basic-self-closing].
 
-    Otherwise, if `tagName` is not a [simple tag][simple-tag], `endTag` is not `true`, and
+    Otherwise, if `tagName` is not a [basic tag][basic-tag], `endTag` is not `true`, and
     the [current group][current-group] is not a [*Content group*][g-content], consume, and switch to the
     [*HTML block open complete self closing state*][s-html-block-open-complete-self-closing].
 
@@ -1021,7 +1021,7 @@ If the next few characters are:
     open an [*HTML group*][g-html], consume, and switch to the
     [*HTML block continuation line state*][s-html-block-continuation-line].
 
-    Otherwise, if `tagName` is a [simple tag][simple-tag], let `kind` be `6`, open an
+    Otherwise, if `tagName` is a [basic tag][basic-tag], let `kind` be `6`, open an
     [*HTML group*][g-html], and reconsume in the [*HTML block continuation line state*][s-html-block-continuation-line].
 
     Otherwise, if `tagName` is not a [raw tag][raw-tag], and the [current group][current-group] is
@@ -1034,7 +1034,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 9.19 HTML block open simple self closing state
+### 9.19 HTML block open basic self closing state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -4524,9 +4524,9 @@ interface HTMLInline <: Group {
 
 A <a id="raw-tag" href="#raw-tag">**raw tag**</a> is one of: `script`, `pre`, and `style`.
 
-### 16.2 Simple tags
+### 16.2 Basic tags
 
-A <a id="simple-tag" href="#simple-tag">**simple tag**</a> is one of: `address`, `article`, `aside`, `base`, `basefont`,
+A <a id="basic-tag" href="#basic-tag">**basic tag**</a> is one of: `address`, `article`, `aside`, `base`, `basefont`,
 `blockquote`, `body`, `caption`, `center`, `col`, `colgroup`, `dd`, `details`,
 `dialog`, `dir`, `div`, `dl`, `dt`, `fieldset`, `figcaption`, `figure`,
 `footer`, `form`, `frame`, `frameset`, `h1`, `h2`, `h3`, `h4`, `h5`, `h6`,
@@ -4957,7 +4957,7 @@ This work is licensed under a
 
 [raw-tag]: #raw-tag
 
-[simple-tag]: #simple-tag
+[basic-tag]: #basic-tag
 
 [character-reference-name]: #character-reference-name
 
@@ -4997,7 +4997,7 @@ This work is licensed under a
 
 [s-html-block-open-tag-name-inside]: #918-html-block-open-tag-name-inside-state
 
-[s-html-block-open-simple-self-closing]: #919-html-block-open-simple-self-closing-state
+[s-html-block-open-basic-self-closing]: #919-html-block-open-basic-self-closing-state
 
 [s-html-block-open-complete-attribute-before]: #920-html-block-open-complete-attribute-before-state
 

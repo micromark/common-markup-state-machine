@@ -705,7 +705,7 @@ If the next few characters are:
     If `tagName` is a [raw tag][] and `endTag` is not `true`, let `kind` be `1`,
     open an g:html, and reconsume in the s:html-block-continuation-line.
 
-    Otherwise, if `tagName` is a [simple tag][], let `kind` be `6`, open an
+    Otherwise, if `tagName` is a [basic tag][], let `kind` be `6`, open an
     g:html, and reconsume in the s:html-block-continuation-line.
 
     Otherwise, treat it as per the “anything else” entry below
@@ -733,10 +733,10 @@ If the next few characters are:
 
     > ❗️ Todo: Define shared space: `tagName`, `endTag`
 
-    If `tagName` is a [simple tag][], consume, and switch to the
-    s:html-block-open-simple-self-closing.
+    If `tagName` is a [basic tag][], consume, and switch to the
+    s:html-block-open-basic-self-closing.
 
-    Otherwise, if `tagName` is not a [simple tag][], `endTag` is not `true`, and
+    Otherwise, if `tagName` is not a [basic tag][], `endTag` is not `true`, and
     the [current group][] is not a g:content, consume, and switch to the
     s:html-block-open-complete-self-closing.
 
@@ -749,7 +749,7 @@ If the next few characters are:
     open an g:html, consume, and switch to the
     s:html-block-continuation-line.
 
-    Otherwise, if `tagName` is a [simple tag][], let `kind` be `6`, open an
+    Otherwise, if `tagName` is a [basic tag][], let `kind` be `6`, open an
     g:html, and reconsume in the s:html-block-continuation-line.
 
     Otherwise, if `tagName` is not a [raw tag][], and the [current group][] is
@@ -762,7 +762,7 @@ If the next few characters are:
     This is not an HTML block.
     Reconsume in the s:content-continuation
 
-### HTML block open simple self closing state
+### HTML block open basic self closing state
 
 *   ↪ **c:>**
 
@@ -4254,9 +4254,9 @@ interface HTMLInline <: Group {
 
 A [raw tag](#) is one of: `script`, `pre`, and `style`.
 
-### Simple tags
+### Basic tags
 
-A [simple tag](#) is one of: `address`, `article`, `aside`, `base`, `basefont`,
+A [basic tag](#) is one of: `address`, `article`, `aside`, `base`, `basefont`,
 `blockquote`, `body`, `caption`, `center`, `col`, `colgroup`, `dd`, `details`,
 `dialog`, `dir`, `div`, `dl`, `dt`, `fieldset`, `figcaption`, `figure`,
 `footer`, `form`, `frame`, `frameset`, `h1`, `h2`, `h3`, `h4`, `h5`, `h6`,
