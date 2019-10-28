@@ -156,10 +156,6 @@ An [atext](#) is an [ASCII alphanumeric][], or a character in the inclusive
 ranges c:# to c:', c:*, c:+, c:-, c:/, c:=, c:?, c:^ to c:`, or c:{ to c:~
 (**\[RFC5322]**).
 
-> ❗️ Todo:
-> *   [Unicode whitespace][] and [Unicode punctuation][] are used by emphasis
->     and importance
-
 ## Input stream
 
 The [input stream](#) consists of the characters pushed into it.
@@ -1879,12 +1875,99 @@ document and must start in the s:initial-content.
 ## Text state machine
 
 The [text state machine](#) is used to tokenize inline values (plain text or
-rich text) of a document and must start in the s:initial-text.
+rich text) of a document and must start in the s:after-whitespace.
 
-### Initial text state
+### After whitespace state
 
-The s:initial-text is either the s:plain-text or the s:rich-text, depending on
-which type of text is parsed.
+If text is parsed as plain text, this state should forward to the s:plain-text.
+Otherwise:
+
+*   ↪ **c:***
+
+    Let `delimiterRunBefore` be `'whitespace'`, let `delimiterRunAfter` be
+    `'null'`, enqueue a t:sequence, consume, and switch to the s:emphasis-asterisk
+*   ↪ **c:_**
+
+    Let `delimiterRunBefore` be `'whitespace'`, let `delimiterRunAfter` be
+    `'null'`, enqueue a t:sequence, consume, and switch to the s:emphasis-underscore
+*   ↪ **Anything else**
+
+    Reconsume in the s:text
+
+### After punctuation state
+
+If text is parsed as plain text, this state should forward to the s:plain-text.
+Otherwise:
+
+*   ↪ **c:***
+
+    Let `delimiterRunBefore` be `'punctuation'`, let `delimiterRunAfter` be
+    `'null'`, enqueue a t:sequence, consume, and switch to the
+    s:emphasis-asterisk
+*   ↪ **c:_**
+
+    Let `delimiterRunBefore` be `'punctuation'`, let `delimiterRunAfter` be
+    `'null'`, enqueue a t:sequence, consume, and switch to the
+    s:emphasis-underscore
+*   ↪ **Anything else**
+
+    Reconsume in the s:text
+
+### Text state
+
+If text is parsed as plain text, this state should forward to the s:plain-text.
+Otherwise:
+
+*   ↪ **[c:EOF][]**
+
+    Enqueue an t:end-of-file and emit
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and switch to the s:after-whitespace
+*   ↪ **c:!**
+
+    Enqueue a t:marker, consume, and switch to the
+    s:image-exclamation-mark-after
+*   ↪ **c:&**
+
+    Enqueue a t:marker, consume, and switch to the s:character-reference
+*   ↪ **c:***
+
+    Let `delimiterRunBefore` be `null`, let `delimiterRunAfter` be
+    `'null'`, enqueue a t:sequence, consume, and switch to the
+    s:emphasis-asterisk
+*   ↪ **c:<**
+
+    Enqueue a t:content, consume, and switch to the
+    s:html-or-autolink-less-than-after
+*   ↪ **c:[**
+
+    Enqueue a t:marker, consume, emit l:text-link-open
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Enqueue a t:marker, consume, and switch to the s:escape-backslash-after
+*   ↪ **c:]**
+
+    Enqueue a t:marker, consume, and switch to the
+    s:resource-text-or-label-after
+*   ↪ **c:_**
+
+    Let `delimiterRunBefore` be `null`, let `delimiterRunAfter` be
+    `'null'`, enqueue a t:sequence, consume, and switch to the
+    s:emphasis-underscore
+*   ↪ **c:`**
+
+    Let `sizeOpen` be `1`, enqueue a t:sequence, consume, and switch to the
+    s:code-span-open
+*   ↪ **[Unicode punctuation][]**
+
+    Consume and switch to the s:after-punctuation
+*   ↪ **[Unicode whitespace][]**
+
+    Consume and switch to the s:after-whitespace
+*   ↪ **Anything else**
+
+    > ❗️ Todo: handle
 
 ### Plain text state
 
@@ -1904,57 +1987,31 @@ which type of text is parsed.
 
     > ❗️ Todo: handle
 
-### Rich text state
-
-*   ↪ **[c:EOF][]**
-
-    Enqueue an t:end-of-file and emit
-*   ↪ **[c:EOL][]**
-
-    Enqueue an t:end-of-line and consume
-*   ↪ **c:!**
-
-    Enqueue a t:marker, consume, and switch to the
-    s:image-exclamation-mark-after
-*   ↪ **c:&**
-
-    Enqueue a t:marker, consume, and switch to the s:character-reference
-*   ↪ **c:***
-
-    Enqueue a t:sequence, consume, and switch to the s:emphasis-asterisk
-*   ↪ **c:<**
-
-    Enqueue a t:content, consume, and switch to the
-    s:html-or-autolink-less-than-after
-*   ↪ **c:[**
-
-    Enqueue a t:marker, consume, emit l:text-link-open
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Enqueue a t:marker, consume, and switch to the s:escape-backslash-after
-*   ↪ **c:]**
-
-    Enqueue a t:marker, consume, and switch to the
-    s:resource-text-or-label-after
-*   ↪ **c:_**
-
-    Enqueue a t:sequence, consume, and switch to the s:emphasis-underscore
-*   ↪ **c:`**
-
-    Let `sizeOpen` be `1`, enqueue a t:sequence, consume, and switch to the
-    s:code-span-open
-*   ↪ **Anything else**
-
-    > ❗️ Todo: handle
-
 ### Emphasis asterisk state
 
 *   ↪ **c:***
 
     Consume
+*   ↪ **[Unicode punctuation][]**
+
+    Let `delimiterRunAfter` be `'punctuation'` and treat it as per the “anything
+    else” entry below
+*   ↪ **[Unicode whitespace][]**
+
+    Let `delimiterRunAfter` be `'whitespace'` and treat it as per the “anything
+    else” entry below
 *   ↪ **Anything else**
 
-    Emit a l:text-emphasis and reconsume in the s:initial-text
+    Let `leftFlanking` be whether both `delimiterRunAfter` is not
+    `'whitespace'`, and that either `delimiterRunAfter` is not `'punctuation'`
+    or that `delimiterRunBefore` is not `null`
+
+    Let `rightFlanking` be whether both `delimiterRunBefore` is not
+    `'whitespace'`, and that either `delimiterRunBefore` is not `'punctuation'`
+    or that `delimiterRunAfter` is not `null`
+
+    Unset `delimiterRunBefore`, unset `delimiterRunAfter`, emit l:text-emphasis,
+    and reconsume in the s:after-punctuation
 
 ### Character reference state
 
@@ -1967,7 +2024,9 @@ which type of text is parsed.
     enqueue a t:content, consume, and switch to the s:character-reference-named
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Reconsume in the s:after-punctuation
 
 ### Character reference named state
 
@@ -1975,7 +2034,7 @@ which type of text is parsed.
 
     If `entityName` is a [character reference name][], unset `entityName`,
     enqueue a t:marker, consume, emit l:text-character-reference, and switch
-    to the s:initial-text
+    to the s:after-punctuation
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **[ASCII alphanumeric][]**
@@ -1983,7 +2042,9 @@ which type of text is parsed.
     Append the character to `entityName` and consume
 *   ↪ **Anything else**
 
-    Unset `entityName` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Unset `entityName` and reconsume in the s:text
 
 ### Character reference numeric state
 
@@ -1998,7 +2059,9 @@ which type of text is parsed.
     the s:character-reference-decimal
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Reconsume in the s:after-punctuation
 
 ### Character reference hexadecimal start state
 
@@ -2007,14 +2070,16 @@ which type of text is parsed.
     Enqueue a t:content and reconsume in the s:character-reference-hexadecimal
 *   ↪ **Anything else**
 
-    Unset `characterReferenceCode` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Unset `characterReferenceCode` and reconsume in the s:text
 
 ### Character reference hexadecimal state
 
 *   ↪ **c:;**
 
     Unset `characterReferenceCode`, enqueue a t:marker, consume, emit
-    l:text-character-reference, and switch to the s:initial-text
+    l:text-character-reference, and switch to the s:after-punctuation
 *   ↪ **[ASCII digit][]**
 
     Multiply `characterReferenceCode` by `16`, add a numeric version of the
@@ -2032,14 +2097,16 @@ which type of text is parsed.
     `characterReferenceCode`, and consume
 *   ↪ **Anything else**
 
-    Unset `characterReferenceCode` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Unset `characterReferenceCode` and reconsume in the s:text
 
 ### Character reference decimal state
 
 *   ↪ **c:;**
 
     Unset `characterReferenceCode`, enqueue a t:marker, consume, emit
-    l:text-character-reference, and switch to the s:initial-text
+    l:text-character-reference, and switch to the s:text
 *   ↪ **[ASCII digit][]**
 
     Multiply `characterReferenceCode` by `10`, add a numeric version of the
@@ -2047,13 +2114,15 @@ which type of text is parsed.
     `characterReferenceCode`, and consume
 *   ↪ **Anything else**
 
-    Unset `characterReferenceCode` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Unset `characterReferenceCode` and reconsume in the s:text
 
 ### Code span open state
 
 *   ↪ **[c:EOF][]**
 
-    Unset `sizeOpen` and reconsume in the s:initial-text
+    Unset `sizeOpen` and reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -2071,7 +2140,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Unset `sizeOpen` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+
+    Unset `sizeOpen` and reconsume in the s:text
 *   ↪ **c:`**
 
     Enqueue a t:sequence, let `sizeClose` be `1`, consume, and switch to the
@@ -2084,7 +2155,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Unset `sizeOpen` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+
+    Unset `sizeOpen` and reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -2102,14 +2175,16 @@ which type of text is parsed.
 *   ↪ **[c:EOF][]**
 
     If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
-    l:text-code, and reconsume in the s:initial-text
+    l:text-code, and reconsume in the s:after-punctuation
+
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
 
     Otherwise, unset `sizeOpen`, unset `sizeClose`, and reconsume in the
-    s:initial-text
+    s:text
 *   ↪ **[c:EOL][]**
 
     If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
-    l:text-code, and reconsume in the s:initial-text
+    l:text-code, and reconsume in the s:after-punctuation
 
     Otherwise, unset `sizeClose`, enqueue an t:end-of-line, consume, and switch
     to the s:code-span-inside-start-after
@@ -2119,7 +2194,7 @@ which type of text is parsed.
 *   ↪ **Anything else**
 
     If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
-    l:text-code, and reconsume in the s:initial-text
+    l:text-code, and reconsume in the s:after-punctuation
 
     Otherwise, unset `sizeClose`, consume, and switch to the s:code-span-inside
 
@@ -2128,19 +2203,35 @@ which type of text is parsed.
 *   ↪ **c:_**
 
     Consume
+*   ↪ **[Unicode punctuation][]**
+
+    Let `delimiterRunAfter` be `'punctuation'` and treat it as per the “anything
+    else” entry below
+*   ↪ **[Unicode whitespace][]**
+
+    Let `delimiterRunAfter` be `'whitespace'` and treat it as per the “anything
+    else” entry below
 *   ↪ **Anything else**
 
-    Emit a l:text-emphasis and reconsume in the s:initial-text
+    Let `leftFlanking` be whether both `delimiterRunAfter` is not
+    `'whitespace'`, and that either `delimiterRunAfter` is not `'punctuation'`
+    or that `delimiterRunBefore` is not `null`
+
+    Let `rightFlanking` be whether both `delimiterRunBefore` is not
+    `'whitespace'`, and that either `delimiterRunBefore` is not `'punctuation'`
+    or that `delimiterRunAfter` is not `null`
+
+    Unset `delimiterRunBefore`, unset `delimiterRunAfter`, emit l:text-emphasis,
+    and reconsume in the s:after-punctuation
 
 ### Escape backslash after state
 
 *   ↪ **[ASCII punctuation][]**
 
-    Enqueue a t:content, consume, emit l:text-escape, and switch to the
-    s:initial-text
+    Enqueue a t:content, consume, emit l:text-escape, and switch to the s:text
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    Reconsume in the s:after-punctuation
 
 ### HTML or autolink less than after state
 
@@ -2163,14 +2254,19 @@ which type of text is parsed.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Reconsume in the s:after-punctuation
 
 ### HTML instruction or email atext state
 
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
+    > we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **c:?**
 
     Consume and switch to the s:html-instruction-close-or-email-atext
@@ -2191,10 +2287,13 @@ which type of text is parsed.
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
+    > we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-text
+    Consume, emit l:text-html, and switch to the s:after-punctuation
 *   ↪ **c:?**
 
     Consume
@@ -2215,7 +2314,10 @@ which type of text is parsed.
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Unset `sizeLabel` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
+    > we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **c:?**
 
     Unset `sizeLabel`, consume, and switch to the s:html-instruction-close
@@ -2234,7 +2336,10 @@ which type of text is parsed.
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Unset `sizeLabel` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
+    > we don’t know if there was punctuation or whitespace)
+
+    Unset `sizeLabel` and reconsume in the s:text
 *   ↪ **c:-**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2250,7 +2355,7 @@ which type of text is parsed.
 *   ↪ **c:>**
 
     Unset `sizeLabel`, consume, emit l:text-autolink-email, and switch to the
-    s:initial-text
+    s:after-punctuation
 *   ↪ **c:?**
 
     Unset `sizeLabel`, consume, and switch to the s:html-instruction-close
@@ -2269,7 +2374,10 @@ which type of text is parsed.
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Unset `sizeLabel` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
+    > we don’t know if there was punctuation or whitespace)
+
+    Unset `sizeLabel` and reconsume in the s:text
 *   ↪ **c:-**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2293,7 +2401,10 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
+    > we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -2308,14 +2419,17 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
+    > we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
     s:html-instruction
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-text
+    Consume, emit l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Consume
@@ -2342,7 +2456,10 @@ which type of text is parsed.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: figure out if we are after punctuation, whitespace, or something
+    > else?
+
+    Reconsume in the s:text
 
 ### HTML comment open inside or email atext state
 
@@ -2359,13 +2476,16 @@ which type of text is parsed.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    Reconsume in the s:after-punctuation
 
 ### HTML comment or email atext state
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
+    > we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **c:-**
 
     Consume and switch to the s:html-comment-close-inside-or-email-atext
@@ -2385,7 +2505,10 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
+    > we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **c:-**
 
     Consume and switch to the s:html-comment-close-or-email-atext
@@ -2410,7 +2533,7 @@ which type of text is parsed.
 
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-text
+    Consume, emit l:text-html, and switch to the s:after-punctuation
 *   ↪ **c:@**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2421,13 +2544,17 @@ which type of text is parsed.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+
+    Reconsume in the s:after-punctuation
 
 ### HTML comment or email at sign or dot state
 
 *   ↪ **[c:EOF][]**
 
-    Unset `sizeLabel` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+
+    Unset `sizeLabel` and reconsume in the s:text
 *   ↪ **c:-**
 
     Unset `sizeLabel`, consume, and switch to the s:html-comment-close-inside
@@ -2445,7 +2572,10 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Unset `sizeLabel` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
+    > we don’t know if there was punctuation or whitespace)
+
+    Unset `sizeLabel` and reconsume in the s:text
 *   ↪ **c:-**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2461,7 +2591,7 @@ which type of text is parsed.
 *   ↪ **c:>**
 
     Unset `sizeLabel`, consume, emit l:text-autolink-email, and switch to the
-    s:initial-text
+    s:after-punctuation
 *   ↪ **[ASCII alphanumeric][]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2477,7 +2607,9 @@ which type of text is parsed.
 *   ↪ **[c:EOF][]**\
     ↪ **c:>**
 
-    Unset `sizeLabel` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+
+    Unset `sizeLabel` and reconsume in the s:after-punctuation
 *   ↪ **c:-**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2504,7 +2636,7 @@ which type of text is parsed.
 *   ↪ **c:>**
 
     Unset `sizeLabel`, consume, emit l:text-html, and switch to the
-    s:initial-text
+    s:after-punctuation
 *   ↪ **[ASCII alphanumeric][]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2513,13 +2645,18 @@ which type of text is parsed.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Unset `sizeLabel` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+
+    Unset `sizeLabel` and reconsume in the s:after-punctuation
 
 ### HTML comment state
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
+    > we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and enqueue a t:content
@@ -2534,7 +2671,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+
+    Reconsume in the s:after-punctuation
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
@@ -2555,22 +2694,26 @@ which type of text is parsed.
 
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-text
+    Consume, emit l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+
+    Reconsume in the s:after-punctuation
 
 ### HTML CDATA state
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and enqueue a t:content
 *   ↪ **`]]>` (two of c:], with a c:> after)**
 
-    Consume, emit l:text-html, and switch to the s:initial-text
+    Consume, emit l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Consume
@@ -2595,7 +2738,9 @@ which type of text is parsed.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Reconsume in the s:text
 
 ### HTML declaration between state
 
@@ -2608,7 +2753,7 @@ which type of text is parsed.
     Consume
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-text
+    Consume, emit l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Reconsume in the s:html-declaration-content
@@ -2617,13 +2762,16 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
+    > we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and enqueue a t:content
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-text
+    Consume, emit l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Consume
@@ -2643,7 +2791,9 @@ which type of text is parsed.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Reconsume in the s:after-punctuation
 
 ### HTML tag close inside or email atext state
 
@@ -2654,7 +2804,7 @@ which type of text is parsed.
     Reconsume in the s:html-tag-close-between
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-text
+    Consume, emit l:text-html, and switch to the s:after-punctuation
 *   ↪ **c:@**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2669,7 +2819,9 @@ which type of text is parsed.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Reconsume in the s:text
 
 ### HTML tag close between state
 
@@ -2679,10 +2831,12 @@ which type of text is parsed.
 
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-text
+    Consume, emit l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Reconsume in the s:after-whitespace
 
 ### HTML tag open scheme or email atext state
 
@@ -2694,7 +2848,7 @@ which type of text is parsed.
 *   ↪ **c:>**
 
     Unset `sizeScheme`, consume, emit l:text-html, and switch to the
-    s:initial-text
+    s:after-punctuation
 *   ↪ **[ASCII alphanumeric][]**\
     ↪ **c:-**
 
@@ -2705,7 +2859,9 @@ which type of text is parsed.
     Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Unset `sizeScheme` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation (dash) or not)
+
+    Unset `sizeScheme` and reconsume in the s:text
 
 ### HTML tag open inside scheme inside or email atext state
 
@@ -2744,7 +2900,9 @@ which type of text is parsed.
     Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Unset `sizeScheme` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation (dash) or not)
+
+    Unset `sizeScheme` and reconsume in the s:text
 
 ### HTML tag open inside or email atext state
 
@@ -2770,7 +2928,9 @@ which type of text is parsed.
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation (dash) or not)
+
+    Reconsume in the s:text
 
 ### HTML tag open between start after state
 
@@ -2799,7 +2959,7 @@ which type of text is parsed.
     Consume and switch to the s:html-tag-open-self-closing
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-text
+    Consume, emit l:text-html, and switch to the s:after-punctuation
 *   ↪ **[ASCII alpha][]**\
     ↪ **c::**\
     ↪ **c:_**
@@ -2807,7 +2967,9 @@ which type of text is parsed.
     Consume and switch to the s:html-tag-open-attribute-name
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Reconsume in the s:after-whitespace
 
 ### HTML tag open attribute name state
 
@@ -2839,10 +3001,12 @@ which type of text is parsed.
     Consume and switch to the s:html-tag-open-attribute-value-before
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-text
+    Consume, emit l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 
 ### HTML tag open attribute value before state
 
@@ -2864,7 +3028,9 @@ which type of text is parsed.
     ↪ **c:>**\
     ↪ **c:`**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **Anything else**
 
     Consume and switch to the s:html-tag-open-unquoted-attribute-value
@@ -2873,7 +3039,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and enqueue a t:content
@@ -2888,7 +3056,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and enqueue a t:content
@@ -2908,7 +3078,9 @@ which type of text is parsed.
     ↪ **c:=**\
     ↪ **c:`**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
@@ -2919,7 +3091,7 @@ which type of text is parsed.
     Consume and switch to the s:html-tag-open-between
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-text
+    Consume, emit l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Consume
@@ -2928,10 +3100,12 @@ which type of text is parsed.
 
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:initial-text
+    Consume, emit l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+
+    Reconsume in the s:after-punctuation
 
 ### Autolink scheme inside or email atext state
 
@@ -2955,7 +3129,9 @@ which type of text is parsed.
     Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    Unset `sizeScheme` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or not)
+
+    Unset `sizeScheme` and reconsume in the s:text
 
 ### Autolink URI inside state
 
@@ -2965,11 +3141,12 @@ which type of text is parsed.
     ↪ **c:SP**\
     ↪ **c:<**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **c:>**
 
-    Consume, emit l:text-autolink-uri, and switch to the
-    s:initial-text
+    Consume, emit l:text-autolink-uri, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Consume
@@ -2986,7 +3163,9 @@ which type of text is parsed.
     Consume
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 
 ### Autolink email label state
 
@@ -3005,7 +3184,7 @@ which type of text is parsed.
 *   ↪ **c:>**
 
     Unset `sizeLabel`, consume, emit l:text-autolink-email, and switch to the
-    s:initial-text
+    s:after-punctuation
 *   ↪ **[ASCII alphanumeric][]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1` and consume
@@ -3013,7 +3192,9 @@ which type of text is parsed.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Unset `sizeLabel` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation)
+
+    Unset `sizeLabel` and reconsume in the s:text
 
 ### Autolink email at sign or dot state
 
@@ -3025,7 +3206,9 @@ which type of text is parsed.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Unset `sizeLabel` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Unset `sizeLabel` and reconsume in the s:after-punctuation
 
 ### Autolink email dash state
 
@@ -3042,17 +3225,21 @@ which type of text is parsed.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Unset `sizeLabel` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Unset `sizeLabel` and reconsume in the s:after-punctuation
 
 ### Image exclamation mark after state
 
 *   ↪ **c:[**
 
     Enqueue a t:marker, consume, emit l:text-image-open, and switch to the
-    s:initial-text
+    s:after-punctuation
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat if extensions are supported
+
+    Reconsume in the s:after-punctuation
 
 ### Resource text or label after state
 
@@ -3072,7 +3259,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat
+
+    Reconsume in the s:after-punctuation
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -3084,14 +3273,16 @@ which type of text is parsed.
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:initial-text
+    switch to the s:after-punctuation
 *   ↪ **c:<**
 
     Emit a l:text-resource-destination-quoted-open, enqueue a t:marker, consume,
     and switch to the s:resource-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat
+
+    Reconsume in the s:after-punctuation
 *   ↪ **Anything else**
 
     Let `balance` be `0`, emit a l:text-resource-destination-unquoted-open,
@@ -3102,7 +3293,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat
+
+    Reconsume in the s:after-whitespace
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -3114,14 +3307,16 @@ which type of text is parsed.
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:initial-text
+    switch to the s:after-punctuation
 *   ↪ **c:<**
 
     Emit a l:text-resource-destination-quoted-open, enqueue a t:marker, consume,
     and switch to the s:resource-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat
+
+    Reconsume in the s:after-whitespace
 *   ↪ **Anything else**
 
     Let `balance` be `0`, emit a l:text-resource-destination-unquoted-open,
@@ -3134,7 +3329,9 @@ which type of text is parsed.
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat
+
+    Reconsume in the s:after-whitespace
 *   ↪ **c:>**
 
     Enqueue a t:marker, consume, emit a
@@ -3155,7 +3352,9 @@ which type of text is parsed.
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if we’re at punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **c:>**
 
     Enqueue a t:marker, consume, emit a
@@ -3183,7 +3382,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat
+
+    Reconsume in the s:after-punctuation
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -3196,10 +3397,12 @@ which type of text is parsed.
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:initial-text
+    switch to the s:after-punctuation
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat
+
+    Reconsume in the s:after-punctuation
 
 ### Resource information between state
 
@@ -3219,7 +3422,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat
+
+    Reconsume in the s:after-whitespace
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume, and switch to the
@@ -3243,16 +3448,20 @@ which type of text is parsed.
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:initial-text
+    switch to the s:after-punctuation
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat
+
+    Reconsume in the s:initial-whitespace
 
 ### Resource destination unquoted inside state
 
 *   ↪ **[c:EOF][]**
 
-    Unset `balance` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Unset `balance` and reconsume in the s:text
 *   ↪ **[c:EOL][]**\
     ↪ **c:HT**\
     ↪ **c:SP**
@@ -3266,7 +3475,8 @@ which type of text is parsed.
 
     If `balance` is `0`, unset `balance`, emit a
     l:text-resource-destination-unquoted-close, enqueue a t:marker, consume,
-    emit a l:text-resource-information-close, and switch to the s:initial-text
+    emit a l:text-resource-information-close, and switch to the
+    s:after-punctuation
 
     Otherwise, decrement `balance` by `1`, and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -3274,7 +3484,9 @@ which type of text is parsed.
     Consume and switch to the s:resource-destination-unquoted-escape
 *   ↪ **[ASCII control][]**
 
-    Unset `balance` and reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Unset `balance` and reconsume in the s:text
 *   ↪ **Anything else**
 
     Consume
@@ -3294,7 +3506,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -3315,7 +3529,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -3345,7 +3561,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -3366,7 +3584,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -3396,7 +3616,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -3417,7 +3639,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -3447,7 +3671,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -3459,16 +3685,15 @@ which type of text is parsed.
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:initial-text
+    switch to the s:after-punctuation
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 
 ### Resource information close before state
 
-*   ↪ **[c:EOF][]**
-
-    Reconsume in the s:initial-text
 *   ↪ **[c:EOL][]**
 
     Reconsume in the s:resource-title-close-after
@@ -3479,16 +3704,20 @@ which type of text is parsed.
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:initial-text
+    switch to the s:after-punctuation
 *   ↪ **Anything else**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:after-whitespace
 
 ### Reference label open after state
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -3499,7 +3728,7 @@ which type of text is parsed.
 *   ↪ **c:]**
 
     Enqueue a t:marker, consume, emit a l:text-reference-label-close, and switch
-    to the s:initial-text
+    to the s:after-punctuation
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:reference-label-inside
@@ -3512,7 +3741,9 @@ which type of text is parsed.
     ↪ **[c:EOL][]**\
     ↪ **c:]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+
+    Reconsume in the s:text
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3525,7 +3756,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat
+
+    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -3540,7 +3773,7 @@ which type of text is parsed.
 *   ↪ **c:]**
 
     Enqueue a t:marker, consume, emit a l:text-reference-label-close, and switch
-    to the s:initial-text
+    to the s:after-punctuation
 *   ↪ **Anything else**
 
     Consume
@@ -3551,7 +3784,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat
+
+    Reconsume in the s:after-whitespace
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3562,7 +3797,7 @@ which type of text is parsed.
 *   ↪ **c:]**
 
     Enqueue a t:marker, consume, emit a l:text-reference-label-close, and switch
-    to the s:initial-text
+    to the s:after-punctuation
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:reference-label-inside
@@ -3571,7 +3806,9 @@ which type of text is parsed.
 
 *   ↪ **[c:EOF][]**
 
-    Reconsume in the s:initial-text
+    > ❗️ Todo: retreat
+
+    Reconsume in the s:after-whitespace
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -3586,7 +3823,7 @@ which type of text is parsed.
 *   ↪ **c:]**
 
     Enqueue a t:marker, consume, emit a l:text-reference-label-close, and switch
-    to the s:initial-text
+    to the s:after-punctuation
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:reference-label-inside
