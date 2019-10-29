@@ -1924,7 +1924,12 @@ Otherwise:
     Enqueue an t:end-of-file and emit
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the s:after-whitespace
+    If the break represented by the character starts with a t:whitespace that
+    consists of two or more c:SP, emit l:text-hard-break, enqueue an
+    t:end-of-line, consume, and switch to the s:after-whitespace
+
+    Otherwise, emit l:text-soft-break, enqueue an t:end-of-line, consume, and
+    switch to the s:after-whitespace
 *   ↪ **c:!**
 
     Enqueue a t:marker, consume, and switch to the
@@ -1975,7 +1980,7 @@ Otherwise:
     Enqueue an t:end-of-file and emit
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line and consume
+    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:&**
 
     Enqueue a t:marker, consume, and switch to the s:character-reference
@@ -2126,7 +2131,7 @@ Otherwise:
     Unset `sizeOpen` and reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and switch to the
     s:code-span-inside-start-after
 *   ↪ **c:`**
 
@@ -2161,7 +2166,7 @@ Otherwise:
     Unset `sizeOpen` and reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and switch to the
     s:code-span-inside-start-after
 *   ↪ **c:`**
 
@@ -2187,8 +2192,8 @@ Otherwise:
     If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
     l:text-code, and reconsume in the s:after-punctuation
 
-    Otherwise, unset `sizeClose`, enqueue an t:end-of-line, consume, and switch
-    to the s:code-span-inside-start-after
+    Otherwise, unset `sizeClose`, emit l:text-soft-break, enqueue an
+    t:end-of-line, consume, and switch to the s:code-span-inside-start-after
 *   ↪ **c:`**
 
     Increment `sizeClose` by `1` and consume
@@ -2229,6 +2234,13 @@ Otherwise:
 
 ### Escape backslash after state
 
+*   ↪ **[c:EOL][]**
+
+    If text is parsed as rich text, and the break represented by the character
+    does not start with a t:whitespace, emit l:text-hard-break, enqueue an
+    t:end-of-line, consume, and switch to the s:after-whitespace
+
+    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **[ASCII punctuation][]**
 
     Enqueue a t:content, consume, emit l:text-escape, and switch to the s:text
@@ -2410,7 +2422,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line and consume
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
 *   ↪ **c:?**
 
     Consume and switch to the s:html-instruction-close
@@ -2428,8 +2441,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
-    s:html-instruction
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    t:content, and switch to the s:html-instruction
 *   ↪ **c:>**
 
     Consume, emit l:text-html, and switch to the s:after-punctuation
@@ -2662,7 +2675,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and enqueue a t:content
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
 *   ↪ **c:-**
 
     Consume and switch to the s:html-comment-close-inside
@@ -2679,8 +2693,8 @@ Otherwise:
     Reconsume in the s:after-punctuation
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
-    s:html-comment
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    t:content, and switch to the s:html-comment
 *   ↪ **c:-**
 
     Consume and switch to the s:html-comment-close
@@ -2713,7 +2727,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and enqueue a t:content
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
 *   ↪ **`]]>` (two of c:], with a c:> after)**
 
     Consume, emit l:text-html, and switch to the s:after-punctuation
@@ -2749,7 +2764,8 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and enqueue a t:content
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -2771,7 +2787,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and enqueue a t:content
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
 *   ↪ **c:>**
 
     Consume, emit l:text-html, and switch to the s:after-punctuation
@@ -2870,8 +2887,9 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Unset `sizeScheme`, enqueue an t:end-of-line, consume, enqueue a t:content,
-    and switch to the s:html-tag-open-between-start-after
+    Unset `sizeScheme`, emit l:text-soft-break, enqueue an t:end-of-line,
+    consume, enqueue a t:content, and switch to the
+    s:html-tag-open-between-start-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -2910,8 +2928,8 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
-    s:html-tag-open-between-start-after
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    t:content, and switch to the s:html-tag-open-between-start-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -2950,8 +2968,8 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
-    s:html-tag-open-between-start-after
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    t:content, and switch to the s:html-tag-open-between-start-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -2990,7 +3008,8 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and enqueue a t:content
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3014,7 +3033,8 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and enqueue a t:content
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3046,7 +3066,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and enqueue a t:content
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
 *   ↪ **c:"**
 
     Consume and switch to the s:html-tag-open-between
@@ -3063,7 +3084,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and enqueue a t:content
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
 *   ↪ **c:'**
 
     Consume and switch to the s:html-tag-open-between
@@ -3085,8 +3107,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, enqueue a t:content, and switch to the
-    s:html-tag-open-between
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    t:content, and switch to the s:html-tag-open-between
 *   ↪ **c:HT**\
     ↪ **c:SP**\
 
@@ -3266,7 +3288,7 @@ Otherwise:
     Reconsume in the s:after-punctuation
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line and consume
+    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3300,8 +3322,8 @@ Otherwise:
     Reconsume in the s:after-whitespace
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the
-    s:resource-information-open
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    t:content, and switch to the s:resource-information-open
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3389,8 +3411,8 @@ Otherwise:
     Reconsume in the s:after-punctuation
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the
-    s:resource-information-between
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    t:content, and switch to the s:resource-information-between
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3410,7 +3432,7 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line and consume
+    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3429,8 +3451,8 @@ Otherwise:
     Reconsume in the s:after-whitespace
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line and consume, and switch to the
-    s:resource-information-between
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    t:content, and switch to the s:resource-information-between
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3513,7 +3535,7 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line and consume
+    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:"**
 
     Enqueue a t:marker, consume, emit a l:text-resource-title-close, and switch
@@ -3536,8 +3558,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the
-    s:resource-title-double-quoted-open-after
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    t:content, and switch to the s:resource-title-double-quoted-open-after
 *   ↪ **c:"**
 
     Enqueue a t:marker, consume, emit a l:text-resource-title-close, and switch
@@ -3568,7 +3590,7 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line and consume
+    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:'**
 
     Enqueue a t:marker, consume, emit a l:text-resource-title-close, and switch
@@ -3591,8 +3613,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the
-    s:resource-title-single-quoted-open-after
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    t:content, and switch to the s:resource-title-single-quoted-open-after
 *   ↪ **c:'**
 
     Enqueue a t:marker, consume, emit a l:text-resource-title-close, and switch
@@ -3623,7 +3645,7 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line and consume
+    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-resource-title-close, and switch
@@ -3646,8 +3668,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the
-    s:resource-title-paren-quoted-open-after
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    t:content, and switch to the s:resource-title-paren-quoted-open-after
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, emit a l:text-resource-title-close, and switch
@@ -3678,7 +3700,7 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line and consume
+    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3722,7 +3744,7 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line and consume
+    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3763,8 +3785,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the
-    s:reference-label-inside-start-after
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    t:content, and switch to the s:reference-label-inside-start-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3813,8 +3835,8 @@ Otherwise:
     Reconsume in the s:after-whitespace
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the
-    s:reference-label-inside-start-after
+    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    t:content, and switch to the s:reference-label-inside-start-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3891,6 +3913,14 @@ When a l:content-definition-title-open is received, …
 ### Content definition title close label
 
 When a l:content-definition-title-close is received, …
+
+### Text hard break label
+
+When a l:text-hard-break is received, …
+
+### Text soft break label
+
+When a l:text-hard-break is received, …
 
 ### Text link open label
 
