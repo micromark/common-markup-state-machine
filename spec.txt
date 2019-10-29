@@ -16,7 +16,8 @@ Common Markup parser.
 >
 > *   [Stack of continuation](#) (`>` and `␠␠` for blockquote and list items)
 > *   Extensions
-> *   Emphasis, strong, hard line breaks
+> *   Check whether emphasis, strong, resource, or reference sequences make up
+>     syntax or text
 > *   Lots of infra algorithms
 
 ## Table of contents
@@ -1885,11 +1886,12 @@ Otherwise:
 *   ↪ **c:***
 
     Let `delimiterRunBefore` be `'whitespace'`, let `delimiterRunAfter` be
-    `'null'`, enqueue a t:sequence, consume, and switch to the s:emphasis-asterisk
+    `null`, enqueue a t:sequence, consume, and switch to the s:emphasis-asterisk
 *   ↪ **c:_**
 
     Let `delimiterRunBefore` be `'whitespace'`, let `delimiterRunAfter` be
-    `'null'`, enqueue a t:sequence, consume, and switch to the s:emphasis-underscore
+    `null`, enqueue a t:sequence, consume, and switch to the
+    s:emphasis-underscore
 *   ↪ **Anything else**
 
     Reconsume in the s:text
@@ -1902,12 +1904,11 @@ Otherwise:
 *   ↪ **c:***
 
     Let `delimiterRunBefore` be `'punctuation'`, let `delimiterRunAfter` be
-    `'null'`, enqueue a t:sequence, consume, and switch to the
-    s:emphasis-asterisk
+    `null`, enqueue a t:sequence, consume, and switch to the s:emphasis-asterisk
 *   ↪ **c:_**
 
     Let `delimiterRunBefore` be `'punctuation'`, let `delimiterRunAfter` be
-    `'null'`, enqueue a t:sequence, consume, and switch to the
+    `null`, enqueue a t:sequence, consume, and switch to the
     s:emphasis-underscore
 *   ↪ **Anything else**
 
@@ -1933,9 +1934,8 @@ Otherwise:
     Enqueue a t:marker, consume, and switch to the s:character-reference
 *   ↪ **c:***
 
-    Let `delimiterRunBefore` be `null`, let `delimiterRunAfter` be
-    `'null'`, enqueue a t:sequence, consume, and switch to the
-    s:emphasis-asterisk
+    Let `delimiterRunBefore` be `null`, let `delimiterRunAfter` be `null`,
+    enqueue a t:sequence, consume, and switch to the s:emphasis-asterisk
 *   ↪ **c:<**
 
     Enqueue a t:content, consume, and switch to the
@@ -1952,9 +1952,8 @@ Otherwise:
     s:resource-text-or-label-after
 *   ↪ **c:_**
 
-    Let `delimiterRunBefore` be `null`, let `delimiterRunAfter` be
-    `'null'`, enqueue a t:sequence, consume, and switch to the
-    s:emphasis-underscore
+    Let `delimiterRunBefore` be `null`, let `delimiterRunAfter` be `null`,
+    enqueue a t:sequence, consume, and switch to the s:emphasis-underscore
 *   ↪ **c:`**
 
     Let `sizeOpen` be `1`, enqueue a t:sequence, consume, and switch to the
@@ -1989,16 +1988,18 @@ Otherwise:
 
 ### Emphasis asterisk state
 
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[Unicode whitespace][]**
+
+    Let `delimiterRunAfter` be `'whitespace'` and treat it as per the “anything
+    else” entry below
 *   ↪ **c:***
 
     Consume
 *   ↪ **[Unicode punctuation][]**
 
     Let `delimiterRunAfter` be `'punctuation'` and treat it as per the “anything
-    else” entry below
-*   ↪ **[Unicode whitespace][]**
-
-    Let `delimiterRunAfter` be `'whitespace'` and treat it as per the “anything
     else” entry below
 *   ↪ **Anything else**
 
@@ -2082,17 +2083,17 @@ Otherwise:
     l:text-character-reference, and switch to the s:after-punctuation
 *   ↪ **[ASCII digit][]**
 
-    Multiply `characterReferenceCode` by `16`, add a numeric version of the
+    Multiply `characterReferenceCode` by `0x10`, add a numeric version of the
     [content character][] (subtract `0x30` from the character) to
     `characterReferenceCode`, and consume
 *   ↪ **[ASCII upper hex digit][]**
 
-    Multiply `characterReferenceCode` by `16`, add a numeric version of the
+    Multiply `characterReferenceCode` by `0x10`, add a numeric version of the
     [content character][] (subtract `0x37` from the character) to
     `characterReferenceCode`, and consume
 *   ↪ **[ASCII lower hex digit][]**
 
-    Multiply `characterReferenceCode` by `16`, add a numeric version of the
+    Multiply `characterReferenceCode` by `0x10`, add a numeric version of the
     [content character][] (subtract `0x57` from the character) to
     `characterReferenceCode`, and consume
 *   ↪ **Anything else**
@@ -2200,16 +2201,18 @@ Otherwise:
 
 ### Emphasis underscore state
 
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[Unicode whitespace][]**
+
+    Let `delimiterRunAfter` be `'whitespace'` and treat it as per the “anything
+    else” entry below
 *   ↪ **c:_**
 
     Consume
 *   ↪ **[Unicode punctuation][]**
 
     Let `delimiterRunAfter` be `'punctuation'` and treat it as per the “anything
-    else” entry below
-*   ↪ **[Unicode whitespace][]**
-
-    Let `delimiterRunAfter` be `'whitespace'` and treat it as per the “anything
     else” entry below
 *   ↪ **Anything else**
 
@@ -2894,8 +2897,7 @@ Otherwise:
 
     Otherwise, unset `sizeScheme`, consume, and switch to the
     s:html-tag-open-inside-or-email-atext
-*   ↪ **[atext][]**\
-    ↪ **c:.**
+*   ↪ **[atext][]**
 
     Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
 *   ↪ **Anything else**

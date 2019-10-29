@@ -16,7 +16,8 @@ Common Markup parser.
 >
 > *   <a id="stack-of-continuation" href="#stack-of-continuation">**Stack of continuation**</a> (`>` and `␠␠` for blockquote and list items)
 > *   Extensions
-> *   Emphasis, strong, hard line breaks
+> *   Check whether emphasis, strong, resource, or reference sequences make up
+>     syntax or text
 > *   Lots of infra algorithms
 
 ## Table of contents
@@ -2159,11 +2160,12 @@ Otherwise:
 *   ↪ **U+002A ASTERISK (`*`)**
 
     Let `delimiterRunBefore` be `'whitespace'`, let `delimiterRunAfter` be
-    `'null'`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the [*Emphasis asterisk state*][s-emphasis-asterisk]
+    `null`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the [*Emphasis asterisk state*][s-emphasis-asterisk]
 *   ↪ **U+005F UNDERSCORE (`_`)**
 
     Let `delimiterRunBefore` be `'whitespace'`, let `delimiterRunAfter` be
-    `'null'`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the [*Emphasis underscore state*][s-emphasis-underscore]
+    `null`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
+    [*Emphasis underscore state*][s-emphasis-underscore]
 *   ↪ **Anything else**
 
     Reconsume in the [*Text state*][s-text]
@@ -2176,12 +2178,11 @@ Otherwise:
 *   ↪ **U+002A ASTERISK (`*`)**
 
     Let `delimiterRunBefore` be `'punctuation'`, let `delimiterRunAfter` be
-    `'null'`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
-    [*Emphasis asterisk state*][s-emphasis-asterisk]
+    `null`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the [*Emphasis asterisk state*][s-emphasis-asterisk]
 *   ↪ **U+005F UNDERSCORE (`_`)**
 
     Let `delimiterRunBefore` be `'punctuation'`, let `delimiterRunAfter` be
-    `'null'`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
+    `null`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
     [*Emphasis underscore state*][s-emphasis-underscore]
 *   ↪ **Anything else**
 
@@ -2207,9 +2208,8 @@ Otherwise:
     Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Character reference state*][s-character-reference]
 *   ↪ **U+002A ASTERISK (`*`)**
 
-    Let `delimiterRunBefore` be `null`, let `delimiterRunAfter` be
-    `'null'`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
-    [*Emphasis asterisk state*][s-emphasis-asterisk]
+    Let `delimiterRunBefore` be `null`, let `delimiterRunAfter` be `null`,
+    enqueue a [*Sequence token*][t-sequence], consume, and switch to the [*Emphasis asterisk state*][s-emphasis-asterisk]
 *   ↪ **U+003C LESS THAN (`<`)**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
@@ -2226,9 +2226,8 @@ Otherwise:
     [*Resource text or label after state*][s-resource-text-or-label-after]
 *   ↪ **U+005F UNDERSCORE (`_`)**
 
-    Let `delimiterRunBefore` be `null`, let `delimiterRunAfter` be
-    `'null'`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
-    [*Emphasis underscore state*][s-emphasis-underscore]
+    Let `delimiterRunBefore` be `null`, let `delimiterRunAfter` be `null`,
+    enqueue a [*Sequence token*][t-sequence], consume, and switch to the [*Emphasis underscore state*][s-emphasis-underscore]
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
     Let `sizeOpen` be `1`, enqueue a [*Sequence token*][t-sequence], consume, and switch to the
@@ -2263,16 +2262,18 @@ Otherwise:
 
 ### 11.5 Emphasis asterisk state
 
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**\
+    ↪ **[Unicode whitespace][unicode-whitespace]**
+
+    Let `delimiterRunAfter` be `'whitespace'` and treat it as per the “anything
+    else” entry below
 *   ↪ **U+002A ASTERISK (`*`)**
 
     Consume
 *   ↪ **[Unicode punctuation][unicode-punctuation]**
 
     Let `delimiterRunAfter` be `'punctuation'` and treat it as per the “anything
-    else” entry below
-*   ↪ **[Unicode whitespace][unicode-whitespace]**
-
-    Let `delimiterRunAfter` be `'whitespace'` and treat it as per the “anything
     else” entry below
 *   ↪ **Anything else**
 
@@ -2356,17 +2357,17 @@ Otherwise:
     [*Text character reference label*][l-text-character-reference], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **[ASCII digit][ascii-digit]**
 
-    Multiply `characterReferenceCode` by `16`, add a numeric version of the
+    Multiply `characterReferenceCode` by `0x10`, add a numeric version of the
     [content character][content-character] (subtract `0x30` from the character) to
     `characterReferenceCode`, and consume
 *   ↪ **[ASCII upper hex digit][ascii-upper-hex-digit]**
 
-    Multiply `characterReferenceCode` by `16`, add a numeric version of the
+    Multiply `characterReferenceCode` by `0x10`, add a numeric version of the
     [content character][content-character] (subtract `0x37` from the character) to
     `characterReferenceCode`, and consume
 *   ↪ **[ASCII lower hex digit][ascii-lower-hex-digit]**
 
-    Multiply `characterReferenceCode` by `16`, add a numeric version of the
+    Multiply `characterReferenceCode` by `0x10`, add a numeric version of the
     [content character][content-character] (subtract `0x57` from the character) to
     `characterReferenceCode`, and consume
 *   ↪ **Anything else**
@@ -2474,16 +2475,18 @@ Otherwise:
 
 ### 11.16 Emphasis underscore state
 
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**\
+    ↪ **[Unicode whitespace][unicode-whitespace]**
+
+    Let `delimiterRunAfter` be `'whitespace'` and treat it as per the “anything
+    else” entry below
 *   ↪ **U+005F UNDERSCORE (`_`)**
 
     Consume
 *   ↪ **[Unicode punctuation][unicode-punctuation]**
 
     Let `delimiterRunAfter` be `'punctuation'` and treat it as per the “anything
-    else” entry below
-*   ↪ **[Unicode whitespace][unicode-whitespace]**
-
-    Let `delimiterRunAfter` be `'whitespace'` and treat it as per the “anything
     else” entry below
 *   ↪ **Anything else**
 
@@ -3168,8 +3171,7 @@ Otherwise:
 
     Otherwise, unset `sizeScheme`, consume, and switch to the
     [*HTML tag open inside or email atext state*][s-html-tag-open-inside-or-email-atext]
-*   ↪ **[atext][atext]**\
-    ↪ **U+002E DOT (`.`)**
+*   ↪ **[atext][atext]**
 
     Unset `sizeScheme`, consume, and switch to the [*Autolink email atext state*][s-autolink-email-atext]
 *   ↪ **Anything else**
