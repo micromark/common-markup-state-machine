@@ -249,7 +249,7 @@ After using the queue, or when in a bogus construct is found, it is discarded.
 The [shared space][] is accessed and mutated by both the tree adapter and the
 states of the state machine.
 
-[Constructs][] are registered on one or more characters or character groups.
+[Construct][]s are registered on one or more characters or character groups.
 Upon registration, they define the states used to parse a construct, and the
 adapter used to handle the construct.
 
@@ -263,7 +263,7 @@ The [current token](#) is the last token in the [queue][].
 
 ### Constructs
 
-Markup is parsed per [construct](@).
+Markup is parsed per [construct](#).
 Some constructs are considered standard (those from CommonMark, such as ATX
 headings).
 Other constructs are extensions (such as YAML frontmatter or MDX).
@@ -274,17 +274,17 @@ Other constructs are extensions (such as YAML frontmatter or MDX).
 
 #### Switch
 
-To [switch](@) to a state is to wait for the next character in the given state.
+To [switch](#) to a state is to wait for the next character in the given state.
 
 #### Consume
 
-To [consume](@) the [input character][] affects the [current token][].
+To [consume](#) the [input character][] affects the [current token][].
 Due to the nature of the state machine, it is not possible to consume if there
 is no current token.
 
 #### Reconsume
 
-To [reconsume](@) is to [switch][] to the given state, and [consume][] the
+To [reconsume](#) is to [switch][] to the given state, and [consume][] the
 [input character][] there.
 
 #### Enqueue

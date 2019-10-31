@@ -524,7 +524,7 @@ After using the queue, or when in a bogus construct is found, it is discarded.
 The [shared space][shared-space] is accessed and mutated by both the tree adapter and the
 states of the state machine.
 
-[Constructs][constructs] are registered on one or more characters or character groups.
+[Construct][construct]s are registered on one or more characters or character groups.
 Upon registration, they define the states used to parse a construct, and the
 adapter used to handle the construct.
 
@@ -538,7 +538,7 @@ The <a id="current-token" href="#current-token">**current token**</a> is the las
 
 ### 6.2 Constructs
 
-Markup is parsed per [construct](@).
+Markup is parsed per <a id="construct" href="#construct">**construct**</a>.
 Some constructs are considered standard (those from CommonMark, such as ATX
 headings).
 Other constructs are extensions (such as YAML frontmatter or MDX).
@@ -549,17 +549,17 @@ Other constructs are extensions (such as YAML frontmatter or MDX).
 
 #### 6.3.1 Switch
 
-To [switch](@) to a state is to wait for the next character in the given state.
+To <a id="switch" href="#switch">**switch**</a> to a state is to wait for the next character in the given state.
 
 #### 6.3.2 Consume
 
-To [consume](@) the [input character][input-character] affects the [current token][current-token].
+To <a id="consume" href="#consume">**consume**</a> the [input character][input-character] affects the [current token][current-token].
 Due to the nature of the state machine, it is not possible to consume if there
 is no current token.
 
 #### 6.3.3 Reconsume
 
-To [reconsume](@) is to [switch][switch] to the given state, and [consume][consume] the
+To <a id="reconsume" href="#reconsume">**reconsume**</a> is to [switch][switch] to the given state, and [consume][consume] the
 [input character][input-character] there.
 
 #### 6.3.4 Enqueue
@@ -5188,6 +5188,14 @@ This work is licensed under a
 [queue]: #queue
 
 [current-token]: #current-token
+
+[construct]: #construct
+
+[switch]: #switch
+
+[consume]: #consume
+
+[reconsume]: #reconsume
 
 [flow-state-machine]: #flow-state-machine
 
