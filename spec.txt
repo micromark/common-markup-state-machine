@@ -51,6 +51,8 @@ This format is:
     be buffered as references can resolve to later definitions
 *   **complete**, as it defines different types of tokens and how they are
     grouped, which allows the format to be represented as a concrete syntax tree
+*   **extensible**, because Markdown is often used in combination with new
+    and custom constructs
 
 The origin story of Markdown is similar to that of HTML, which at a time was
 also a family of formats.
@@ -61,58 +63,32 @@ to parse the format, by defining a state machine.
 
 The common markup parser receives input, typically coming over the network or
 from the local file system.
-Depending on a character in the input stream, certain side effects occur, such
-as that a new token is created, or one state is switched to another.
+This input is represented as characters in the input stream.
+Depending on a character, certain effects occur, such as that a new token is
+created, one state is switched to another, or something is labelled.
 Each line is made up of tokens, such as whitespace, markers, sequences, and
-content, that are queued.
-At a certain point in a line, it is known what to do with the queue, which has
-more effects: groups are closed, opened, or tokens are changed, for example
-because it is known that a punctuation marker should be treated as content.
-In some cases, it is not known what to do with a line until a certain point in a
-later line.
-One such exception is g:content, which spans an arbitrary number of lines, and
-can result in zero or more definitions, and optionally either a paragraph or a
-Setext heading.
+content, and labels, that are both enqueued.
+At a certain point, it is known what to do with the queue, whether to discard it
+or to use it, in which case there are more effects: groups are closed, opened,
+or tokens are changed, for example because it is known that a punctuation marker
+should be treated as content.
+
+The parser parses in three stages: flow, content, and text, respectively coming
+with their own state machines ([flow state machine][], [content state machine][],
+[text state machine][]), and their own adapters.
+
+## Infra
+
+> *This section defines the fundamental concepts upon which this document is
+> built.*
+
+A variable is declared in the shared state with `let`, cleared with `unset`, or
+changed with `set`, `increment`, or `decrement`.
 
 ## Characters
 
 A character is a Unicode code point and is represented as a four to six digit
 hexadecimal number, prefixed with `U+` (**\[UNICODE]**).
-
-### Conceptual characters
-
-An [c:EOF](#) character is a conceptual character representing the end of the
-input.
-
-An [c:EOL](#) character is a conceptual character representing a break between
-two runs of text.
-
-A [c:VS](#) character is a conceptual character representing an expanded column
-size of a c:HT.
-
-c:EOF, c:EOL, and c:VS are not real characters, but rather represent the lack of
-any further characters, a break between characters, or a character increase the
-size of a character.
-
-### Tabs
-
-Tabs (c:HT) are typically not expanded into spaces, but do behave as if they
-were replaced by spaces with a tab stop of 4 characters.
-These character increments are represented by [c:VS] characters.
-
-For the following markup (where `␉` represent a tab):
-
-```markdown
->␉␉a
-```
-
-We have the characters: c:>, c:HT, c:VS, c:VS, c:HT, c:VS, c:VS, c:VS, and c:a.
-
-When transforming to an output format, tab characters that are not part of
-syntax should be present in the output format.
-When the tab itself (and zero or more c:VS characters) are part of syntax, but
-some c:VS characters are not, the remaining c:VS characters should be considered
-a prefix of the content.
 
 ### Character groups
 
@@ -157,6 +133,41 @@ An [atext](#) is an [ASCII alphanumeric][], or a character in the inclusive
 ranges c:# to c:', c:*, c:+, c:-, c:/, c:=, c:?, c:^ to c:`, or c:{ to c:~
 (**\[RFC5322]**).
 
+### Conceptual characters
+
+A [c:VS](#) character is a conceptual character representing an expanded column
+size of a c:HT.
+
+An [c:EOL](#) character is a conceptual character representing a break between
+two lines.
+
+An [c:EOF](#) character is a conceptual character representing the end of the
+input.
+
+c:VS, c:EOL, and c:EOF are not real characters, but rather represent a character
+increase the size of a character, a break between characters, or the lack of any
+further characters.
+
+### Tabs
+
+Tabs (c:HT) are typically not expanded into spaces, but do behave as if they
+were replaced by spaces with a tab stop of 4 characters.
+These character increments are represented by [c:VS] characters.
+
+For the following markup (where `␉` represent a tab):
+
+```markdown
+>␉␉a
+```
+
+We have the characters: c:>, c:HT, c:VS, c:VS, c:HT, c:VS, c:VS, c:VS, and c:a.
+
+When transforming to an output format, tab characters that are not part of
+syntax should be present in the output format.
+When the tab itself (and zero or more c:VS characters) are part of syntax, but
+some c:VS characters are not, the remaining c:VS characters should be considered
+a prefix of the content.
+
 ## Input stream
 
 The [input stream](#) consists of the characters pushed into it.
@@ -164,174 +175,145 @@ The [input stream](#) consists of the characters pushed into it.
 The [input character](#) is the first character in the [input stream][] that has
 not yet been consumed.
 Initially, the input character is the first character in the input.
+When the last character in a line is consumed, the input character is an
+[c:EOL][].
 Finally, when all character are consumed, the input character is an [c:EOF][].
 
-Any occurrences of c:HT in the [input stream][] is represented by that character
-and 0-3 [c:VS][] characters.
+Any occurrences of c:HT in the [input stream][] is represented by that
+character and 0-3 [c:VS][] characters.
 
-## Content stream
+### Preprocessing the input stream
 
-The [content stream](#) is similar to the [input stream][], but is used to parse
-content.
+The [input stream][] consists of the characters pushed into it as the input is
+decoded.
 
-The [content character](#) is the first character in the [content stream][] that
-has not yet been consumed.
-When a run of text is consumed and there is a next run of text, the text
-character is an [c:EOL][].
-Finally, when all character are consumed, the content character is an [c:EOF][].
+The input, when decoded, is preprocessed and pushed into the input stream as
+described in the following algorithm:
 
-Any occurrences of c:HT in the [content stream][] is represented *only* by that
-character.
+*   Let `tabSize` be `4`
+*   Let `line` be `1`
+*   Let `column` be `1`
+*   Let `offset` be `0`
+*   *Check*:
 
-## State
+    If `offset` is equal to the length of the document, push a c:EOF into the
+    [input stream][] representing the lack of any further characters, and return
 
-Initially, the [stack of open groups](#) is empty.
-The stack grows downwards; the topmost group on the stack is the first one
-opened, and the bottommost group of the stack is the last group still open.
+    Otherwise, if the current character is:
 
-The [current group](#) is the bottommost group in this [stack of open groups][].
+    *   ↪ **c:NUL**
 
-The [queue](#) is a list of tokens.
+        Increment `offset` by `1`, increment `column` by `1`, push a c:� into
+        the [input stream][], and go to the step labelled *check*
+    *   ↪ **c:HT**
+
+        Set `count` to the result of calculating `(tabSize - 1) - (column %
+        tabSize)`.
+        Increment `offset` by `1`, increment `column` by `1`, and push the
+        character into the [input stream][].
+
+        Perform the following steps `count` times: increment `column` by `1` and
+        push a c:VS into the [input stream][] representing the size increase.
+
+        Finally, go to the step labelled *check*
+    *   ↪ **c:LF**
+
+        Increment `offset` by `1`, increment `line` by `1`, and set `column` to
+        `1`, push an c:EOL into the [input stream][] representing the character,
+        and go to the step labelled *check*
+    *   ↪ **c:CR**
+
+        Increment `offset` by `1`, increment `line` by `1`, set `column` to `1`,
+        and go to the step labelled *carriage return check*
+    *   ↪ **Anything else**
+
+        Increment `offset` by `1`, increment `column` by `1`, push the character
+        into the [input stream][], and go to the step labelled *check*
+*   *Carriage return check*: if the current character is:
+
+    *   ↪ **c:LF**
+
+        Increment `offset` by `1` and push an c:EOL into the [input stream][]
+        representing the previous and current characters
+    *   ↪ **Anything else**
+
+        Push an c:EOL into the [input stream][] representing the previous
+        character and perform the step labelled *check* on the current character
+
+## Parsing
+
+Items in the [queue][] (as in, tokens and labels) are created by state machines.
+They are used by a tree adapter, in case a valid construct is found.
+After using the queue, or when in a bogus construct is found, it is discarded.
+
+The [shared space][] is accessed and mutated by both the tree adapter and the
+states of the state machine.
+
+[Constructs][] are registered on one or more characters or character groups.
+Upon registration, they define the states used to parse a construct, and the
+adapter used to handle the construct.
+
+### State
+
+The [shared space](#) is a map of key/value pairs.
+
+The [queue](#) is a list of tokens that are enqueued and labels that are emitted.
+
 The [current token](#) is the last token in the [queue][].
 
-## Actions
+### Constructs
 
-### Consume
+Markup is parsed per [construct](@).
+Some constructs are considered standard (those from CommonMark, such as ATX
+headings).
+Other constructs are extensions (such as YAML frontmatter or MDX).
 
-To consume the [input character][] affects the [current token][].
+> ❗️ Define constructs better.
+
+### Effects
+
+#### Switch
+
+To [switch](@) to a state is to wait for the next character in the given state.
+
+#### Consume
+
+To [consume](@) the [input character][] affects the [current token][].
 Due to the nature of the state machine, it is not possible to consume if there
 is no current token.
-To consume the input character, first run the following steps based on the
-type of the token:
 
-*   ↪ **t:marker**
+#### Reconsume
 
-    Set the marker to the [input character][]
-*   ↪ **t:sequence**
+To [reconsume](@) is to [switch][] to the given state, and [consume][] the
+[input character][] there.
 
-    Increment the size of the token.
-    If the token has no marker, set the marker to the [input character][]
-*   ↪ **t:whitespace**
+#### Enqueue
 
-    Increment the size of the token.
-    Add the current [input character][] to the token’s list of characters
-*   ↪ **Anything else**
+To enqueue a token is to add a new token of the given type to the [queue][],
+making it the new [current token][].
 
-    Do nothing
+#### Emit
 
-### Enqueue
-
-To enqueue a token is to add it to the [queue][].
-
-Queueing tokens may have side effects, based on the type of the token, and given
-labelled parameters:
-
-*   ↪ **t:whitespace**
-
-    Set the size and used size of the token to zero (0).
-    Set the list of characters of the token to an empty list.
-    If a used size is given, set the used size of the token to the given value
-*   ↪ **t:sequence**
-
-    Set the size of the token to zero (0)
-*   ↪ **t:content**
-
-    Set the prefix of the token to the empty string.
-    If characters are given, perform the following steps:
-
-    *   Let `seen` be `false`
-    *   For each `character` of the given characters:
-
-        *   ↪ **c:HT**
-
-            Append `character` to the prefix, let `seen` be `true`
-        *   ↪ **c:SP**
-
-            Append `character` to the prefix
-        *   ↪ **[c:VS]**
-
-            *   If `seen` is `true`, do nothing
-            *   Otherwise, append a c:SP character to the prefix
-*   ↪ **Anything else**
-
-    Do nothing
-
-### Emit
-
-To emit a token is to add it to the [current group][].
-It is possible to emit a token directly, but it is more common to emit the
-tokens the [queue][].
-The queue is cleared after emitting.
-Emitting tokens may have side effects, based on their types:
-
-*   ↪ **t:end-of-file**
-
-    Close all groups in the [stack of open groups][], by repeatedly closing the
-    [current group][]) while there is one
-*   ↪ **Anything else**
-
-    Do nothing
-
-### Open
-
-To open a group is to add it to the [current group][] and the [stack of open
-groups][].
-Opening groups may have side effects, based on their type:
-
-*   ↪ **g:blank-line**
-
-    If the [current group][] is a g:content, or an g:html of kind `6` or `7`,
-    close it.
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **g:atx-heading**\
-    ↪ **g:fenced-code**\
-    ↪ **g:html**\
-    ↪ **g:thematic-break**
-
-    If the [current group][] is a g:content or an g:indented-code, close it.
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **Anything else**
-
-    Do nothing
-
-### Close
-
-To close a group is to continue on in its parent group and to pop it off the
-[stack of open groups][].
-Closing groups may have side effects, based on their type:
-
-*   ↪ **g:content**
-
-    [Process as Content][] without a hint
-*   ↪ **Anything else**
-
-    Do nothing
+To emit a label is to mark a point between two tokens with a semantic name.
 
 ## Tokenization
 
 Implementations must act as if they use several state machines to tokenize
 common markup.
-For the main structure of a document, the [block state machine][] is used.
+For the main structure of a document, the [flow state machine][] is used.
 When content is closed, the [content state machine][] is used.
 In certain constructs, the [text state machine][] is used.
 
-Most states consume the [input character][], which may have various side
-effects, and either remain in the state to consume the next character, switch to
-a new state to consume the next character, or switch to a new state to reconsume
-the input character.
+Most states [consume][] the [input character][], and either remain in the state
+to consume the next character, [reconsume][] the input character in a different
+state, or [switch][] to a different state to consume the next character.
 
-The exact behavior of certain states depends on state, such as the [stack of
-open groups][] and the [queue][].
+The exact behavior of certain states depends on [shared space][] and the
+[queue][].
 
-Certain states also use a shared space to track information between states.
-A variable is declared in the shared state with `let`, changed with `set`, and
-cleared with `unset`.
+## Flow state machine
 
-## Block state machine
-
-The [block state machine](#) is used to tokenize the main structure of a
+The [flow state machine](#) is used to tokenize the main structure of a
 document and must start in the s:initial.
 
 ### Initial state
@@ -396,7 +378,7 @@ If the [stack of continuation][] matches all open groups:
 
 *   And if the [current group][] is an g:html, enqueue a t:content with the
     unused characters of the previous t:whitespace if there is one, and
-    reconsume in the s:html-block-continuation-line
+    reconsume in the s:html-flow-continuation-line
 *   And otherwise, if the [current group][] is a g:fenced-code, and either the
     [current token][] is not a t:whitespace, or it is a t:whitespace and its
     unused size is less than four (4), and the [input character][] is the
@@ -435,7 +417,7 @@ Otherwise, perform the following steps based on the [input character][]:
 *   ↪ **c:<**
 
     Enqueue a t:content with the unused characters of the previous t:whitespace
-    if there is one, consume, and switch to the s:html-block-open
+    if there is one, consume, and switch to the s:html-flow-open
 *   ↪ **c:=**
 
     If the [current group][] is a g:content, enqueue a t:sequence, consume, and
@@ -604,67 +586,67 @@ Otherwise, perform the following steps based on the [input character][]:
 
     [Process as an Asterisk line opening][].
 
-### HTML block open state
+### HTML flow open state
 
 *   ↪ **c:!**
 
-    Consume and switch to the s:html-block-open-markup-declaration
+    Consume and switch to the s:html-flow-open-markup-declaration
 *   ↪ **c:/**
 
     > ❗️ Todo: Define shared space: `endTag`
 
     Let `endTag` be `true`, consume, and switch to the
-    s:html-block-open-close-tag-start
+    s:html-flow-open-close-tag-start
 *   ↪ **c:?**
 
     > ❗️ Todo: Define shared space: `kind`
 
     Let `kind` be `3`, open an g:html, consume, and switch to the
-    s:html-block-continuation-declaration-before
+    s:html-flow-continuation-declaration-before
 *   ↪ **[ASCII alpha][]**
 
     > ❗️ Todo: Define shared space: `tagName`
 
     Append the [ASCII-lowercase][]d character to `tagName`, consume, and switch
-    to the s:html-block-open-tag-name-inside
+    to the s:html-flow-open-tag-name-inside
 *   ↪ **Anything else**
 
-    This is not an HTML block.
+    This is not HTML.
     Reconsume in the s:content-continuation
 
-### HTML block open markup declaration state
+### HTML flow open markup declaration state
 
 *   ↪ **c:-**
 
-    Consume and switch to the s:html-block-open-comment-inside
+    Consume and switch to the s:html-flow-open-comment-inside
 *   ↪ **[ASCII upper alpha][]**
 
     > ❗️ Todo: Define shared space: `kind`
 
     Let `kind` be `4`, open an g:html, consume, and switch to the
-    s:html-block-continuation-line
+    s:html-flow-continuation-line
 *   ↪ **c:[**
 
-    Consume and switch to the s:html-block-open-character-data-inside
+    Consume and switch to the s:html-flow-open-character-data-inside
 *   ↪ **Anything else**
 
-    This is not an HTML block.
+    This is not HTML.
     Reconsume in the s:content-continuation
 
-### HTML block open comment inside state
+### HTML flow open comment inside state
 
 *   ↪ **c:-**
 
     > ❗️ Todo: Define shared space: `kind`
 
     Let `kind` be `2`, open an g:html, consume, and switch to the
-    s:html-block-continuation-declaration-before
+    s:html-flow-continuation-declaration-before
 *   ↪ **Anything else**
 
-    This is not an HTML block.
+    This is not HTML.
     Reconsume in the s:content-continuation
 
-### HTML block open character data inside state
+### HTML flow open character data inside state
 
 If the next few characters are:
 
@@ -674,24 +656,24 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `kind`
 
     Let `kind` be `5`, open an g:html, consume, and switch to the
-    s:html-block-continuation-line
+    s:html-flow-continuation-line
 *   ↪ **Anything else**
 
-    This is not an HTML block.
+    This is not HTML.
     Reconsume in the s:content-continuation
 
-### HTML block open close tag start state
+### HTML flow open close tag start state
 
 *   ↪ **[ASCII alpha][]**
 
     Append the [ASCII-lowercase][]d character to `tagName`, consume, and switch
-    to the s:html-block-open-tag-name-inside
+    to the s:html-flow-open-tag-name-inside
 *   ↪ **Anything else**
 
-    This is not an HTML block.
+    This is not HTML.
     Reconsume in the s:content-continuation
 
-### HTML block open tag name inside state
+### HTML flow open tag name inside state
 
 *   ↪ **[c:EOF][]**\
     ↪ **c:LF**\
@@ -700,10 +682,10 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `tagName`, `endTag`, `kind`
 
     If `tagName` is a [raw tag][] and `endTag` is not `true`, let `kind` be `1`,
-    open an g:html, and reconsume in the s:html-block-continuation-line.
+    open an g:html, and reconsume in the s:html-flow-continuation-line.
 
     Otherwise, if `tagName` is a [basic tag][], let `kind` be `6`, open an
-    g:html, and reconsume in the s:html-block-continuation-line.
+    g:html, and reconsume in the s:html-flow-continuation-line.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:-**\
@@ -719,11 +701,11 @@ If the next few characters are:
 
     If `tagName` is a [raw tag][] and `endTag` is not `true`, let `kind` be `1`,
     open an g:html, consume, and switch to the
-    s:html-block-continuation-line.
+    s:html-flow-continuation-line.
 
     Otherwise, if `tagName` is not a [raw tag][], and the [current group][] is
     not a g:content, consume, and switch to the
-    s:html-block-open-complete-attribute-before.
+    s:html-flow-open-complete-attribute-before.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:/**
@@ -731,11 +713,11 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `tagName`, `endTag`
 
     If `tagName` is a [basic tag][], consume, and switch to the
-    s:html-block-open-basic-self-closing.
+    s:html-flow-open-basic-self-closing.
 
     Otherwise, if `tagName` is not a [basic tag][], `endTag` is not `true`, and
     the [current group][] is not a g:content, consume, and switch to the
-    s:html-block-open-complete-self-closing.
+    s:html-flow-open-complete-self-closing.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
@@ -744,35 +726,35 @@ If the next few characters are:
 
     If `tagName` is a [raw tag][] and `endTag` is not `true`, let `kind` be `1`,
     open an g:html, consume, and switch to the
-    s:html-block-continuation-line.
+    s:html-flow-continuation-line.
 
     Otherwise, if `tagName` is a [basic tag][], let `kind` be `6`, open an
-    g:html, and reconsume in the s:html-block-continuation-line.
+    g:html, and reconsume in the s:html-flow-continuation-line.
 
     Otherwise, if `tagName` is not a [raw tag][], and the [current group][] is
     not a g:content, consume, and switch to the
-    s:html-block-open-complete-tag-after.
+    s:html-flow-open-complete-tag-after.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    This is not an HTML block.
+    This is not HTML.
     Reconsume in the s:content-continuation
 
-### HTML block open basic self closing state
+### HTML flow open basic self closing state
 
 *   ↪ **c:>**
 
     > ❗️ Todo: Define shared space: `kind`
 
     Let `kind` be `6`, open an g:html, consume, and switch to the
-    s:html-block-continuation-line
+    s:html-flow-continuation-line
 *   ↪ **Anything else**
 
-    This is not an HTML block.
+    This is not HTML.
     Reconsume in the s:content-continuation
 
-### HTML block open complete attribute before state
+### HTML flow open complete attribute before state
 
 *   ↪ **c:HT**\
     ↪ **c:SP**\
@@ -784,7 +766,7 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `endTag`
 
     If `endTag` is not `true`, consume, and switch to the
-    s:html-block-open-complete-self-closing.
+    s:html-flow-open-complete-self-closing.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c::**\
@@ -794,7 +776,7 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `endTag`
 
     If `endTag` is not `true`, consume, and switch to the
-    s:html-block-open-complete-attribute-name.
+    s:html-flow-open-complete-attribute-name.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
@@ -802,13 +784,13 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `kind`
 
     Let `kind` be `7`, open an g:html, consume, and switch to the
-    s:html-block-continuation-line
+    s:html-flow-continuation-line
 *   ↪ **Anything else**
 
-    This is not an HTML block.
+    This is not HTML.
     Reconsume in the s:content-continuation
 
-### HTML block open complete attribute name state
+### HTML flow open complete attribute name state
 
 *   ↪ **c:-**\
     ↪ **c:.**\
@@ -819,9 +801,9 @@ If the next few characters are:
     Consume
 *   ↪ **Anything else**
 
-    Reconsume in the s:html-block-open-complete-attribute-name-after
+    Reconsume in the s:html-flow-open-complete-attribute-name-after
 
-### HTML block open complete attribute name after state
+### HTML flow open complete attribute name after state
 
 *   ↪ **c:HT**\
     ↪ **c:SP**\
@@ -833,21 +815,21 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `endTag`
 
     If `endTag` is not `true`, consume, and switch to the
-    s:html-block-open-complete-self-closing.
+    s:html-flow-open-complete-self-closing.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:=**
 
-    Consume and switch to the s:html-block-open-complete-attribute-value-before
+    Consume and switch to the s:html-flow-open-complete-attribute-value-before
 *   ↪ **c:>**
 
-    Consume and switch to the s:html-block-open-complete-tag-after
+    Consume and switch to the s:html-flow-open-complete-tag-after
 *   ↪ **Anything else**
 
-    This is not an HTML block.
+    This is not HTML.
     Reconsume in the s:content-continuation
 
-### HTML block open complete attribute value before state
+### HTML flow open complete attribute value before state
 
 *   ↪ **[c:EOF][]**\
     ↪ **c:LF**\
@@ -857,7 +839,7 @@ If the next few characters are:
     ↪ **c:>**\
     ↪ **c:`**
 
-    This is not an HTML block.
+    This is not an HTML flow.
     Reconsume in the s:content-continuation
 *   ↪ **c:HT**\
     ↪ **c:SP**\
@@ -867,47 +849,47 @@ If the next few characters are:
 *   ↪ **c:"**
 
     Consume and switch to the
-    s:html-block-open-complete-double-quoted-attribute-value
+    s:html-flow-open-complete-double-quoted-attribute-value
 *   ↪ **c:'**
 
     Consume and switch to the
-    s:html-block-open-complete-single-quoted-attribute-value
+    s:html-flow-open-complete-single-quoted-attribute-value
 *   ↪ **Anything else**
 
     Consume and switch to the
-    s:html-block-open-complete-unquoted-attribute-value
+    s:html-flow-open-complete-unquoted-attribute-value
 
-### HTML block open complete double quoted attribute value state
+### HTML flow open complete double quoted attribute value state
 
 *   ↪ **[c:EOF][]**\
     ↪ **c:LF**\
     ↪ **c:CR**
 
-    This is not an HTML block.
+    This is not HTML.
     Reconsume in the s:content-continuation
 *   ↪ **c:"**
 
-    Consume and switch to the s:html-block-open-complete-attribute-before
+    Consume and switch to the s:html-flow-open-complete-attribute-before
 *   ↪ **Anything else**
 
     Consume
 
-### HTML block open complete single quoted attribute value state
+### HTML flow open complete single quoted attribute value state
 
 *   ↪ **[c:EOF][]**\
     ↪ **c:LF**\
     ↪ **c:CR**
 
-    This is not an HTML block.
+    This is not HTML.
     Reconsume in the s:content-continuation
 *   ↪ **c:'**
 
-    Consume and switch to the s:html-block-open-complete-attribute-before
+    Consume and switch to the s:html-flow-open-complete-attribute-before
 *   ↪ **Anything else**
 
     Consume
 
-### HTML block open complete unquoted attribute value state
+### HTML flow open complete unquoted attribute value state
 
 *   ↪ **[c:EOF][]**\
     ↪ **c:HT**\
@@ -921,22 +903,22 @@ If the next few characters are:
     ↪ **c:>**\
     ↪ **c:`**
 
-    Reconsume in the s:html-block-open-complete-attribute-name-after
+    Reconsume in the s:html-flow-open-complete-attribute-name-after
 *   ↪ **Anything else**
 
     Consume
 
-### HTML block open complete self closing state
+### HTML flow open complete self closing state
 
 *   ↪ **c:>**
 
-    Consume and switch to the s:html-block-open-complete-tag-after
+    Consume and switch to the s:html-flow-open-complete-tag-after
 *   ↪ **Anything else**
 
-    This is not an HTML block.
+    This is not HTML.
     Reconsume in the s:content-continuation
 
-### HTML block open complete tag after state
+### HTML flow open complete tag after state
 
 *   ↪ **[c:EOF][]**\
     ↪ **c:HT**\
@@ -949,10 +931,10 @@ If the next few characters are:
     Let `kind` be `7`, open an g:html, and reconsume in the
 *   ↪ **Anything else**
 
-    This is not an HTML block.
+    This is not HTML.
     Reconsume in the s:content-continuation
 
-### HTML block continuation line state
+### HTML flow continuation line state
 
 *   ↪ **[c:EOF][]**\
     ↪ **c:LF**\
@@ -964,7 +946,7 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `kind`
 
     If `kind` is `7`, consume, and switch to the
-    s:html-block-continuation-comment-inside.
+    s:html-flow-continuation-comment-inside.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:<**
@@ -972,7 +954,7 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `kind`
 
     If `kind` is `1`, consume, and switch to the
-    s:html-block-continuation-tag-close.
+    s:html-flow-continuation-tag-close.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
@@ -980,7 +962,7 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `kind`
 
     If `kind` is `4`, consume, and switch to the
-    s:html-block-close-line.
+    s:html-flow-close-line.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:?**
@@ -988,7 +970,7 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `kind`
 
     If `kind` is `3`, consume, and switch to the
-    s:html-block-continuation-declaration-before.
+    s:html-flow-continuation-declaration-before.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:]**
@@ -996,23 +978,23 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `kind`
 
     If `kind` is `5`, consume, and switch to the
-    s:html-block-continuation-character-data-inside.
+    s:html-flow-continuation-character-data-inside.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
     Consume
 
-### HTML block continuation tag close state
+### HTML flow continuation tag close state
 
 *   ↪ **c:/**
 
-    Consume and switch to the s:html-block-continuation-tag-close-name-inside
+    Consume and switch to the s:html-flow-continuation-tag-close-name-inside
 *   ↪ **Anything else**
 
-    Reconsume in the s:html-block-continuation-line
+    Reconsume in the s:html-flow-continuation-line
 
-### HTML block continuation tag close name inside state
+### HTML flow continuation tag close name inside state
 
 *   ↪ **[ASCII alpha][]**
 
@@ -1024,41 +1006,41 @@ If the next few characters are:
     > ❗️ Todo: Define shared space: `tagName`
 
     If `tagName` is a [raw tag][], consume, and switch to the
-    s:html-block-close-line.
+    s:html-flow-close-line.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the s:html-block-continuation-line
+    Reconsume in the s:html-flow-continuation-line
 
-### HTML block continuation comment inside state
+### HTML flow continuation comment inside state
 
 *   ↪ **c:-**
 
-    Consume and switch to the s:html-block-continuation-declaration-before
+    Consume and switch to the s:html-flow-continuation-declaration-before
 *   ↪ **Anything else**
 
-    Reconsume in the s:html-block-continuation-line
+    Reconsume in the s:html-flow-continuation-line
 
-### HTML block continuation character data inside state
+### HTML flow continuation character data inside state
 
 *   ↪ **c:]**
 
-    Consume and switch to the s:html-block-continuation-declaration-before
+    Consume and switch to the s:html-flow-continuation-declaration-before
 *   ↪ **Anything else**
 
-    Reconsume in the s:html-block-continuation-line
+    Reconsume in the s:html-flow-continuation-line
 
-### HTML block continuation declaration before state
+### HTML flow continuation declaration before state
 
 *   ↪ **c:>**
 
-    Consume and switch to the s:html-block-close-line
+    Consume and switch to the s:html-flow-close-line
 *   ↪ **Anything else**
 
-    Reconsume in the s:html-block-continuation-line
+    Reconsume in the s:html-flow-continuation-line
 
-### HTML block close line state
+### HTML flow close line state
 
 *   ↪ **[c:EOF][]**\
     ↪ **c:LF**\

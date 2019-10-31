@@ -4,9 +4,8 @@ module.exports = expandCharacters
 
 var {characters, names} = init()
 
-// .
-// characters[0xfffd] = '�'
-// names['�'] = 'Replacement character'
+characters[0xfffd] = '�'
+names['�'] = 'Replacement character'
 
 var conceptual = {
   VS: 'Virtual space',
