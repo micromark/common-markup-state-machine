@@ -6,19 +6,19 @@ Together, the parsing rules described below define what is referred to as a
 Common Markup parser.
 
 > This document is currently in progress.
->
 > It is developed jointly with a reference parser:
 > [`micromark`](https://github.com/micromark/micromark).
->
 > Contributions are welcome.
 >
-> Some parts are still in progress:
+> Some parts that are still in progress:
 >
-> *   [Stack of continuation](#) (`>` and `␠␠` for blockquote and list items)
-> *   Extensions
-> *   Check whether emphasis, strong, resource, or reference sequences make up
->     syntax or text
-> *   Lots of infra algorithms
+> *   Adapters
+> *   Constructs and extensions
+> *   Rewrite flow state machine for updates
+> *   Adapter for rich text to check whether emphasis, strong, resource, or
+>     reference sequences make up syntax or text
+> *   Tokenizing the input stream in reverse (GFM allows `asd@asd.com`, so it
+>     seems we need to somehow allow to match the `@` and parse backwards)
 
 ## Table of contents
 
@@ -34,10 +34,10 @@ When new implementations followed, they mostly followed the first definition,
 but deviated from the first implementation, thus making *Markdown* a family of
 formats.
 
-Some years later, an attempt was made to standardize the differences between the
-Markdown implementations, by specifying how several edge cases should be
-handled, through more input and output examples.
-This attempt is known as CommonMark, and many implementations follow it.
+Some years later, an attempt was made to standardize the differences between
+implementations, by specifying how several edge cases should be handled, through
+more input and output examples.
+This attempt is known as CommonMark, and many implementations now follow it.
 
 This document defines a more formal format, based on CommonMark, by documenting
 how to parse it, instead of documenting input and output examples.
@@ -94,14 +94,12 @@ hexadecimal number, prefixed with `U+` (**\[UNICODE]**).
 
 An [ASCII digit](#) is a character in the inclusive range c:0 to c:9.
 
-An [ASCII upper hex digit](#) is an [ASCII digit][] or a character in the
-inclusive range c:A to c:F.
+An [ASCII upper hex digit](#) a character in the inclusive range c:A to c:F.
 
-An [ASCII lower hex digit](#) is an [ASCII digit][] or a character in the
-inclusive range c:a to c:f.
+An [ASCII lower hex digit](#) a character in the inclusive range c:a to c:f.
 
-An [ASCII hex digit](#) is an [ASCII upper hex digit][] or an [ASCII lower hex
-digit][]
+An [ASCII hex digit](#) is an [ASCII digit][], [ASCII upper hex digit][], or an
+[ASCII lower hex digit][]
 
 An [ASCII upper alpha](#) is a character in the inclusive range c:A to c:Z.
 
@@ -117,9 +115,6 @@ to c:@, c:[ to c:`, or c:{ to c:~.
 An [ASCII control](#) is a character in the inclusive range c:NUL to c:US, or
 c:DEL.
 
-To [ASCII-lowercase](#) a character, is to increase it by 0x20 if it is in the
-inclusive range c:A to c:Z.
-
 A [Unicode whitespace](#) is a character in the Unicode `Zs` (Separator, Space)
 category, or c:HT, c:LF, c:FF, or c:CR (**\[UNICODE]**).
 
@@ -132,6 +127,13 @@ punctuation][] (**\[UNICODE]**).
 An [atext](#) is an [ASCII alphanumeric][], or a character in the inclusive
 ranges c:# to c:', c:*, c:+, c:-, c:/, c:=, c:?, c:^ to c:`, or c:{ to c:~
 (**\[RFC5322]**).
+
+To [ASCII-lowercase](#) a character, is to increase it by `0x20`, if it an
+[ASCII upper alpha][].
+
+To [digitize](#) a character, is to decrease it by `0x30`, `0x37`, or `0x57`,
+if it is an [ASCII digit][], [ASCII upper hex digit][], or
+[ASCII lower hex digit][], respectively.
 
 ### Conceptual characters
 
@@ -196,7 +198,7 @@ described in the following algorithm:
 *   Let `offset` be `0`
 *   *Check*:
 
-    If `offset` is equal to the length of the document, push a c:EOF into the
+    If `offset` is equal to the length of the document, push an c:EOF into the
     [input stream][] representing the lack of any further characters, and return
 
     Otherwise, if the current character is:
@@ -242,9 +244,11 @@ described in the following algorithm:
 
 ## Parsing
 
-Items in the [queue][] (as in, tokens and labels) are created by state machines.
-They are used by a tree adapter, in case a valid construct is found.
-After using the queue, or when in a bogus construct is found, it is discarded.
+The states of state machines have certain [effects][], such as that they create
+items in the [queue][] (tokens and labels).
+The queue is used by tree adapters, in case a valid construct is found.
+After using the queue, or when in a bogus construct is found, the queue is
+discarded.
 
 The [shared space][] is accessed and mutated by both the tree adapter and the
 states of the state machine.
@@ -253,22 +257,34 @@ states of the state machine.
 Upon registration, they define the states used to parse a construct, and the
 adapter used to handle the construct.
 
+### Tokenization
+
+Implementations must act as if they use several state machines to tokenize
+common markup.
+The [flow state machine][] is used to tokenize the main structure of the
+document.
+The [content state machine][] is used to tokenize a block of text.
+The [text state machine][] is used to tokenize runs of rich or plain text.
+
+Most states [consume][] the [input character][], and either remain in the state
+to consume the next character, [reconsume][] the input character in a different
+state, or [switch][] to a different state to consume the next character.
+States [enqueue][] tokens and labels.
+
 ### State
 
 The [shared space](#) is a map of key/value pairs.
 
-The [queue](#) is a list of tokens that are enqueued and labels that are emitted.
-
+The [queue](#) is a list of tokens and labels that are enqueued.
 The [current token](#) is the last token in the [queue][].
 
 ### Constructs
 
 Markup is parsed per [construct](#).
-Some constructs are considered standard (those from CommonMark, such as ATX
-headings).
-Other constructs are extensions (such as YAML frontmatter or MDX).
+Some constructs are considered regular (those from CommonMark, such as ATX
+headings) and other constructs are extensions (such as YAML frontmatter or MDX).
 
-> ❗️ Define constructs better.
+> ❗️ Define constructs.
 
 ### Effects
 
@@ -289,27 +305,11 @@ To [reconsume](#) is to [switch][] to the given state, and [consume][] the
 
 #### Enqueue
 
+To enqueue a label is to mark a point between two tokens with a semantic name,
+at which point there is no [current token][].
+
 To enqueue a token is to add a new token of the given type to the [queue][],
 making it the new [current token][].
-
-#### Emit
-
-To emit a label is to mark a point between two tokens with a semantic name.
-
-## Tokenization
-
-Implementations must act as if they use several state machines to tokenize
-common markup.
-For the main structure of a document, the [flow state machine][] is used.
-When content is closed, the [content state machine][] is used.
-In certain constructs, the [text state machine][] is used.
-
-Most states [consume][] the [input character][], and either remain in the state
-to consume the next character, [reconsume][] the input character in a different
-state, or [switch][] to a different state to consume the next character.
-
-The exact behavior of certain states depends on [shared space][] and the
-[queue][].
 
 ## Flow state machine
 
@@ -1341,7 +1341,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **c:[**
 
-    Enqueue a t:marker, consume, emit a l:content-definition-label-open, and
+    Enqueue a t:marker, consume, enqueue a l:content-definition-label-open, and
     switch to the s:definition-label-open-after
 *   ↪ **Anything else**
 
@@ -1352,7 +1352,7 @@ document and must start in the s:initial-content.
 *   ↪ **[c:EOF][]**\
     ↪ **c:]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1372,7 +1372,7 @@ document and must start in the s:initial-content.
     ↪ **[c:EOL][]**\
     ↪ **c:]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1385,7 +1385,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -1400,7 +1400,7 @@ document and must start in the s:initial-content.
     Consume and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Emit a l:content-definition-label-close, enqueue a t:marker, consume, and
+    Enqueue a l:content-definition-label-close, enqueue a t:marker, consume, and
     switch to the s:definition-label-close-after
 *   ↪ **Anything else**
 
@@ -1412,7 +1412,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1423,7 +1423,7 @@ document and must start in the s:initial-content.
     Consume and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Emit a l:content-definition-label-close, enqueue a t:marker, consume, and
+    Enqueue a l:content-definition-label-close, enqueue a t:marker, consume, and
     switch to the s:definition-label-close-after
 *   ↪ **Anything else**
 
@@ -1433,7 +1433,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
@@ -1447,7 +1447,7 @@ document and must start in the s:initial-content.
     Enqueue a t:content, consume, and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Emit a l:content-definition-label-close, enqueue a t:marker, consume, and
+    Enqueue a l:content-definition-label-close, enqueue a t:marker, consume, and
     switch to the s:definition-label-close-after
 *   ↪ **Anything else**
 
@@ -1470,13 +1470,13 @@ document and must start in the s:initial-content.
     Enqueue a t:marker, consume, and switch to the s:definition-label-after
 *   ↪ **Anything else**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 
 ### Definition label after state
 
 *   ↪ **[c:EOF][]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1487,16 +1487,16 @@ document and must start in the s:initial-content.
     s:definition-destination-before
 *   ↪ **c:<**
 
-    Emit a l:content-definition-destination-quoted-open, enqueue a t:marker,
+    Enqueue a l:content-definition-destination-quoted-open, enqueue a t:marker,
     consume, and switch to the s:definition-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, emit a l:content-definition-destination-unquoted-open,
-    enqueue a t:content and reconsume in the
-    s:definition-destination-unquoted-inside
+    Let `balance` be `0`, enqueue a
+    l:content-definition-destination-unquoted-open, enqueue a t:content, and
+    reconsume in the s:definition-destination-unquoted-inside
 
 ### Definition destination before state
 
@@ -1505,23 +1505,23 @@ document and must start in the s:initial-content.
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
 *   ↪ **c:<**
 
-    Emit a l:content-definition-destination-quoted-open, enqueue a t:marker,
+    Enqueue a l:content-definition-destination-quoted-open, enqueue a t:marker,
     consume, and switch to the s:definition-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, emit a l:content-definition-destination-unquoted-open,
-    enqueue a t:content, and reconsume in the
-    s:definition-destination-unquoted-inside
+    Let `balance` be `0`, enqueue a
+    l:content-definition-destination-unquoted-open, enqueue a t:content, and
+    reconsume in the s:definition-destination-unquoted-inside
 
 ### Definition destination quoted open after state
 
@@ -1529,10 +1529,10 @@ document and must start in the s:initial-content.
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **c:>**
 
-    Enqueue a t:marker, consume, emit a
+    Enqueue a t:marker, consume, enqueue a
     l:content-definition-destination-quoted-close, and switch to the
     s:definition-destination-quoted-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -1550,10 +1550,10 @@ document and must start in the s:initial-content.
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **c:>**
 
-    Enqueue a t:marker, consume, emit a
+    Enqueue a t:marker, consume, enqueue a
     l:content-definition-destination-quoted-close, and switch to the
     s:definition-destination-quoted-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -1578,10 +1578,11 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Emit a l:content-definition
+    Enqueue a l:content-definition
 *   ↪ **[c:EOL][]**
 
-    Emit a l:content-definition-partial, enqueue an t:end-of-line, and consume
+    Enqueue a l:content-definition-partial, enqueue an t:end-of-line, and
+    consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -1589,22 +1590,23 @@ document and must start in the s:initial-content.
     s:definition-destination-after
 *   ↪ **Anything else**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 
 ### Definition destination unquoted inside state
 
 *   ↪ **[c:EOF][]**
 
-    Unset `balance`, emit a l:content-definition-destination-unquoted-close, and
-    emit a l:content-definition
+    Unset `balance`, enqueue a l:content-definition-destination-unquoted-close,
+    and emit a l:content-definition
 *   ↪ **[c:EOL][]**
 
-    Unset `balance`, emit a l:content-definition-destination-unquoted-close,
-    emit a l:content-definition-partial, enqueue an t:end-of-line, and consume
+    Unset `balance`, enqueue a l:content-definition-destination-unquoted-close,
+    enqueue a l:content-definition-partial, enqueue an t:end-of-line, and
+    consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
-    Unset `balance`, emit a l:content-definition-destination-unquoted-close,
+    Unset `balance`, enqueue a l:content-definition-destination-unquoted-close,
     enqueue a t:whitespace, consume, and switch to the
     s:definition-destination-after
 *   ↪ **c:(**
@@ -1612,7 +1614,7 @@ document and must start in the s:initial-content.
     Increment `balance` by `1` and consume
 *   ↪ **c:)**
 
-    If `balance` is `0`, unset `balance` and emit a l:content-phrasing
+    If `balance` is `0`, unset `balance` and enqueue a l:content-phrasing
 
     Otherwise, decrement `balance` by `1`, and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -1620,7 +1622,7 @@ document and must start in the s:initial-content.
     Consume and switch to the s:definition-destination-unquoted-escape
 *   ↪ **[ASCII control][]**
 
-    Unset `balance` and emit a l:content-phrasing
+    Unset `balance` and enqueue a l:content-phrasing
 *   ↪ **Anything else**
 
     Consume
@@ -1640,41 +1642,42 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Emit a l:content-definition
+    Enqueue a l:content-definition
 *   ↪ **[c:EOL][]**
 
-    Emit a l:content-definition-partial, enqueue an t:end-of-line, and consume
+    Enqueue a l:content-definition-partial, enqueue an t:end-of-line, and
+    consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
 *   ↪ **c:"**
 
-    Emit a l:content-definition-title-open, enqueue a t:marker, consume, and
+    Enqueue a l:content-definition-title-open, enqueue a t:marker, consume, and
     switch to the s:definition-title-double-quoted-open-after
 *   ↪ **c:'**
 
-    Emit a l:content-definition-title-open, enqueue a t:marker, consume, and
+    Enqueue a l:content-definition-title-open, enqueue a t:marker, consume, and
     switch to the s:definition-title-single-quoted-open-after
 *   ↪ **c:(**
 
-    Emit a l:content-definition-title-open, enqueue a t:marker, consume, and
+    Enqueue a l:content-definition-title-open, enqueue a t:marker, consume, and
     switch to the s:definition-title-paren-quoted-open-after
 *   ↪ **Anything else**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 
 ### Definition title double quoted open after state
 
 *   ↪ **[c:EOF][]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
 *   ↪ **c:"**
 
-    Enqueue a t:marker, consume, emit a l:content-definition-title-close, and
+    Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
     switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1689,14 +1692,14 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
     s:definition-title-double-quoted-open-after
 *   ↪ **c:"**
 
-    Enqueue a t:marker, consume, emit a l:content-definition-title-close, and
+    Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
     switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1719,13 +1722,13 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
 *   ↪ **c:'**
 
-    Enqueue a t:marker, consume, emit a l:content-definition-title-close, and
+    Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
     switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1740,14 +1743,14 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
     s:definition-title-single-quoted-open-after
 *   ↪ **c:'**
 
-    Enqueue a t:marker, consume, emit a l:content-definition-title-close, and
+    Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
     switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1770,13 +1773,13 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, emit a l:content-definition-title-close, and
+    Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
     switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1791,14 +1794,14 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the
     s:definition-title-paren-quoted-open-after
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, emit a l:content-definition-title-close, and
+    Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
     switch to the s:definition-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1821,35 +1824,35 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Emit a l:content-definition
+    Enqueue a l:content-definition
 *   ↪ **[c:EOL][]**
 
-    Emit a l:content-definition, enqueue an t:end-of-line, consume, and switch
-    to the s:initial-content
+    Enqueue a l:content-definition, enqueue an t:end-of-line, consume, and
+    switch to the s:initial-content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Enqueue a t:whitespace, consume, and switch to the s:definition-after
 *   ↪ **Anything else**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 
 ### Definition after state
 
 *   ↪ **[c:EOF][]**
 
-    Emit a l:content-definition
+    Enqueue a l:content-definition
 *   ↪ **[c:EOL][]**
 
-    Emit a l:content-definition, enqueue an t:end-of-line, consume, and switch
-    to the s:initial-content
+    Enqueue a l:content-definition, enqueue an t:end-of-line, consume, and
+    switch to the s:initial-content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
 *   ↪ **Anything else**
 
-    Emit a l:content-phrasing
+    Enqueue a l:content-phrasing
 
 ### Phrasing content state
 
@@ -1903,15 +1906,15 @@ Otherwise:
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue an t:end-of-file and emit
+    Enqueue an t:end-of-file
 *   ↪ **[c:EOL][]**
 
     If the break represented by the character starts with a t:whitespace that
-    consists of two or more c:SP, emit l:text-hard-break, enqueue an
+    consists of two or more c:SP, enqueue a l:text-hard-break, enqueue an
     t:end-of-line, consume, and switch to the s:after-whitespace
 
-    Otherwise, emit l:text-soft-break, enqueue an t:end-of-line, consume, and
-    switch to the s:after-whitespace
+    Otherwise, enqueue a l:text-soft-break, enqueue an t:end-of-line, consume,
+    and switch to the s:after-whitespace
 *   ↪ **c:!**
 
     Enqueue a t:marker, consume, and switch to the
@@ -1929,7 +1932,7 @@ Otherwise:
     s:html-or-autolink-less-than-after
 *   ↪ **c:[**
 
-    Enqueue a t:marker, consume, emit l:text-link-open
+    Enqueue a t:marker, consume, enqueue a l:text-link-open
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a t:marker, consume, and switch to the s:escape-backslash-after
@@ -1959,10 +1962,10 @@ Otherwise:
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue an t:end-of-file and emit
+    Enqueue an t:end-of-file
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:&**
 
     Enqueue a t:marker, consume, and switch to the s:character-reference
@@ -1998,8 +2001,8 @@ Otherwise:
     `'whitespace'`, and that either `delimiterRunBefore` is not `'punctuation'`
     or that `delimiterRunAfter` is not `null`
 
-    Unset `delimiterRunBefore`, unset `delimiterRunAfter`, emit l:text-emphasis,
-    and reconsume in the s:after-punctuation
+    Unset `delimiterRunBefore`, unset `delimiterRunAfter`, enqueue a
+    l:text-emphasis, and reconsume in the s:after-punctuation
 
 ### Character reference state
 
@@ -2021,8 +2024,8 @@ Otherwise:
 *   ↪ **c:;**
 
     If `entityName` is a [character reference name][], unset `entityName`,
-    enqueue a t:marker, consume, emit l:text-character-reference, and switch
-    to the s:after-punctuation
+    enqueue a t:marker, consume, enqueue a l:text-character-reference, and
+    switch to the s:after-punctuation
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **[ASCII alphanumeric][]**
@@ -2066,23 +2069,20 @@ Otherwise:
 
 *   ↪ **c:;**
 
-    Unset `characterReferenceCode`, enqueue a t:marker, consume, emit
+    Unset `characterReferenceCode`, enqueue a t:marker, consume, enqueue a
     l:text-character-reference, and switch to the s:after-punctuation
 *   ↪ **[ASCII digit][]**
 
-    Multiply `characterReferenceCode` by `0x10`, add a numeric version of the
-    [content character][] (subtract `0x30` from the character) to
-    `characterReferenceCode`, and consume
+    Multiply `characterReferenceCode` by `0x10`, add the [digitize][]d
+    [input character][] to `characterReferenceCode`, and consume
 *   ↪ **[ASCII upper hex digit][]**
 
-    Multiply `characterReferenceCode` by `0x10`, add a numeric version of the
-    [content character][] (subtract `0x37` from the character) to
-    `characterReferenceCode`, and consume
+    Multiply `characterReferenceCode` by `0x10`, add the [digitize][]d
+    [input character][] to `characterReferenceCode`, and consume
 *   ↪ **[ASCII lower hex digit][]**
 
-    Multiply `characterReferenceCode` by `0x10`, add a numeric version of the
-    [content character][] (subtract `0x57` from the character) to
-    `characterReferenceCode`, and consume
+    Multiply `characterReferenceCode` by `0x10`, add the [digitize][]d
+    [input character][] to `characterReferenceCode`, and consume
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat if extensions are supported
@@ -2093,13 +2093,12 @@ Otherwise:
 
 *   ↪ **c:;**
 
-    Unset `characterReferenceCode`, enqueue a t:marker, consume, emit
+    Unset `characterReferenceCode`, enqueue a t:marker, consume, enqueue a
     l:text-character-reference, and switch to the s:text
 *   ↪ **[ASCII digit][]**
 
-    Multiply `characterReferenceCode` by `10`, add a numeric version of the
-    [content character][] (subtract `0x30` from the character) to
-    `characterReferenceCode`, and consume
+    Multiply `characterReferenceCode` by `10`, add the [digitize][]d
+    [input character][] to `characterReferenceCode`, and consume
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat if extensions are supported
@@ -2113,8 +2112,8 @@ Otherwise:
     Unset `sizeOpen` and reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and switch to the
-    s:code-span-inside-start-after
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and switch
+    to the s:code-span-inside-start-after
 *   ↪ **c:`**
 
     Increment `sizeOpen` by `1` and consume
@@ -2148,8 +2147,8 @@ Otherwise:
     Unset `sizeOpen` and reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and switch to the
-    s:code-span-inside-start-after
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and switch
+    to the s:code-span-inside-start-after
 *   ↪ **c:`**
 
     Enqueue a t:sequence, let `sizeClose` be `1`, consume, and switch to the
@@ -2162,7 +2161,7 @@ Otherwise:
 
 *   ↪ **[c:EOF][]**
 
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, enqueue a
     l:text-code, and reconsume in the s:after-punctuation
 
     > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
@@ -2171,17 +2170,17 @@ Otherwise:
     s:text
 *   ↪ **[c:EOL][]**
 
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, enqueue a
     l:text-code, and reconsume in the s:after-punctuation
 
-    Otherwise, unset `sizeClose`, emit l:text-soft-break, enqueue an
+    Otherwise, unset `sizeClose`, enqueue a l:text-soft-break, enqueue an
     t:end-of-line, consume, and switch to the s:code-span-inside-start-after
 *   ↪ **c:`**
 
     Increment `sizeClose` by `1` and consume
 *   ↪ **Anything else**
 
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, enqueue a
     l:text-code, and reconsume in the s:after-punctuation
 
     Otherwise, unset `sizeClose`, consume, and switch to the s:code-span-inside
@@ -2211,21 +2210,22 @@ Otherwise:
     `'whitespace'`, and that either `delimiterRunBefore` is not `'punctuation'`
     or that `delimiterRunAfter` is not `null`
 
-    Unset `delimiterRunBefore`, unset `delimiterRunAfter`, emit l:text-emphasis,
-    and reconsume in the s:after-punctuation
+    Unset `delimiterRunBefore`, unset `delimiterRunAfter`, enqueue a
+    l:text-emphasis, and reconsume in the s:after-punctuation
 
 ### Escape backslash after state
 
 *   ↪ **[c:EOL][]**
 
     If text is parsed as rich text, and the break represented by the character
-    does not start with a t:whitespace, emit l:text-hard-break, enqueue an
+    does not start with a t:whitespace, enqueue a l:text-hard-break, enqueue an
     t:end-of-line, consume, and switch to the s:after-whitespace
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **[ASCII punctuation][]**
 
-    Enqueue a t:content, consume, emit l:text-escape, and switch to the s:text
+    Enqueue a t:content, consume, enqueue a l:text-escape, and switch to the
+    s:text
 *   ↪ **Anything else**
 
     Reconsume in the s:after-punctuation
@@ -2290,7 +2290,7 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
 *   ↪ **c:?**
 
     Consume
@@ -2351,8 +2351,8 @@ Otherwise:
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
 
-    Unset `sizeLabel`, consume, emit l:text-autolink-email, and switch to the
-    s:after-punctuation
+    Unset `sizeLabel`, consume, enqueue a l:text-autolink-email, and switch to
+    the s:after-punctuation
 *   ↪ **c:?**
 
     Unset `sizeLabel`, consume, and switch to the s:html-instruction-close
@@ -2404,8 +2404,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
-    t:content
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
+    a t:content
 *   ↪ **c:?**
 
     Consume and switch to the s:html-instruction-close
@@ -2423,11 +2423,11 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
     t:content, and switch to the s:html-instruction
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Consume
@@ -2531,7 +2531,7 @@ Otherwise:
 
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
 *   ↪ **c:@**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2588,8 +2588,8 @@ Otherwise:
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
 
-    Unset `sizeLabel`, consume, emit l:text-autolink-email, and switch to the
-    s:after-punctuation
+    Unset `sizeLabel`, consume, enqueue a l:text-autolink-email, and switch to
+    the s:after-punctuation
 *   ↪ **[ASCII alphanumeric][]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2633,7 +2633,7 @@ Otherwise:
 
 *   ↪ **c:>**
 
-    Unset `sizeLabel`, consume, emit l:text-html, and switch to the
+    Unset `sizeLabel`, consume, enqueue a l:text-html, and switch to the
     s:after-punctuation
 *   ↪ **[ASCII alphanumeric][]**
 
@@ -2657,8 +2657,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
-    t:content
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
+    a t:content
 *   ↪ **c:-**
 
     Consume and switch to the s:html-comment-close-inside
@@ -2675,7 +2675,7 @@ Otherwise:
     Reconsume in the s:after-punctuation
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
     t:content, and switch to the s:html-comment
 *   ↪ **c:-**
 
@@ -2693,7 +2693,7 @@ Otherwise:
 
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
@@ -2709,11 +2709,11 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
-    t:content
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
+    a t:content
 *   ↪ **`]]>` (two of c:], with a c:> after)**
 
-    Consume, emit l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Consume
@@ -2746,15 +2746,15 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
-    t:content
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
+    a t:content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Reconsume in the s:html-declaration-content
@@ -2769,11 +2769,11 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
-    t:content
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
+    a t:content
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Consume
@@ -2806,7 +2806,7 @@ Otherwise:
     Reconsume in the s:html-tag-close-between
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
 *   ↪ **c:@**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2833,7 +2833,7 @@ Otherwise:
 
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat if extensions are supported
@@ -2849,7 +2849,7 @@ Otherwise:
     s:autolink-scheme-inside-or-email-atext
 *   ↪ **c:>**
 
-    Unset `sizeScheme`, consume, emit l:text-html, and switch to the
+    Unset `sizeScheme`, consume, enqueue a l:text-html, and switch to the
     s:after-punctuation
 *   ↪ **[ASCII alphanumeric][]**\
     ↪ **c:-**
@@ -2869,7 +2869,7 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Unset `sizeScheme`, emit l:text-soft-break, enqueue an t:end-of-line,
+    Unset `sizeScheme`, enqueue a l:text-soft-break, enqueue an t:end-of-line,
     consume, enqueue a t:content, and switch to the
     s:html-tag-open-between-start-after
 *   ↪ **c:HT**\
@@ -2910,7 +2910,7 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
     t:content, and switch to the s:html-tag-open-between-start-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
@@ -2950,7 +2950,7 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
     t:content, and switch to the s:html-tag-open-between-start-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
@@ -2961,7 +2961,7 @@ Otherwise:
     Consume and switch to the s:html-tag-open-self-closing
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
 *   ↪ **[ASCII alpha][]**\
     ↪ **c::**\
     ↪ **c:_**
@@ -2990,8 +2990,8 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
-    t:content
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
+    a t:content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3004,7 +3004,7 @@ Otherwise:
     Consume and switch to the s:html-tag-open-attribute-value-before
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
@@ -3015,8 +3015,8 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
-    t:content
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
+    a t:content
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3048,8 +3048,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
-    t:content
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
+    a t:content
 *   ↪ **c:"**
 
     Consume and switch to the s:html-tag-open-between
@@ -3066,8 +3066,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue a
-    t:content
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
+    a t:content
 *   ↪ **c:'**
 
     Consume and switch to the s:html-tag-open-between
@@ -3089,7 +3089,7 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
     t:content, and switch to the s:html-tag-open-between
 *   ↪ **c:HT**\
     ↪ **c:SP**\
@@ -3097,7 +3097,7 @@ Otherwise:
     Consume and switch to the s:html-tag-open-between
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Consume
@@ -3106,7 +3106,7 @@ Otherwise:
 
 *   ↪ **c:>**
 
-    Consume, emit l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
@@ -3152,7 +3152,8 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **c:>**
 
-    Consume, emit l:text-autolink-uri, and switch to the s:after-punctuation
+    Consume, enqueue a l:text-autolink-uri, and switch to the
+    s:after-punctuation
 *   ↪ **Anything else**
 
     Consume
@@ -3189,8 +3190,8 @@ Otherwise:
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
 
-    Unset `sizeLabel`, consume, emit l:text-autolink-email, and switch to the
-    s:after-punctuation
+    Unset `sizeLabel`, consume, enqueue a l:text-autolink-email, and switch to
+    the s:after-punctuation
 *   ↪ **[ASCII alphanumeric][]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1` and consume
@@ -3239,7 +3240,7 @@ Otherwise:
 
 *   ↪ **c:[**
 
-    Enqueue a t:marker, consume, emit l:text-image-open, and switch to the
+    Enqueue a t:marker, consume, enqueue a l:text-image-open, and switch to the
     s:after-punctuation
 *   ↪ **Anything else**
 
@@ -3251,12 +3252,12 @@ Otherwise:
 
 *   ↪ **c:(**
 
-    Enqueue a t:marker, consume, emit l:text-resource-information-open, and
+    Enqueue a t:marker, consume, enqueue a l:text-resource-information-open, and
     switch to the s:resource-information-open
 *   ↪ **c:[**
 
-    Enqueue a t:marker, consume, emit l:text-reference-label-open, and switch to
-    the s:reference-label-open-after
+    Enqueue a t:marker, consume, enqueue a l:text-reference-label-open, and
+    switch to the s:reference-label-open-after
 *   ↪ **Anything else**
 
     > ❗️ Todo: shortcut reference
@@ -3270,7 +3271,7 @@ Otherwise:
     Reconsume in the s:after-punctuation
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3278,12 +3279,12 @@ Otherwise:
     s:resource-information-open-after
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:after-punctuation
+    Enqueue a t:marker, consume, enqueue a l:text-resource-information-close,
+    and switch to the s:after-punctuation
 *   ↪ **c:<**
 
-    Emit a l:text-resource-destination-quoted-open, enqueue a t:marker, consume,
-    and switch to the s:resource-destination-quoted-open-after
+    Enqueue a l:text-resource-destination-quoted-open, enqueue a t:marker,
+    consume, and switch to the s:resource-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
     > ❗️ Todo: retreat
@@ -3291,7 +3292,7 @@ Otherwise:
     Reconsume in the s:after-punctuation
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, emit a l:text-resource-destination-unquoted-open,
+    Let `balance` be `0`, enqueue a l:text-resource-destination-unquoted-open,
     enqueue a t:content and reconsume in the
     s:resource-destination-unquoted-inside
 
@@ -3304,7 +3305,7 @@ Otherwise:
     Reconsume in the s:after-whitespace
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
     t:content, and switch to the s:resource-information-open
 *   ↪ **c:HT**\
     ↪ **c:SP**
@@ -3312,12 +3313,12 @@ Otherwise:
     Consume
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:after-punctuation
+    Enqueue a t:marker, consume, enqueue a l:text-resource-information-close,
+    and switch to the s:after-punctuation
 *   ↪ **c:<**
 
-    Emit a l:text-resource-destination-quoted-open, enqueue a t:marker, consume,
-    and switch to the s:resource-destination-quoted-open-after
+    Enqueue a l:text-resource-destination-quoted-open, enqueue a t:marker,
+    consume, and switch to the s:resource-destination-quoted-open-after
 *   ↪ **[ASCII control][]**
 
     > ❗️ Todo: retreat
@@ -3325,7 +3326,7 @@ Otherwise:
     Reconsume in the s:after-whitespace
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, emit a l:text-resource-destination-unquoted-open,
+    Let `balance` be `0`, enqueue a l:text-resource-destination-unquoted-open,
     enqueue a t:content and reconsume in the
     s:resource-destination-unquoted-inside
 
@@ -3340,7 +3341,7 @@ Otherwise:
     Reconsume in the s:after-whitespace
 *   ↪ **c:>**
 
-    Enqueue a t:marker, consume, emit a
+    Enqueue a t:marker, consume, enqueue a
     l:text-resource-destination-quoted-close, and switch to the
     s:resource-destination-quoted-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -3363,7 +3364,7 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **c:>**
 
-    Enqueue a t:marker, consume, emit a
+    Enqueue a t:marker, consume, enqueue a
     l:text-resource-destination-quoted-close, and switch to the
     s:resource-destination-quoted-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -3393,7 +3394,7 @@ Otherwise:
     Reconsume in the s:after-punctuation
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
     t:content, and switch to the s:resource-information-between
 *   ↪ **c:HT**\
     ↪ **c:SP**
@@ -3402,8 +3403,8 @@ Otherwise:
     s:resource-information-between-after
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:after-punctuation
+    Enqueue a t:marker, consume, enqueue a l:text-resource-information-close,
+    and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat
@@ -3414,7 +3415,7 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3433,7 +3434,7 @@ Otherwise:
     Reconsume in the s:after-whitespace
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
     t:content, and switch to the s:resource-information-between
 *   ↪ **c:HT**\
     ↪ **c:SP**
@@ -3441,20 +3442,20 @@ Otherwise:
     Consume
 *   ↪ **c:"**
 
-    Emit a l:text-resource-title-open, enqueue a t:marker, consume, and switch
-    to the s:resource-title-double-quoted-open-after
+    Enqueue a l:text-resource-title-open, enqueue a t:marker, consume, and
+    switch to the s:resource-title-double-quoted-open-after
 *   ↪ **c:'**
 
-    Emit a l:text-resource-title-open, enqueue a t:marker, consume, and switch
-    to the s:resource-title-single-quoted-open-after
+    Enqueue a l:text-resource-title-open, enqueue a t:marker, consume, and
+    switch to the s:resource-title-single-quoted-open-after
 *   ↪ **c:(**
 
-    Emit a l:text-resource-title-open, enqueue a t:marker, consume, and switch
-    to the s:resource-title-paren-quoted-open-after
+    Enqueue a l:text-resource-title-open, enqueue a t:marker, consume, and
+    switch to the s:resource-title-paren-quoted-open-after
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:after-punctuation
+    Enqueue a t:marker, consume, enqueue a l:text-resource-information-close,
+    and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat
@@ -3472,16 +3473,16 @@ Otherwise:
     ↪ **c:HT**\
     ↪ **c:SP**
 
-    Unset `balance`, emit a l:text-resource-destination-unquoted-close, and
+    Unset `balance`, enqueue a l:text-resource-destination-unquoted-close, and
     reconsume in the s:resource-information-between
 *   ↪ **c:(**
 
     Increment `balance` by `1` and consume
 *   ↪ **c:)**
 
-    If `balance` is `0`, unset `balance`, emit a
+    If `balance` is `0`, unset `balance`, enqueue a
     l:text-resource-destination-unquoted-close, enqueue a t:marker, consume,
-    emit a l:text-resource-information-close, and switch to the
+    enqueue a l:text-resource-information-close, and switch to the
     s:after-punctuation
 
     Otherwise, decrement `balance` by `1`, and consume
@@ -3517,11 +3518,11 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:"**
 
-    Enqueue a t:marker, consume, emit a l:text-resource-title-close, and switch
-    to the s:resource-title-close-after
+    Enqueue a t:marker, consume, enqueue a l:text-resource-title-close, and
+    switch to the s:resource-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a t:content, consume, and switch to the
@@ -3540,12 +3541,12 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
     t:content, and switch to the s:resource-title-double-quoted-open-after
 *   ↪ **c:"**
 
-    Enqueue a t:marker, consume, emit a l:text-resource-title-close, and switch
-    to the s:resource-title-close-after
+    Enqueue a t:marker, consume, enqueue a l:text-resource-title-close, and
+    switch to the s:resource-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:resource-title-double-quoted-escape
@@ -3572,11 +3573,11 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:'**
 
-    Enqueue a t:marker, consume, emit a l:text-resource-title-close, and switch
-    to the s:resource-title-close-after
+    Enqueue a t:marker, consume, enqueue a l:text-resource-title-close, and
+    switch to the s:resource-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a t:content, consume, and switch to the
@@ -3595,12 +3596,12 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
     t:content, and switch to the s:resource-title-single-quoted-open-after
 *   ↪ **c:'**
 
-    Enqueue a t:marker, consume, emit a l:text-resource-title-close, and switch
-    to the s:resource-title-close-after
+    Enqueue a t:marker, consume, enqueue a l:text-resource-title-close, and
+    switch to the s:resource-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:resource-title-single-quoted-escape
@@ -3627,11 +3628,11 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, emit a l:text-resource-title-close, and switch
-    to the s:resource-title-close-after
+    Enqueue a t:marker, consume, enqueue a l:text-resource-title-close, and
+    switch to the s:resource-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a t:content, consume, and switch to the
@@ -3650,12 +3651,12 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
     t:content, and switch to the s:resource-title-paren-quoted-open-after
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, emit a l:text-resource-title-close, and switch
-    to the s:resource-title-close-after
+    Enqueue a t:marker, consume, enqueue a l:text-resource-title-close, and
+    switch to the s:resource-title-close-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the s:resource-title-paren-quoted-escape
@@ -3682,7 +3683,7 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
@@ -3690,8 +3691,8 @@ Otherwise:
     s:resource-information-close-before
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:after-punctuation
+    Enqueue a t:marker, consume, enqueue a l:text-resource-information-close,
+    and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
@@ -3709,8 +3710,8 @@ Otherwise:
     Consume
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, emit a l:text-resource-information-close, and
-    switch to the s:after-punctuation
+    Enqueue a t:marker, consume, enqueue a l:text-resource-information-close,
+    and switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
@@ -3726,15 +3727,15 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, and consume
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:HT**\
     ↪ **c:SP**
 
     Enqueue a t:whitespace, consume, and switch to the s:reference-label-before
 *   ↪ **c:]**
 
-    Enqueue a t:marker, consume, emit a l:text-reference-label-close, and switch
-    to the s:after-punctuation
+    Enqueue a t:marker, consume, enqueue a l:text-reference-label-close, and
+    switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:reference-label-inside
@@ -3767,7 +3768,7 @@ Otherwise:
     Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
     t:content, and switch to the s:reference-label-inside-start-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
@@ -3778,8 +3779,8 @@ Otherwise:
     Consume and switch to the s:reference-label-escape
 *   ↪ **c:]**
 
-    Enqueue a t:marker, consume, emit a l:text-reference-label-close, and switch
-    to the s:after-punctuation
+    Enqueue a t:marker, consume, enqueue a l:text-reference-label-close, and
+    switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Consume
@@ -3802,8 +3803,8 @@ Otherwise:
     Consume and switch to the s:reference-label-escape
 *   ↪ **c:]**
 
-    Enqueue a t:marker, consume, emit a l:text-reference-label-close, and switch
-    to the s:after-punctuation
+    Enqueue a t:marker, consume, enqueue a l:text-reference-label-close, and
+    switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:reference-label-inside
@@ -3817,7 +3818,7 @@ Otherwise:
     Reconsume in the s:after-whitespace
 *   ↪ **[c:EOL][]**
 
-    Emit l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
+    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
     t:content, and switch to the s:reference-label-inside-start-after
 *   ↪ **c:HT**\
     ↪ **c:SP**
@@ -3828,8 +3829,8 @@ Otherwise:
     Enqueue a t:content, consume, and switch to the s:reference-label-escape
 *   ↪ **c:]**
 
-    Enqueue a t:marker, consume, emit a l:text-reference-label-close, and switch
-    to the s:after-punctuation
+    Enqueue a t:marker, consume, enqueue a l:text-reference-label-close, and
+    switch to the s:after-punctuation
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:reference-label-inside

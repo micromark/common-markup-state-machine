@@ -6,19 +6,19 @@ Together, the parsing rules described below define what is referred to as a
 Common Markup parser.
 
 > This document is currently in progress.
->
 > It is developed jointly with a reference parser:
 > [`micromark`](https://github.com/micromark/micromark).
->
 > Contributions are welcome.
 >
-> Some parts are still in progress:
+> Some parts that are still in progress:
 >
-> *   <a id="stack-of-continuation" href="#stack-of-continuation">**Stack of continuation**</a> (`>` and `␠␠` for blockquote and list items)
-> *   Extensions
-> *   Check whether emphasis, strong, resource, or reference sequences make up
->     syntax or text
-> *   Lots of infra algorithms
+> *   Adapters
+> *   Constructs and extensions
+> *   Rewrite flow state machine for updates
+> *   Adapter for rich text to check whether emphasis, strong, resource, or
+>     reference sequences make up syntax or text
+> *   Tokenizing the input stream in reverse (GFM allows `asd@asd.com`, so it
+>     seems we need to somehow allow to match the `@` and parse backwards)
 
 ## Table of contents
 
@@ -32,270 +32,270 @@ Common Markup parser.
 *   [5 Input stream](#5-input-stream)
     *   [5.1 Preprocessing the input stream](#51-preprocessing-the-input-stream)
 *   [6 Parsing](#6-parsing)
-    *   [6.1 State](#61-state)
-    *   [6.2 Constructs](#62-constructs)
-    *   [6.3 Effects](#63-effects)
-*   [7 Tokenization](#7-tokenization)
-*   [8 Flow state machine](#8-flow-state-machine)
-    *   [8.1 Initial state](#81-initial-state)
-    *   [8.2 Initial whitespace state](#82-initial-whitespace-state)
-    *   [8.3 Line ending state](#83-line-ending-state)
-    *   [8.4 Carriage return state](#84-carriage-return-state)
-    *   [8.5 In line state](#85-in-line-state)
-    *   [8.6 ATX heading open sequence state](#86-atx-heading-open-sequence-state)
-    *   [8.7 ATX heading open sequence after state](#87-atx-heading-open-sequence-after-state)
-    *   [8.8 ATX heading content state](#88-atx-heading-content-state)
-    *   [8.9 ATX heading whitespace state](#89-atx-heading-whitespace-state)
-    *   [8.10 ATX heading number sign sequence state](#810-atx-heading-number-sign-sequence-state)
-    *   [8.11 Asterisk line asterisk after state](#811-asterisk-line-asterisk-after-state)
-    *   [8.12 Asterisk line whitespace state](#812-asterisk-line-whitespace-state)
-    *   [8.13 HTML flow open state](#813-html-flow-open-state)
-    *   [8.14 HTML flow open markup declaration state](#814-html-flow-open-markup-declaration-state)
-    *   [8.15 HTML flow open comment inside state](#815-html-flow-open-comment-inside-state)
-    *   [8.16 HTML flow open character data inside state](#816-html-flow-open-character-data-inside-state)
-    *   [8.17 HTML flow open close tag start state](#817-html-flow-open-close-tag-start-state)
-    *   [8.18 HTML flow open tag name inside state](#818-html-flow-open-tag-name-inside-state)
-    *   [8.19 HTML flow open basic self closing state](#819-html-flow-open-basic-self-closing-state)
-    *   [8.20 HTML flow open complete attribute before state](#820-html-flow-open-complete-attribute-before-state)
-    *   [8.21 HTML flow open complete attribute name state](#821-html-flow-open-complete-attribute-name-state)
-    *   [8.22 HTML flow open complete attribute name after state](#822-html-flow-open-complete-attribute-name-after-state)
-    *   [8.23 HTML flow open complete attribute value before state](#823-html-flow-open-complete-attribute-value-before-state)
-    *   [8.24 HTML flow open complete double quoted attribute value state](#824-html-flow-open-complete-double-quoted-attribute-value-state)
-    *   [8.25 HTML flow open complete single quoted attribute value state](#825-html-flow-open-complete-single-quoted-attribute-value-state)
-    *   [8.26 HTML flow open complete unquoted attribute value state](#826-html-flow-open-complete-unquoted-attribute-value-state)
-    *   [8.27 HTML flow open complete self closing state](#827-html-flow-open-complete-self-closing-state)
-    *   [8.28 HTML flow open complete tag after state](#828-html-flow-open-complete-tag-after-state)
-    *   [8.29 HTML flow continuation line state](#829-html-flow-continuation-line-state)
-    *   [8.30 HTML flow continuation tag close state](#830-html-flow-continuation-tag-close-state)
-    *   [8.31 HTML flow continuation tag close name inside state](#831-html-flow-continuation-tag-close-name-inside-state)
-    *   [8.32 HTML flow continuation comment inside state](#832-html-flow-continuation-comment-inside-state)
-    *   [8.33 HTML flow continuation character data inside state](#833-html-flow-continuation-character-data-inside-state)
-    *   [8.34 HTML flow continuation declaration before state](#834-html-flow-continuation-declaration-before-state)
-    *   [8.35 HTML flow close line state](#835-html-flow-close-line-state)
-    *   [8.36 Setext heading underline equals to sequence state](#836-setext-heading-underline-equals-to-sequence-state)
-    *   [8.37 Setext heading underline equals to after state](#837-setext-heading-underline-equals-to-after-state)
-    *   [8.38 Fenced code grave accent fence open state](#838-fenced-code-grave-accent-fence-open-state)
-    *   [8.39 Fenced code grave accent fence open whitespace state](#839-fenced-code-grave-accent-fence-open-whitespace-state)
-    *   [8.40 Fenced code grave accent fence open metadata state](#840-fenced-code-grave-accent-fence-open-metadata-state)
-    *   [8.41 Fenced code tilde fence open state](#841-fenced-code-tilde-fence-open-state)
-    *   [8.42 Fenced code tilde fence open whitespace state](#842-fenced-code-tilde-fence-open-whitespace-state)
-    *   [8.43 Fenced code tilde fence open metadata state](#843-fenced-code-tilde-fence-open-metadata-state)
-    *   [8.44 Fenced code continuation line state](#844-fenced-code-continuation-line-state)
-    *   [8.45 Fenced code close sequence state](#845-fenced-code-close-sequence-state)
-    *   [8.46 Fenced code close whitespace state](#846-fenced-code-close-whitespace-state)
-    *   [8.47 Indented code line state](#847-indented-code-line-state)
-    *   [8.48 Content continuation state](#848-content-continuation-state)
-*   [9 Content state machine](#9-content-state-machine)
-    *   [9.1 Initial content state](#91-initial-content-state)
-    *   [9.2 Definition label open after state](#92-definition-label-open-after-state)
-    *   [9.3 Definition label before state](#93-definition-label-before-state)
-    *   [9.4 Definition label inside state](#94-definition-label-inside-state)
-    *   [9.5 Definition label inside start after state](#95-definition-label-inside-start-after-state)
-    *   [9.6 Definition label between state](#96-definition-label-between-state)
-    *   [9.7 Definition label escape state](#97-definition-label-escape-state)
-    *   [9.8 Definition label close after state](#98-definition-label-close-after-state)
-    *   [9.9 Definition label after state](#99-definition-label-after-state)
-    *   [9.10 Definition destination before state](#910-definition-destination-before-state)
-    *   [9.11 Definition destination quoted open after state](#911-definition-destination-quoted-open-after-state)
-    *   [9.12 Definition destination quoted inside state](#912-definition-destination-quoted-inside-state)
-    *   [9.13 Definition destination quoted escape state](#913-definition-destination-quoted-escape-state)
-    *   [9.14 Definition destination quoted close after state](#914-definition-destination-quoted-close-after-state)
-    *   [9.15 Definition destination unquoted inside state](#915-definition-destination-unquoted-inside-state)
-    *   [9.16 Definition destination unquoted escape state](#916-definition-destination-unquoted-escape-state)
-    *   [9.17 Definition destination after state](#917-definition-destination-after-state)
-    *   [9.18 Definition title double quoted open after state](#918-definition-title-double-quoted-open-after-state)
-    *   [9.19 Definition title double quoted inside state](#919-definition-title-double-quoted-inside-state)
-    *   [9.20 Definition title double quoted escape state](#920-definition-title-double-quoted-escape-state)
-    *   [9.21 Definition title single quoted open after state](#921-definition-title-single-quoted-open-after-state)
-    *   [9.22 Definition title single quoted inside state](#922-definition-title-single-quoted-inside-state)
-    *   [9.23 Definition title single quoted escape state](#923-definition-title-single-quoted-escape-state)
-    *   [9.24 Definition title paren quoted open after state](#924-definition-title-paren-quoted-open-after-state)
-    *   [9.25 Definition title paren quoted inside state](#925-definition-title-paren-quoted-inside-state)
-    *   [9.26 Definition title paren quoted escape state](#926-definition-title-paren-quoted-escape-state)
-    *   [9.27 Definition title close after state](#927-definition-title-close-after-state)
-    *   [9.28 Definition after state](#928-definition-after-state)
-    *   [9.29 Phrasing content state](#929-phrasing-content-state)
-*   [10 Text state machine](#10-text-state-machine)
-    *   [10.1 After whitespace state](#101-after-whitespace-state)
-    *   [10.2 After punctuation state](#102-after-punctuation-state)
-    *   [10.3 Text state](#103-text-state)
-    *   [10.4 Plain text state](#104-plain-text-state)
-    *   [10.5 Emphasis asterisk state](#105-emphasis-asterisk-state)
-    *   [10.6 Character reference state](#106-character-reference-state)
-    *   [10.7 Character reference named state](#107-character-reference-named-state)
-    *   [10.8 Character reference numeric state](#108-character-reference-numeric-state)
-    *   [10.9 Character reference hexadecimal start state](#109-character-reference-hexadecimal-start-state)
-    *   [10.10 Character reference hexadecimal state](#1010-character-reference-hexadecimal-state)
-    *   [10.11 Character reference decimal state](#1011-character-reference-decimal-state)
-    *   [10.12 Code span open state](#1012-code-span-open-state)
-    *   [10.13 Code span inside start after state](#1013-code-span-inside-start-after-state)
-    *   [10.14 Code span inside state](#1014-code-span-inside-state)
-    *   [10.15 Code span close state](#1015-code-span-close-state)
-    *   [10.16 Emphasis underscore state](#1016-emphasis-underscore-state)
-    *   [10.17 Escape backslash after state](#1017-escape-backslash-after-state)
-    *   [10.18 HTML or autolink less than after state](#1018-html-or-autolink-less-than-after-state)
-    *   [10.19 HTML instruction or email atext state](#1019-html-instruction-or-email-atext-state)
-    *   [10.20 HTML instruction close or email atext state](#1020-html-instruction-close-or-email-atext-state)
-    *   [10.21 HTML instruction or email at sign or dot state](#1021-html-instruction-or-email-at-sign-or-dot-state)
-    *   [10.22 HTML instruction or email label state](#1022-html-instruction-or-email-label-state)
-    *   [10.23 HTML instruction or email dash state](#1023-html-instruction-or-email-dash-state)
-    *   [10.24 HTML instruction state](#1024-html-instruction-state)
-    *   [10.25 HTML instruction close state](#1025-html-instruction-close-state)
-    *   [10.26 HTML declaration or email atext state](#1026-html-declaration-or-email-atext-state)
-    *   [10.27 HTML comment open inside or email atext state](#1027-html-comment-open-inside-or-email-atext-state)
-    *   [10.28 HTML comment or email atext state](#1028-html-comment-or-email-atext-state)
-    *   [10.29 HTML comment close inside or email atext state](#1029-html-comment-close-inside-or-email-atext-state)
-    *   [10.30 HTML comment close or email atext state](#1030-html-comment-close-or-email-atext-state)
-    *   [10.31 HTML comment or email at sign or dot state](#1031-html-comment-or-email-at-sign-or-dot-state)
-    *   [10.32 HTML comment or email label state](#1032-html-comment-or-email-label-state)
-    *   [10.33 HTML comment close inside or email label dash state](#1033-html-comment-close-inside-or-email-label-dash-state)
-    *   [10.34 HTML comment close or email label dash state](#1034-html-comment-close-or-email-label-dash-state)
-    *   [10.35 HTML comment state](#1035-html-comment-state)
-    *   [10.36 HTML comment close inside state](#1036-html-comment-close-inside-state)
-    *   [10.37 HTML comment close state](#1037-html-comment-close-state)
-    *   [10.38 HTML CDATA state](#1038-html-cdata-state)
-    *   [10.39 HTML declaration name or email atext state](#1039-html-declaration-name-or-email-atext-state)
-    *   [10.40 HTML declaration between state](#1040-html-declaration-between-state)
-    *   [10.41 HTML declaration content state](#1041-html-declaration-content-state)
-    *   [10.42 HTML tag close or email atext state](#1042-html-tag-close-or-email-atext-state)
-    *   [10.43 HTML tag close inside or email atext state](#1043-html-tag-close-inside-or-email-atext-state)
-    *   [10.44 HTML tag close between state](#1044-html-tag-close-between-state)
-    *   [10.45 HTML tag open scheme or email atext state](#1045-html-tag-open-scheme-or-email-atext-state)
-    *   [10.46 HTML tag open inside scheme inside or email atext state](#1046-html-tag-open-inside-scheme-inside-or-email-atext-state)
-    *   [10.47 HTML tag open inside or email atext state](#1047-html-tag-open-inside-or-email-atext-state)
-    *   [10.48 HTML tag open between start after state](#1048-html-tag-open-between-start-after-state)
-    *   [10.49 HTML tag open between state](#1049-html-tag-open-between-state)
-    *   [10.50 HTML tag open attribute name state](#1050-html-tag-open-attribute-name-state)
-    *   [10.51 HTML tag open attribute name after state](#1051-html-tag-open-attribute-name-after-state)
-    *   [10.52 HTML tag open attribute value before state](#1052-html-tag-open-attribute-value-before-state)
-    *   [10.53 HTML tag open double quoted attribute value state](#1053-html-tag-open-double-quoted-attribute-value-state)
-    *   [10.54 HTML tag open single quoted attribute value state](#1054-html-tag-open-single-quoted-attribute-value-state)
-    *   [10.55 HTML tag open unquoted attribute value state](#1055-html-tag-open-unquoted-attribute-value-state)
-    *   [10.56 HTML tag open self closing state](#1056-html-tag-open-self-closing-state)
-    *   [10.57 Autolink scheme inside or email atext state](#1057-autolink-scheme-inside-or-email-atext-state)
-    *   [10.58 Autolink URI inside state](#1058-autolink-uri-inside-state)
-    *   [10.59 Autolink email atext state](#1059-autolink-email-atext-state)
-    *   [10.60 Autolink email label state](#1060-autolink-email-label-state)
-    *   [10.61 Autolink email at sign or dot state](#1061-autolink-email-at-sign-or-dot-state)
-    *   [10.62 Autolink email dash state](#1062-autolink-email-dash-state)
-    *   [10.63 Image exclamation mark after state](#1063-image-exclamation-mark-after-state)
-    *   [10.64 Resource text or label after state](#1064-resource-text-or-label-after-state)
-    *   [10.65 Resource information open state](#1065-resource-information-open-state)
-    *   [10.66 Resource information open after state](#1066-resource-information-open-after-state)
-    *   [10.67 Resource destination quoted open after state](#1067-resource-destination-quoted-open-after-state)
-    *   [10.68 Resource destination quoted inside state](#1068-resource-destination-quoted-inside-state)
-    *   [10.69 Resource destination quoted escape state](#1069-resource-destination-quoted-escape-state)
-    *   [10.70 Resource destination quoted close after state](#1070-resource-destination-quoted-close-after-state)
-    *   [10.71 Resource information between state](#1071-resource-information-between-state)
-    *   [10.72 Resource information between after state](#1072-resource-information-between-after-state)
-    *   [10.73 Resource destination unquoted inside state](#1073-resource-destination-unquoted-inside-state)
-    *   [10.74 Resource destination unquoted escape state](#1074-resource-destination-unquoted-escape-state)
-    *   [10.75 Resource title double quoted open after state](#1075-resource-title-double-quoted-open-after-state)
-    *   [10.76 Resource title double quoted inside state](#1076-resource-title-double-quoted-inside-state)
-    *   [10.77 Resource title double quoted escape state](#1077-resource-title-double-quoted-escape-state)
-    *   [10.78 Resource title single quoted open after state](#1078-resource-title-single-quoted-open-after-state)
-    *   [10.79 Resource title single quoted inside state](#1079-resource-title-single-quoted-inside-state)
-    *   [10.80 Resource title single quoted escape state](#1080-resource-title-single-quoted-escape-state)
-    *   [10.81 Resource title paren quoted open after state](#1081-resource-title-paren-quoted-open-after-state)
-    *   [10.82 Resource title paren quoted inside state](#1082-resource-title-paren-quoted-inside-state)
-    *   [10.83 Resource title paren quoted escape state](#1083-resource-title-paren-quoted-escape-state)
-    *   [10.84 Resource title close after state](#1084-resource-title-close-after-state)
-    *   [10.85 Resource information close before state](#1085-resource-information-close-before-state)
-    *   [10.86 Reference label open after state](#1086-reference-label-open-after-state)
-    *   [10.87 Reference label before state](#1087-reference-label-before-state)
-    *   [10.88 Reference label inside state](#1088-reference-label-inside-state)
-    *   [10.89 Reference label inside start after state](#1089-reference-label-inside-start-after-state)
-    *   [10.90 Reference label between state](#1090-reference-label-between-state)
-    *   [10.91 Reference label escape state](#1091-reference-label-escape-state)
-*   [11 Labels](#11-labels)
-    *   [11.1 Content phrasing label](#111-content-phrasing-label)
-    *   [11.2 Content definition label](#112-content-definition-label)
-    *   [11.3 Content definition partial label](#113-content-definition-partial-label)
-    *   [11.4 Content definition label open label](#114-content-definition-label-open-label)
-    *   [11.5 Content definition label close label](#115-content-definition-label-close-label)
-    *   [11.6 Content definition destination quoted open label](#116-content-definition-destination-quoted-open-label)
-    *   [11.7 Content definition destination quoted close label](#117-content-definition-destination-quoted-close-label)
-    *   [11.8 Content definition destination unquoted open label](#118-content-definition-destination-unquoted-open-label)
-    *   [11.9 Content definition destination unquoted close label](#119-content-definition-destination-unquoted-close-label)
-    *   [11.10 Content definition title open label](#1110-content-definition-title-open-label)
-    *   [11.11 Content definition title close label](#1111-content-definition-title-close-label)
-    *   [11.12 Text hard break label](#1112-text-hard-break-label)
-    *   [11.13 Text soft break label](#1113-text-soft-break-label)
-    *   [11.14 Text link open label](#1114-text-link-open-label)
-    *   [11.15 Text image open label](#1115-text-image-open-label)
-    *   [11.16 Text resource close label](#1116-text-resource-close-label)
-    *   [11.17 Text reference label open label](#1117-text-reference-label-open-label)
-    *   [11.18 Text reference label close label](#1118-text-reference-label-close-label)
-    *   [11.19 Text resource information open label](#1119-text-resource-information-open-label)
-    *   [11.20 Text resource destination quoted open label](#1120-text-resource-destination-quoted-open-label)
-    *   [11.21 Text resource destination quoted close label](#1121-text-resource-destination-quoted-close-label)
-    *   [11.22 Text resource destination unquoted open label](#1122-text-resource-destination-unquoted-open-label)
-    *   [11.23 Text resource destination unquoted close label](#1123-text-resource-destination-unquoted-close-label)
-    *   [11.24 Text resource title open label](#1124-text-resource-title-open-label)
-    *   [11.25 Text resource title close label](#1125-text-resource-title-close-label)
-    *   [11.26 Text resource information close label](#1126-text-resource-information-close-label)
-    *   [11.27 Text emphasis label](#1127-text-emphasis-label)
-    *   [11.28 Text character reference label](#1128-text-character-reference-label)
-    *   [11.29 Text escape label](#1129-text-escape-label)
-    *   [11.30 Text code label](#1130-text-code-label)
-    *   [11.31 Text autolink email label](#1131-text-autolink-email-label)
-    *   [11.32 Text autolink URI label](#1132-text-autolink-uri-label)
-    *   [11.33 Text HTML label](#1133-text-html-label)
-*   [12 Processing](#12-processing)
-    *   [12.1 Process as an ATX heading](#121-process-as-an-atx-heading)
-    *   [12.2 Process as a Setext primary heading](#122-process-as-a-setext-primary-heading)
-    *   [12.3 Process as an asterisk line](#123-process-as-an-asterisk-line)
-    *   [12.4 Process as an asterisk line opening](#124-process-as-an-asterisk-line-opening)
-    *   [12.5 Process as a Fenced code fence](#125-process-as-a-fenced-code-fence)
-    *   [12.6 Process as Content](#126-process-as-content)
-    *   [12.7 Process as plain text](#127-process-as-plain-text)
-    *   [12.8 Process as Phrasing](#128-process-as-phrasing)
-    *   [12.9 Process as Text](#129-process-as-text)
-*   [13 Tokens](#13-tokens)
-    *   [13.1 Whitespace token](#131-whitespace-token)
-    *   [13.2 Line terminator token](#132-line-terminator-token)
-    *   [13.3 End-of-file token](#133-end-of-file-token)
-    *   [13.4 End-of-line token](#134-end-of-line-token)
-    *   [13.5 Marker token](#135-marker-token)
-    *   [13.6 Sequence token](#136-sequence-token)
-    *   [13.7 Content token](#137-content-token)
-*   [14 Groups](#14-groups)
-    *   [14.1 Blank line group](#141-blank-line-group)
-    *   [14.2 ATX heading group](#142-atx-heading-group)
-    *   [14.3 ATX heading fence group](#143-atx-heading-fence-group)
-    *   [14.4 ATX heading content group](#144-atx-heading-content-group)
-    *   [14.5 Thematic break group](#145-thematic-break-group)
-    *   [14.6 HTML group](#146-html-group)
-    *   [14.7 HTML line group](#147-html-line-group)
-    *   [14.8 Indented code group](#148-indented-code-group)
-    *   [14.9 Indented code line group](#149-indented-code-line-group)
-    *   [14.10 Blockquote group](#1410-blockquote-group)
-    *   [14.11 Fenced code group](#1411-fenced-code-group)
-    *   [14.12 Fenced code fence group](#1412-fenced-code-fence-group)
-    *   [14.13 Fenced code language group](#1413-fenced-code-language-group)
-    *   [14.14 Fenced code metadata group](#1414-fenced-code-metadata-group)
-    *   [14.15 Fenced code line group](#1415-fenced-code-line-group)
-    *   [14.16 Content group](#1416-content-group)
-    *   [14.17 Content line group](#1417-content-line-group)
-    *   [14.18 Setext heading group](#1418-setext-heading-group)
-    *   [14.19 Setext heading underline group](#1419-setext-heading-underline-group)
-    *   [14.20 Definition group](#1420-definition-group)
-    *   [14.21 Definition label group](#1421-definition-label-group)
-    *   [14.22 Definition label content group](#1422-definition-label-content-group)
-    *   [14.23 Definition destination quoted group](#1423-definition-destination-quoted-group)
-    *   [14.24 Definition destination unquoted group](#1424-definition-destination-unquoted-group)
-    *   [14.25 Definition title group](#1425-definition-title-group)
-    *   [14.26 Escape group](#1426-escape-group)
-    *   [14.27 Character reference group](#1427-character-reference-group)
-    *   [14.28 Automatic link group](#1428-automatic-link-group)
-    *   [14.29 HTML inline group](#1429-html-inline-group)
-*   [15 Appendix](#15-appendix)
-    *   [15.1 Raw tags](#151-raw-tags)
-    *   [15.2 Basic tags](#152-basic-tags)
-    *   [15.3 Named character references](#153-named-character-references)
-*   [16 References](#16-references)
-*   [17 Acknowledgments](#17-acknowledgments)
-*   [18 License](#18-license)
+    *   [6.1 Tokenization](#61-tokenization)
+    *   [6.2 State](#62-state)
+    *   [6.3 Constructs](#63-constructs)
+    *   [6.4 Effects](#64-effects)
+*   [7 Flow state machine](#7-flow-state-machine)
+    *   [7.1 Initial state](#71-initial-state)
+    *   [7.2 Initial whitespace state](#72-initial-whitespace-state)
+    *   [7.3 Line ending state](#73-line-ending-state)
+    *   [7.4 Carriage return state](#74-carriage-return-state)
+    *   [7.5 In line state](#75-in-line-state)
+    *   [7.6 ATX heading open sequence state](#76-atx-heading-open-sequence-state)
+    *   [7.7 ATX heading open sequence after state](#77-atx-heading-open-sequence-after-state)
+    *   [7.8 ATX heading content state](#78-atx-heading-content-state)
+    *   [7.9 ATX heading whitespace state](#79-atx-heading-whitespace-state)
+    *   [7.10 ATX heading number sign sequence state](#710-atx-heading-number-sign-sequence-state)
+    *   [7.11 Asterisk line asterisk after state](#711-asterisk-line-asterisk-after-state)
+    *   [7.12 Asterisk line whitespace state](#712-asterisk-line-whitespace-state)
+    *   [7.13 HTML flow open state](#713-html-flow-open-state)
+    *   [7.14 HTML flow open markup declaration state](#714-html-flow-open-markup-declaration-state)
+    *   [7.15 HTML flow open comment inside state](#715-html-flow-open-comment-inside-state)
+    *   [7.16 HTML flow open character data inside state](#716-html-flow-open-character-data-inside-state)
+    *   [7.17 HTML flow open close tag start state](#717-html-flow-open-close-tag-start-state)
+    *   [7.18 HTML flow open tag name inside state](#718-html-flow-open-tag-name-inside-state)
+    *   [7.19 HTML flow open basic self closing state](#719-html-flow-open-basic-self-closing-state)
+    *   [7.20 HTML flow open complete attribute before state](#720-html-flow-open-complete-attribute-before-state)
+    *   [7.21 HTML flow open complete attribute name state](#721-html-flow-open-complete-attribute-name-state)
+    *   [7.22 HTML flow open complete attribute name after state](#722-html-flow-open-complete-attribute-name-after-state)
+    *   [7.23 HTML flow open complete attribute value before state](#723-html-flow-open-complete-attribute-value-before-state)
+    *   [7.24 HTML flow open complete double quoted attribute value state](#724-html-flow-open-complete-double-quoted-attribute-value-state)
+    *   [7.25 HTML flow open complete single quoted attribute value state](#725-html-flow-open-complete-single-quoted-attribute-value-state)
+    *   [7.26 HTML flow open complete unquoted attribute value state](#726-html-flow-open-complete-unquoted-attribute-value-state)
+    *   [7.27 HTML flow open complete self closing state](#727-html-flow-open-complete-self-closing-state)
+    *   [7.28 HTML flow open complete tag after state](#728-html-flow-open-complete-tag-after-state)
+    *   [7.29 HTML flow continuation line state](#729-html-flow-continuation-line-state)
+    *   [7.30 HTML flow continuation tag close state](#730-html-flow-continuation-tag-close-state)
+    *   [7.31 HTML flow continuation tag close name inside state](#731-html-flow-continuation-tag-close-name-inside-state)
+    *   [7.32 HTML flow continuation comment inside state](#732-html-flow-continuation-comment-inside-state)
+    *   [7.33 HTML flow continuation character data inside state](#733-html-flow-continuation-character-data-inside-state)
+    *   [7.34 HTML flow continuation declaration before state](#734-html-flow-continuation-declaration-before-state)
+    *   [7.35 HTML flow close line state](#735-html-flow-close-line-state)
+    *   [7.36 Setext heading underline equals to sequence state](#736-setext-heading-underline-equals-to-sequence-state)
+    *   [7.37 Setext heading underline equals to after state](#737-setext-heading-underline-equals-to-after-state)
+    *   [7.38 Fenced code grave accent fence open state](#738-fenced-code-grave-accent-fence-open-state)
+    *   [7.39 Fenced code grave accent fence open whitespace state](#739-fenced-code-grave-accent-fence-open-whitespace-state)
+    *   [7.40 Fenced code grave accent fence open metadata state](#740-fenced-code-grave-accent-fence-open-metadata-state)
+    *   [7.41 Fenced code tilde fence open state](#741-fenced-code-tilde-fence-open-state)
+    *   [7.42 Fenced code tilde fence open whitespace state](#742-fenced-code-tilde-fence-open-whitespace-state)
+    *   [7.43 Fenced code tilde fence open metadata state](#743-fenced-code-tilde-fence-open-metadata-state)
+    *   [7.44 Fenced code continuation line state](#744-fenced-code-continuation-line-state)
+    *   [7.45 Fenced code close sequence state](#745-fenced-code-close-sequence-state)
+    *   [7.46 Fenced code close whitespace state](#746-fenced-code-close-whitespace-state)
+    *   [7.47 Indented code line state](#747-indented-code-line-state)
+    *   [7.48 Content continuation state](#748-content-continuation-state)
+*   [8 Content state machine](#8-content-state-machine)
+    *   [8.1 Initial content state](#81-initial-content-state)
+    *   [8.2 Definition label open after state](#82-definition-label-open-after-state)
+    *   [8.3 Definition label before state](#83-definition-label-before-state)
+    *   [8.4 Definition label inside state](#84-definition-label-inside-state)
+    *   [8.5 Definition label inside start after state](#85-definition-label-inside-start-after-state)
+    *   [8.6 Definition label between state](#86-definition-label-between-state)
+    *   [8.7 Definition label escape state](#87-definition-label-escape-state)
+    *   [8.8 Definition label close after state](#88-definition-label-close-after-state)
+    *   [8.9 Definition label after state](#89-definition-label-after-state)
+    *   [8.10 Definition destination before state](#810-definition-destination-before-state)
+    *   [8.11 Definition destination quoted open after state](#811-definition-destination-quoted-open-after-state)
+    *   [8.12 Definition destination quoted inside state](#812-definition-destination-quoted-inside-state)
+    *   [8.13 Definition destination quoted escape state](#813-definition-destination-quoted-escape-state)
+    *   [8.14 Definition destination quoted close after state](#814-definition-destination-quoted-close-after-state)
+    *   [8.15 Definition destination unquoted inside state](#815-definition-destination-unquoted-inside-state)
+    *   [8.16 Definition destination unquoted escape state](#816-definition-destination-unquoted-escape-state)
+    *   [8.17 Definition destination after state](#817-definition-destination-after-state)
+    *   [8.18 Definition title double quoted open after state](#818-definition-title-double-quoted-open-after-state)
+    *   [8.19 Definition title double quoted inside state](#819-definition-title-double-quoted-inside-state)
+    *   [8.20 Definition title double quoted escape state](#820-definition-title-double-quoted-escape-state)
+    *   [8.21 Definition title single quoted open after state](#821-definition-title-single-quoted-open-after-state)
+    *   [8.22 Definition title single quoted inside state](#822-definition-title-single-quoted-inside-state)
+    *   [8.23 Definition title single quoted escape state](#823-definition-title-single-quoted-escape-state)
+    *   [8.24 Definition title paren quoted open after state](#824-definition-title-paren-quoted-open-after-state)
+    *   [8.25 Definition title paren quoted inside state](#825-definition-title-paren-quoted-inside-state)
+    *   [8.26 Definition title paren quoted escape state](#826-definition-title-paren-quoted-escape-state)
+    *   [8.27 Definition title close after state](#827-definition-title-close-after-state)
+    *   [8.28 Definition after state](#828-definition-after-state)
+    *   [8.29 Phrasing content state](#829-phrasing-content-state)
+*   [9 Text state machine](#9-text-state-machine)
+    *   [9.1 After whitespace state](#91-after-whitespace-state)
+    *   [9.2 After punctuation state](#92-after-punctuation-state)
+    *   [9.3 Text state](#93-text-state)
+    *   [9.4 Plain text state](#94-plain-text-state)
+    *   [9.5 Emphasis asterisk state](#95-emphasis-asterisk-state)
+    *   [9.6 Character reference state](#96-character-reference-state)
+    *   [9.7 Character reference named state](#97-character-reference-named-state)
+    *   [9.8 Character reference numeric state](#98-character-reference-numeric-state)
+    *   [9.9 Character reference hexadecimal start state](#99-character-reference-hexadecimal-start-state)
+    *   [9.10 Character reference hexadecimal state](#910-character-reference-hexadecimal-state)
+    *   [9.11 Character reference decimal state](#911-character-reference-decimal-state)
+    *   [9.12 Code span open state](#912-code-span-open-state)
+    *   [9.13 Code span inside start after state](#913-code-span-inside-start-after-state)
+    *   [9.14 Code span inside state](#914-code-span-inside-state)
+    *   [9.15 Code span close state](#915-code-span-close-state)
+    *   [9.16 Emphasis underscore state](#916-emphasis-underscore-state)
+    *   [9.17 Escape backslash after state](#917-escape-backslash-after-state)
+    *   [9.18 HTML or autolink less than after state](#918-html-or-autolink-less-than-after-state)
+    *   [9.19 HTML instruction or email atext state](#919-html-instruction-or-email-atext-state)
+    *   [9.20 HTML instruction close or email atext state](#920-html-instruction-close-or-email-atext-state)
+    *   [9.21 HTML instruction or email at sign or dot state](#921-html-instruction-or-email-at-sign-or-dot-state)
+    *   [9.22 HTML instruction or email label state](#922-html-instruction-or-email-label-state)
+    *   [9.23 HTML instruction or email dash state](#923-html-instruction-or-email-dash-state)
+    *   [9.24 HTML instruction state](#924-html-instruction-state)
+    *   [9.25 HTML instruction close state](#925-html-instruction-close-state)
+    *   [9.26 HTML declaration or email atext state](#926-html-declaration-or-email-atext-state)
+    *   [9.27 HTML comment open inside or email atext state](#927-html-comment-open-inside-or-email-atext-state)
+    *   [9.28 HTML comment or email atext state](#928-html-comment-or-email-atext-state)
+    *   [9.29 HTML comment close inside or email atext state](#929-html-comment-close-inside-or-email-atext-state)
+    *   [9.30 HTML comment close or email atext state](#930-html-comment-close-or-email-atext-state)
+    *   [9.31 HTML comment or email at sign or dot state](#931-html-comment-or-email-at-sign-or-dot-state)
+    *   [9.32 HTML comment or email label state](#932-html-comment-or-email-label-state)
+    *   [9.33 HTML comment close inside or email label dash state](#933-html-comment-close-inside-or-email-label-dash-state)
+    *   [9.34 HTML comment close or email label dash state](#934-html-comment-close-or-email-label-dash-state)
+    *   [9.35 HTML comment state](#935-html-comment-state)
+    *   [9.36 HTML comment close inside state](#936-html-comment-close-inside-state)
+    *   [9.37 HTML comment close state](#937-html-comment-close-state)
+    *   [9.38 HTML CDATA state](#938-html-cdata-state)
+    *   [9.39 HTML declaration name or email atext state](#939-html-declaration-name-or-email-atext-state)
+    *   [9.40 HTML declaration between state](#940-html-declaration-between-state)
+    *   [9.41 HTML declaration content state](#941-html-declaration-content-state)
+    *   [9.42 HTML tag close or email atext state](#942-html-tag-close-or-email-atext-state)
+    *   [9.43 HTML tag close inside or email atext state](#943-html-tag-close-inside-or-email-atext-state)
+    *   [9.44 HTML tag close between state](#944-html-tag-close-between-state)
+    *   [9.45 HTML tag open scheme or email atext state](#945-html-tag-open-scheme-or-email-atext-state)
+    *   [9.46 HTML tag open inside scheme inside or email atext state](#946-html-tag-open-inside-scheme-inside-or-email-atext-state)
+    *   [9.47 HTML tag open inside or email atext state](#947-html-tag-open-inside-or-email-atext-state)
+    *   [9.48 HTML tag open between start after state](#948-html-tag-open-between-start-after-state)
+    *   [9.49 HTML tag open between state](#949-html-tag-open-between-state)
+    *   [9.50 HTML tag open attribute name state](#950-html-tag-open-attribute-name-state)
+    *   [9.51 HTML tag open attribute name after state](#951-html-tag-open-attribute-name-after-state)
+    *   [9.52 HTML tag open attribute value before state](#952-html-tag-open-attribute-value-before-state)
+    *   [9.53 HTML tag open double quoted attribute value state](#953-html-tag-open-double-quoted-attribute-value-state)
+    *   [9.54 HTML tag open single quoted attribute value state](#954-html-tag-open-single-quoted-attribute-value-state)
+    *   [9.55 HTML tag open unquoted attribute value state](#955-html-tag-open-unquoted-attribute-value-state)
+    *   [9.56 HTML tag open self closing state](#956-html-tag-open-self-closing-state)
+    *   [9.57 Autolink scheme inside or email atext state](#957-autolink-scheme-inside-or-email-atext-state)
+    *   [9.58 Autolink URI inside state](#958-autolink-uri-inside-state)
+    *   [9.59 Autolink email atext state](#959-autolink-email-atext-state)
+    *   [9.60 Autolink email label state](#960-autolink-email-label-state)
+    *   [9.61 Autolink email at sign or dot state](#961-autolink-email-at-sign-or-dot-state)
+    *   [9.62 Autolink email dash state](#962-autolink-email-dash-state)
+    *   [9.63 Image exclamation mark after state](#963-image-exclamation-mark-after-state)
+    *   [9.64 Resource text or label after state](#964-resource-text-or-label-after-state)
+    *   [9.65 Resource information open state](#965-resource-information-open-state)
+    *   [9.66 Resource information open after state](#966-resource-information-open-after-state)
+    *   [9.67 Resource destination quoted open after state](#967-resource-destination-quoted-open-after-state)
+    *   [9.68 Resource destination quoted inside state](#968-resource-destination-quoted-inside-state)
+    *   [9.69 Resource destination quoted escape state](#969-resource-destination-quoted-escape-state)
+    *   [9.70 Resource destination quoted close after state](#970-resource-destination-quoted-close-after-state)
+    *   [9.71 Resource information between state](#971-resource-information-between-state)
+    *   [9.72 Resource information between after state](#972-resource-information-between-after-state)
+    *   [9.73 Resource destination unquoted inside state](#973-resource-destination-unquoted-inside-state)
+    *   [9.74 Resource destination unquoted escape state](#974-resource-destination-unquoted-escape-state)
+    *   [9.75 Resource title double quoted open after state](#975-resource-title-double-quoted-open-after-state)
+    *   [9.76 Resource title double quoted inside state](#976-resource-title-double-quoted-inside-state)
+    *   [9.77 Resource title double quoted escape state](#977-resource-title-double-quoted-escape-state)
+    *   [9.78 Resource title single quoted open after state](#978-resource-title-single-quoted-open-after-state)
+    *   [9.79 Resource title single quoted inside state](#979-resource-title-single-quoted-inside-state)
+    *   [9.80 Resource title single quoted escape state](#980-resource-title-single-quoted-escape-state)
+    *   [9.81 Resource title paren quoted open after state](#981-resource-title-paren-quoted-open-after-state)
+    *   [9.82 Resource title paren quoted inside state](#982-resource-title-paren-quoted-inside-state)
+    *   [9.83 Resource title paren quoted escape state](#983-resource-title-paren-quoted-escape-state)
+    *   [9.84 Resource title close after state](#984-resource-title-close-after-state)
+    *   [9.85 Resource information close before state](#985-resource-information-close-before-state)
+    *   [9.86 Reference label open after state](#986-reference-label-open-after-state)
+    *   [9.87 Reference label before state](#987-reference-label-before-state)
+    *   [9.88 Reference label inside state](#988-reference-label-inside-state)
+    *   [9.89 Reference label inside start after state](#989-reference-label-inside-start-after-state)
+    *   [9.90 Reference label between state](#990-reference-label-between-state)
+    *   [9.91 Reference label escape state](#991-reference-label-escape-state)
+*   [10 Labels](#10-labels)
+    *   [10.1 Content phrasing label](#101-content-phrasing-label)
+    *   [10.2 Content definition label](#102-content-definition-label)
+    *   [10.3 Content definition partial label](#103-content-definition-partial-label)
+    *   [10.4 Content definition label open label](#104-content-definition-label-open-label)
+    *   [10.5 Content definition label close label](#105-content-definition-label-close-label)
+    *   [10.6 Content definition destination quoted open label](#106-content-definition-destination-quoted-open-label)
+    *   [10.7 Content definition destination quoted close label](#107-content-definition-destination-quoted-close-label)
+    *   [10.8 Content definition destination unquoted open label](#108-content-definition-destination-unquoted-open-label)
+    *   [10.9 Content definition destination unquoted close label](#109-content-definition-destination-unquoted-close-label)
+    *   [10.10 Content definition title open label](#1010-content-definition-title-open-label)
+    *   [10.11 Content definition title close label](#1011-content-definition-title-close-label)
+    *   [10.12 Text hard break label](#1012-text-hard-break-label)
+    *   [10.13 Text soft break label](#1013-text-soft-break-label)
+    *   [10.14 Text link open label](#1014-text-link-open-label)
+    *   [10.15 Text image open label](#1015-text-image-open-label)
+    *   [10.16 Text resource close label](#1016-text-resource-close-label)
+    *   [10.17 Text reference label open label](#1017-text-reference-label-open-label)
+    *   [10.18 Text reference label close label](#1018-text-reference-label-close-label)
+    *   [10.19 Text resource information open label](#1019-text-resource-information-open-label)
+    *   [10.20 Text resource destination quoted open label](#1020-text-resource-destination-quoted-open-label)
+    *   [10.21 Text resource destination quoted close label](#1021-text-resource-destination-quoted-close-label)
+    *   [10.22 Text resource destination unquoted open label](#1022-text-resource-destination-unquoted-open-label)
+    *   [10.23 Text resource destination unquoted close label](#1023-text-resource-destination-unquoted-close-label)
+    *   [10.24 Text resource title open label](#1024-text-resource-title-open-label)
+    *   [10.25 Text resource title close label](#1025-text-resource-title-close-label)
+    *   [10.26 Text resource information close label](#1026-text-resource-information-close-label)
+    *   [10.27 Text emphasis label](#1027-text-emphasis-label)
+    *   [10.28 Text character reference label](#1028-text-character-reference-label)
+    *   [10.29 Text escape label](#1029-text-escape-label)
+    *   [10.30 Text code label](#1030-text-code-label)
+    *   [10.31 Text autolink email label](#1031-text-autolink-email-label)
+    *   [10.32 Text autolink URI label](#1032-text-autolink-uri-label)
+    *   [10.33 Text HTML label](#1033-text-html-label)
+*   [11 Processing](#11-processing)
+    *   [11.1 Process as an ATX heading](#111-process-as-an-atx-heading)
+    *   [11.2 Process as a Setext primary heading](#112-process-as-a-setext-primary-heading)
+    *   [11.3 Process as an asterisk line](#113-process-as-an-asterisk-line)
+    *   [11.4 Process as an asterisk line opening](#114-process-as-an-asterisk-line-opening)
+    *   [11.5 Process as a Fenced code fence](#115-process-as-a-fenced-code-fence)
+    *   [11.6 Process as Content](#116-process-as-content)
+    *   [11.7 Process as plain text](#117-process-as-plain-text)
+    *   [11.8 Process as Phrasing](#118-process-as-phrasing)
+    *   [11.9 Process as Text](#119-process-as-text)
+*   [12 Tokens](#12-tokens)
+    *   [12.1 Whitespace token](#121-whitespace-token)
+    *   [12.2 Line terminator token](#122-line-terminator-token)
+    *   [12.3 End-of-file token](#123-end-of-file-token)
+    *   [12.4 End-of-line token](#124-end-of-line-token)
+    *   [12.5 Marker token](#125-marker-token)
+    *   [12.6 Sequence token](#126-sequence-token)
+    *   [12.7 Content token](#127-content-token)
+*   [13 Groups](#13-groups)
+    *   [13.1 Blank line group](#131-blank-line-group)
+    *   [13.2 ATX heading group](#132-atx-heading-group)
+    *   [13.3 ATX heading fence group](#133-atx-heading-fence-group)
+    *   [13.4 ATX heading content group](#134-atx-heading-content-group)
+    *   [13.5 Thematic break group](#135-thematic-break-group)
+    *   [13.6 HTML group](#136-html-group)
+    *   [13.7 HTML line group](#137-html-line-group)
+    *   [13.8 Indented code group](#138-indented-code-group)
+    *   [13.9 Indented code line group](#139-indented-code-line-group)
+    *   [13.10 Blockquote group](#1310-blockquote-group)
+    *   [13.11 Fenced code group](#1311-fenced-code-group)
+    *   [13.12 Fenced code fence group](#1312-fenced-code-fence-group)
+    *   [13.13 Fenced code language group](#1313-fenced-code-language-group)
+    *   [13.14 Fenced code metadata group](#1314-fenced-code-metadata-group)
+    *   [13.15 Fenced code line group](#1315-fenced-code-line-group)
+    *   [13.16 Content group](#1316-content-group)
+    *   [13.17 Content line group](#1317-content-line-group)
+    *   [13.18 Setext heading group](#1318-setext-heading-group)
+    *   [13.19 Setext heading underline group](#1319-setext-heading-underline-group)
+    *   [13.20 Definition group](#1320-definition-group)
+    *   [13.21 Definition label group](#1321-definition-label-group)
+    *   [13.22 Definition label content group](#1322-definition-label-content-group)
+    *   [13.23 Definition destination quoted group](#1323-definition-destination-quoted-group)
+    *   [13.24 Definition destination unquoted group](#1324-definition-destination-unquoted-group)
+    *   [13.25 Definition title group](#1325-definition-title-group)
+    *   [13.26 Escape group](#1326-escape-group)
+    *   [13.27 Character reference group](#1327-character-reference-group)
+    *   [13.28 Automatic link group](#1328-automatic-link-group)
+    *   [13.29 HTML inline group](#1329-html-inline-group)
+*   [14 Appendix](#14-appendix)
+    *   [14.1 Raw tags](#141-raw-tags)
+    *   [14.2 Basic tags](#142-basic-tags)
+    *   [14.3 Named character references](#143-named-character-references)
+*   [15 References](#15-references)
+*   [16 Acknowledgments](#16-acknowledgments)
+*   [17 License](#17-license)
 
 ## 1 Background
 
@@ -309,10 +309,10 @@ When new implementations followed, they mostly followed the first definition,
 but deviated from the first implementation, thus making *Markdown* a family of
 formats.
 
-Some years later, an attempt was made to standardize the differences between the
-Markdown implementations, by specifying how several edge cases should be
-handled, through more input and output examples.
-This attempt is known as CommonMark, and many implementations follow it.
+Some years later, an attempt was made to standardize the differences between
+implementations, by specifying how several edge cases should be handled, through
+more input and output examples.
+This attempt is known as CommonMark, and many implementations now follow it.
 
 This document defines a more formal format, based on CommonMark, by documenting
 how to parse it, instead of documenting input and output examples.
@@ -369,14 +369,12 @@ hexadecimal number, prefixed with `U+` (**\[UNICODE]**).
 
 An <a id="ascii-digit" href="#ascii-digit">**ASCII digit**</a> is a character in the inclusive range U+0030 (`0`) to U+0039 (`9`).
 
-An <a id="ascii-upper-hex-digit" href="#ascii-upper-hex-digit">**ASCII upper hex digit**</a> is an [ASCII digit][ascii-digit] or a character in the
-inclusive range U+0041 (`A`) to U+0046 (`F`).
+An <a id="ascii-upper-hex-digit" href="#ascii-upper-hex-digit">**ASCII upper hex digit**</a> a character in the inclusive range U+0041 (`A`) to U+0046 (`F`).
 
-An <a id="ascii-lower-hex-digit" href="#ascii-lower-hex-digit">**ASCII lower hex digit**</a> is an [ASCII digit][ascii-digit] or a character in the
-inclusive range U+0061 (`a`) to U+0066 (`f`).
+An <a id="ascii-lower-hex-digit" href="#ascii-lower-hex-digit">**ASCII lower hex digit**</a> a character in the inclusive range U+0061 (`a`) to U+0066 (`f`).
 
-An <a id="ascii-hex-digit" href="#ascii-hex-digit">**ASCII hex digit**</a> is an [ASCII upper hex digit][ascii-upper-hex-digit] or an [ASCII lower hex
-digit][ascii-lower-hex-digit]
+An <a id="ascii-hex-digit" href="#ascii-hex-digit">**ASCII hex digit**</a> is an [ASCII digit][ascii-digit], [ASCII upper hex digit][ascii-upper-hex-digit], or an
+[ASCII lower hex digit][ascii-lower-hex-digit]
 
 An <a id="ascii-upper-alpha" href="#ascii-upper-alpha">**ASCII upper alpha**</a> is a character in the inclusive range U+0041 (`A`) to U+005A (`Z`).
 
@@ -392,9 +390,6 @@ to U+0040 AT SIGN (`@`), U+005B LEFT SQUARE BRACKET (`[`) to U+0060 GRAVE ACCENT
 An <a id="ascii-control" href="#ascii-control">**ASCII control**</a> is a character in the inclusive range U+0000 NULL (NUL) to U+001F (US), or
 U+007F (DEL).
 
-To <a id="ascii-lowercase" href="#ascii-lowercase">**ASCII-lowercase**</a> a character, is to increase it by 0x20 if it is in the
-inclusive range U+0041 (`A`) to U+005A (`Z`).
-
 A <a id="unicode-whitespace" href="#unicode-whitespace">**Unicode whitespace**</a> is a character in the Unicode `Zs` (Separator, Space)
 category, or U+0009 CHARACTER TABULATION (HT), U+000A LINE FEED (LF), U+000C (FF), or U+000D CARRIAGE RETURN (CR) (**\[UNICODE]**).
 
@@ -407,6 +402,13 @@ punctuation][ascii-punctuation] (**\[UNICODE]**).
 An <a id="atext" href="#atext">**atext**</a> is an [ASCII alphanumeric][ascii-alphanumeric], or a character in the inclusive
 ranges U+0023 NUMBER SIGN (`#`) to U+0027 APOSTROPHE (`'`), U+002A ASTERISK (`*`), U+002B PLUS SIGN (`+`), U+002D DASH (`-`), U+002F SLASH (`/`), U+003D EQUALS TO (`=`), U+003F QUESTION MARK (`?`), U+005E CARET (`^`) to U+0060 GRAVE ACCENT (`` ` ``), or U+007B LEFT CURLY BRACE (`{`) to U+007E TILDE (`~`)
 (**\[RFC5322]**).
+
+To <a id="ascii-lowercase" href="#ascii-lowercase">**ASCII-lowercase**</a> a character, is to increase it by `0x20`, if it an
+[ASCII upper alpha][ascii-upper-alpha].
+
+To <a id="digitize" href="#digitize">**digitize**</a> a character, is to decrease it by `0x30`, `0x37`, or `0x57`,
+if it is an [ASCII digit][ascii-digit], [ASCII upper hex digit][ascii-upper-hex-digit], or
+[ASCII lower hex digit][ascii-lower-hex-digit], respectively.
 
 ### 4.2 Conceptual characters
 
@@ -471,7 +473,7 @@ described in the following algorithm:
 *   Let `offset` be `0`
 *   *Check*:
 
-    If `offset` is equal to the length of the document, push a EOF into the
+    If `offset` is equal to the length of the document, push an EOF into the
     [input stream][input-stream] representing the lack of any further characters, and return
 
     Otherwise, if the current character is:
@@ -517,9 +519,11 @@ described in the following algorithm:
 
 ## 6 Parsing
 
-Items in the [queue][queue] (as in, tokens and labels) are created by state machines.
-They are used by a tree adapter, in case a valid construct is found.
-After using the queue, or when in a bogus construct is found, it is discarded.
+The states of state machines have certain [effects][effects], such as that they create
+items in the [queue][queue] (tokens and labels).
+The queue is used by tree adapters, in case a valid construct is found.
+After using the queue, or when in a bogus construct is found, the queue is
+discarded.
 
 The [shared space][shared-space] is accessed and mutated by both the tree adapter and the
 states of the state machine.
@@ -528,70 +532,66 @@ states of the state machine.
 Upon registration, they define the states used to parse a construct, and the
 adapter used to handle the construct.
 
-### 6.1 State
+### 6.1 Tokenization
+
+Implementations must act as if they use several state machines to tokenize
+common markup.
+The [flow state machine][flow-state-machine] is used to tokenize the main structure of the
+document.
+The [content state machine][content-state-machine] is used to tokenize a block of text.
+The [text state machine][text-state-machine] is used to tokenize runs of rich or plain text.
+
+Most states [consume][consume] the [input character][input-character], and either remain in the state
+to consume the next character, [reconsume][reconsume] the input character in a different
+state, or [switch][switch] to a different state to consume the next character.
+States [enqueue][enqueue] tokens and labels.
+
+### 6.2 State
 
 The <a id="shared-space" href="#shared-space">**shared space**</a> is a map of key/value pairs.
 
-The <a id="queue" href="#queue">**queue**</a> is a list of tokens that are enqueued and labels that are emitted.
-
+The <a id="queue" href="#queue">**queue**</a> is a list of tokens and labels that are enqueued.
 The <a id="current-token" href="#current-token">**current token**</a> is the last token in the [queue][queue].
 
-### 6.2 Constructs
+### 6.3 Constructs
 
 Markup is parsed per <a id="construct" href="#construct">**construct**</a>.
-Some constructs are considered standard (those from CommonMark, such as ATX
-headings).
-Other constructs are extensions (such as YAML frontmatter or MDX).
+Some constructs are considered regular (those from CommonMark, such as ATX
+headings) and other constructs are extensions (such as YAML frontmatter or MDX).
 
-> ❗️ Define constructs better.
+> ❗️ Define constructs.
 
-### 6.3 Effects
+### 6.4 Effects
 
-#### 6.3.1 Switch
+#### 6.4.1 Switch
 
 To <a id="switch" href="#switch">**switch**</a> to a state is to wait for the next character in the given state.
 
-#### 6.3.2 Consume
+#### 6.4.2 Consume
 
 To <a id="consume" href="#consume">**consume**</a> the [input character][input-character] affects the [current token][current-token].
 Due to the nature of the state machine, it is not possible to consume if there
 is no current token.
 
-#### 6.3.3 Reconsume
+#### 6.4.3 Reconsume
 
 To <a id="reconsume" href="#reconsume">**reconsume**</a> is to [switch][switch] to the given state, and [consume][consume] the
 [input character][input-character] there.
 
-#### 6.3.4 Enqueue
+#### 6.4.4 Enqueue
+
+To enqueue a label is to mark a point between two tokens with a semantic name,
+at which point there is no [current token][current-token].
 
 To enqueue a token is to add a new token of the given type to the [queue][queue],
 making it the new [current token][current-token].
 
-#### 6.3.5 Emit
-
-To emit a label is to mark a point between two tokens with a semantic name.
-
-## 7 Tokenization
-
-Implementations must act as if they use several state machines to tokenize
-common markup.
-For the main structure of a document, the [flow state machine][flow-state-machine] is used.
-When content is closed, the [content state machine][content-state-machine] is used.
-In certain constructs, the [text state machine][text-state-machine] is used.
-
-Most states [consume][consume] the [input character][input-character], and either remain in the state
-to consume the next character, [reconsume][reconsume] the input character in a different
-state, or [switch][switch] to a different state to consume the next character.
-
-The exact behavior of certain states depends on [shared space][shared-space] and the
-[queue][queue].
-
-## 8 Flow state machine
+## 7 Flow state machine
 
 The <a id="flow-state-machine" href="#flow-state-machine">**flow state machine**</a> is used to tokenize the main structure of a
 document and must start in the [*Initial state*][s-initial].
 
-### 8.1 Initial state
+### 7.1 Initial state
 
 *   ↪ **[EOF][ceof]**
 
@@ -608,7 +608,7 @@ document and must start in the [*Initial state*][s-initial].
 
     Reconsume in the [*In line state*][s-in-line]
 
-### 8.2 Initial whitespace state
+### 7.2 Initial whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -624,7 +624,7 @@ document and must start in the [*Initial state*][s-initial].
 
     Reconsume in the [*In line state*][s-in-line]
 
-### 8.3 Line ending state
+### 7.3 Line ending state
 
 > **Note**: “Anything else” is not possible.
 
@@ -638,7 +638,7 @@ document and must start in the [*Initial state*][s-initial].
 
     Enqueue a [*Line terminator token*][t-line-terminator], consume, and switch to the [*Carriage return state*][s-carriage-return]
 
-### 8.4 Carriage return state
+### 7.4 Carriage return state
 
 *   ↪ **U+000A LINE FEED (LF)**
 
@@ -647,7 +647,7 @@ document and must start in the [*Initial state*][s-initial].
 
     Emit and reconsume in the [*Initial state*][s-initial]
 
-### 8.5 In line state
+### 7.5 In line state
 
 If the [stack of continuation][stack-of-continuation] matches all open groups:
 
@@ -719,7 +719,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     [*Whitespace token*][t-whitespace] if there is one, consume, and switch to the
     [*Content continuation state*][s-content-continuation]
 
-### 8.6 ATX heading open sequence state
+### 7.6 ATX heading open sequence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -742,7 +742,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     Change the [current token][current-token] into a [*Content token*][t-content], consume, and switch to the
     [*Content continuation state*][s-content-continuation]
 
-### 8.7 ATX heading open sequence after state
+### 7.7 ATX heading open sequence after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -764,7 +764,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     Open an [*ATX heading group*][g-atx-heading], open an [*ATX heading fence group*][g-atx-heading-fence], emit, close, enqueue a
     [*Content token*][t-content], consume, and switch to the [*ATX heading content state*][s-atx-heading-content]
 
-### 8.8 ATX heading content state
+### 7.8 ATX heading content state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -779,7 +779,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     Consume
 
-### 8.9 ATX heading whitespace state
+### 7.9 ATX heading whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -799,7 +799,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*ATX heading content state*][s-atx-heading-content]
 
-### 8.10 ATX heading number sign sequence state
+### 7.10 ATX heading number sign sequence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -817,7 +817,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*ATX heading content state*][s-atx-heading-content]
 
-### 8.11 Asterisk line asterisk after state
+### 7.11 Asterisk line asterisk after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -838,7 +838,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     [Process as an Asterisk line opening][process-as-an-asterisk-line-opening].
 
-### 8.12 Asterisk line whitespace state
+### 7.12 Asterisk line whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -860,7 +860,7 @@ Otherwise, perform the following steps based on the [input character][input-char
 
     [Process as an Asterisk line opening][process-as-an-asterisk-line-opening].
 
-### 8.13 HTML flow open state
+### 7.13 HTML flow open state
 
 *   ↪ **U+0021 EXCLAMATION MARK (`!`)**
 
@@ -888,7 +888,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     This is not HTML.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 8.14 HTML flow open markup declaration state
+### 7.14 HTML flow open markup declaration state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -907,7 +907,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     This is not HTML.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 8.15 HTML flow open comment inside state
+### 7.15 HTML flow open comment inside state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -920,7 +920,7 @@ Otherwise, perform the following steps based on the [input character][input-char
     This is not HTML.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 8.16 HTML flow open character data inside state
+### 7.16 HTML flow open character data inside state
 
 If the next few characters are:
 
@@ -936,7 +936,7 @@ If the next few characters are:
     This is not HTML.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 8.17 HTML flow open close tag start state
+### 7.17 HTML flow open close tag start state
 
 *   ↪ **[ASCII alpha][ascii-alpha]**
 
@@ -947,7 +947,7 @@ If the next few characters are:
     This is not HTML.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 8.18 HTML flow open tag name inside state
+### 7.18 HTML flow open tag name inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1015,7 +1015,7 @@ If the next few characters are:
     This is not HTML.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 8.19 HTML flow open basic self closing state
+### 7.19 HTML flow open basic self closing state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -1028,7 +1028,7 @@ If the next few characters are:
     This is not HTML.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 8.20 HTML flow open complete attribute before state
+### 7.20 HTML flow open complete attribute before state
 
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**\
@@ -1064,7 +1064,7 @@ If the next few characters are:
     This is not HTML.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 8.21 HTML flow open complete attribute name state
+### 7.21 HTML flow open complete attribute name state
 
 *   ↪ **U+002D DASH (`-`)**\
     ↪ **U+002E DOT (`.`)**\
@@ -1077,7 +1077,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML flow open complete attribute name after state*][s-html-flow-open-complete-attribute-name-after]
 
-### 8.22 HTML flow open complete attribute name after state
+### 7.22 HTML flow open complete attribute name after state
 
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**\
@@ -1103,7 +1103,7 @@ If the next few characters are:
     This is not HTML.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 8.23 HTML flow open complete attribute value before state
+### 7.23 HTML flow open complete attribute value before state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1133,7 +1133,7 @@ If the next few characters are:
     Consume and switch to the
     [*HTML flow open complete unquoted attribute value state*][s-html-flow-open-complete-unquoted-attribute-value]
 
-### 8.24 HTML flow open complete double quoted attribute value state
+### 7.24 HTML flow open complete double quoted attribute value state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1148,7 +1148,7 @@ If the next few characters are:
 
     Consume
 
-### 8.25 HTML flow open complete single quoted attribute value state
+### 7.25 HTML flow open complete single quoted attribute value state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1163,7 +1163,7 @@ If the next few characters are:
 
     Consume
 
-### 8.26 HTML flow open complete unquoted attribute value state
+### 7.26 HTML flow open complete unquoted attribute value state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
@@ -1182,7 +1182,7 @@ If the next few characters are:
 
     Consume
 
-### 8.27 HTML flow open complete self closing state
+### 7.27 HTML flow open complete self closing state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -1192,7 +1192,7 @@ If the next few characters are:
     This is not HTML.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 8.28 HTML flow open complete tag after state
+### 7.28 HTML flow open complete tag after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
@@ -1208,7 +1208,7 @@ If the next few characters are:
     This is not HTML.
     Reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 8.29 HTML flow continuation line state
+### 7.29 HTML flow continuation line state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1259,7 +1259,7 @@ If the next few characters are:
 
     Consume
 
-### 8.30 HTML flow continuation tag close state
+### 7.30 HTML flow continuation tag close state
 
 *   ↪ **U+002F SLASH (`/`)**
 
@@ -1268,7 +1268,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML flow continuation line state*][s-html-flow-continuation-line]
 
-### 8.31 HTML flow continuation tag close name inside state
+### 7.31 HTML flow continuation tag close name inside state
 
 *   ↪ **[ASCII alpha][ascii-alpha]**
 
@@ -1287,7 +1287,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML flow continuation line state*][s-html-flow-continuation-line]
 
-### 8.32 HTML flow continuation comment inside state
+### 7.32 HTML flow continuation comment inside state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -1296,7 +1296,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML flow continuation line state*][s-html-flow-continuation-line]
 
-### 8.33 HTML flow continuation character data inside state
+### 7.33 HTML flow continuation character data inside state
 
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
@@ -1305,7 +1305,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML flow continuation line state*][s-html-flow-continuation-line]
 
-### 8.34 HTML flow continuation declaration before state
+### 7.34 HTML flow continuation declaration before state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
@@ -1314,7 +1314,7 @@ If the next few characters are:
 
     Reconsume in the [*HTML flow continuation line state*][s-html-flow-continuation-line]
 
-### 8.35 HTML flow close line state
+### 7.35 HTML flow close line state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1325,7 +1325,7 @@ If the next few characters are:
 
     Consume
 
-### 8.36 Setext heading underline equals to sequence state
+### 7.36 Setext heading underline equals to sequence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1345,7 +1345,7 @@ If the next few characters are:
     Turn the [current token][current-token] into a [*Content token*][t-content], consume, and switch to the
     [*Content continuation state*][s-content-continuation]
 
-### 8.37 Setext heading underline equals to after state
+### 7.37 Setext heading underline equals to after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1362,7 +1362,7 @@ If the next few characters are:
     Turn the previous and  [current token][current-token] into a [*Content token*][t-content], consume, and
     switch to the [*Content continuation state*][s-content-continuation]
 
-### 8.38 Fenced code grave accent fence open state
+### 7.38 Fenced code grave accent fence open state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1398,7 +1398,7 @@ If the next few characters are:
     Turn the enqueue, except for the first token if it is a [*Whitespace token*][t-whitespace], into a
     [*Content token*][t-content] and reconsume in the [*Content continuation state*][s-content-continuation]
 
-### 8.39 Fenced code grave accent fence open whitespace state
+### 7.39 Fenced code grave accent fence open whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1421,7 +1421,7 @@ If the next few characters are:
     Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Fenced code grave accent fence open metadata state*][s-fenced-code-grave-accent-fence-open-metadata]
 
-### 8.40 Fenced code grave accent fence open metadata state
+### 7.40 Fenced code grave accent fence open metadata state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1443,7 +1443,7 @@ If the next few characters are:
 
     Consume
 
-### 8.41 Fenced code tilde fence open state
+### 7.41 Fenced code tilde fence open state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1479,7 +1479,7 @@ If the next few characters are:
     Turn the [current token][current-token] into a [*Content token*][t-content] and reconsume in the
     [*Content continuation state*][s-content-continuation]
 
-### 8.42 Fenced code tilde fence open whitespace state
+### 7.42 Fenced code tilde fence open whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1497,7 +1497,7 @@ If the next few characters are:
     Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Fenced code tilde fence open metadata state*][s-fenced-code-tilde-fence-open-metadata]
 
-### 8.43 Fenced code tilde fence open metadata state
+### 7.43 Fenced code tilde fence open metadata state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1514,7 +1514,7 @@ If the next few characters are:
 
     Consume
 
-### 8.44 Fenced code continuation line state
+### 7.44 Fenced code continuation line state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1526,7 +1526,7 @@ If the next few characters are:
 
     Consume
 
-### 8.45 Fenced code close sequence state
+### 7.45 Fenced code close sequence state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1560,7 +1560,7 @@ If the next few characters are:
     Turn the [current token][current-token] into a [*Content token*][t-content] and reconsume in the
     [*Fenced code continuation line state*][s-fenced-code-continuation-line]
 
-### 8.46 Fenced code close whitespace state
+### 7.46 Fenced code close whitespace state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1578,7 +1578,7 @@ If the next few characters are:
     Turn the queue, except for the first token if it is a [*Whitespace token*][t-whitespace], into a
     [*Content token*][t-content] and reconsume in the [*Fenced code continuation line state*][s-fenced-code-continuation-line]
 
-### 8.47 Indented code line state
+### 7.47 Indented code line state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1593,7 +1593,7 @@ If the next few characters are:
 
     Consume
 
-### 8.48 Content continuation state
+### 7.48 Content continuation state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+000A LINE FEED (LF)**\
@@ -1606,27 +1606,27 @@ If the next few characters are:
 
     Consume
 
-## 9 Content state machine
+## 8 Content state machine
 
 The <a id="content-state-machine" href="#content-state-machine">**content state machine**</a> is used to tokenize the content blocks of a
 document and must start in the [*Initial content state*][s-initial-content].
 
-### 9.1 Initial content state
+### 8.1 Initial content state
 
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Content definition label open label*][l-content-definition-label-open], and
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition label open label*][l-content-definition-label-open], and
     switch to the [*Definition label open after state*][s-definition-label-open-after]
 *   ↪ **Anything else**
 
     Reconsume in the [*Phrasing content state*][s-phrasing-content]
 
-### 9.2 Definition label open after state
+### 8.2 Definition label open after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -1638,7 +1638,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
 
-### 9.3 Definition label before state
+### 8.3 Definition label before state
 
 > **Note**: EOL is not possible.
 
@@ -1646,7 +1646,7 @@ document and must start in the [*Initial content state*][s-initial-content].
     ↪ **[EOL][ceol]**\
     ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -1655,11 +1655,11 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
 
-### 9.4 Definition label inside state
+### 8.4 Definition label inside state
 
 *   ↪ **[EOF][ceof]**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
@@ -1674,19 +1674,19 @@ document and must start in the [*Initial content state*][s-initial-content].
     Consume and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Emit a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
+    Enqueue a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
     switch to the [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
     Consume
 
-### 9.5 Definition label inside start after state
+### 8.5 Definition label inside start after state
 
 > **Note**: EOL is not possible.
 
 *   ↪ **[EOF][ceof]**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -1697,17 +1697,17 @@ document and must start in the [*Initial content state*][s-initial-content].
     Consume and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Emit a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
+    Enqueue a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
     switch to the [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
 
-### 9.6 Definition label between state
+### 8.6 Definition label between state
 
 *   ↪ **[EOF][ceof]**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
@@ -1721,13 +1721,13 @@ document and must start in the [*Initial content state*][s-initial-content].
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Emit a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
+    Enqueue a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
     switch to the [*Definition label close after state*][s-definition-label-close-after]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
 
-### 9.7 Definition label escape state
+### 8.7 Definition label escape state
 
 *   ↪ **U+005C BACKSLASH (`\`)**\
     ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
@@ -1737,20 +1737,20 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition label inside state*][s-definition-label-inside]
 
-### 9.8 Definition label close after state
+### 8.8 Definition label close after state
 
 *   ↪ **U+003A COLON (`:`)**
 
     Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Definition label after state*][s-definition-label-after]
 *   ↪ **Anything else**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 
-### 9.9 Definition label after state
+### 8.9 Definition label after state
 
 *   ↪ **[EOF][ceof]**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -1761,52 +1761,52 @@ document and must start in the [*Initial content state*][s-initial-content].
     [*Definition destination before state*][s-definition-destination-before]
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Emit a [*Content definition destination quoted open label*][l-content-definition-destination-quoted-open], enqueue a [*Marker token*][t-marker],
+    Enqueue a [*Content definition destination quoted open label*][l-content-definition-destination-quoted-open], enqueue a [*Marker token*][t-marker],
     consume, and switch to the [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, emit a [*Content definition destination unquoted open label*][l-content-definition-destination-unquoted-open],
-    enqueue a [*Content token*][t-content] and reconsume in the
-    [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
+    Let `balance` be `0`, enqueue a
+    [*Content definition destination unquoted open label*][l-content-definition-destination-unquoted-open], enqueue a [*Content token*][t-content], and
+    reconsume in the [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
-### 9.10 Definition destination before state
+### 8.10 Definition destination before state
 
 > **Note**: EOL is not possible.
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Emit a [*Content definition destination quoted open label*][l-content-definition-destination-quoted-open], enqueue a [*Marker token*][t-marker],
+    Enqueue a [*Content definition destination quoted open label*][l-content-definition-destination-quoted-open], enqueue a [*Marker token*][t-marker],
     consume, and switch to the [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, emit a [*Content definition destination unquoted open label*][l-content-definition-destination-unquoted-open],
-    enqueue a [*Content token*][t-content], and reconsume in the
-    [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
+    Let `balance` be `0`, enqueue a
+    [*Content definition destination unquoted open label*][l-content-definition-destination-unquoted-open], enqueue a [*Content token*][t-content], and
+    reconsume in the [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
-### 9.11 Definition destination quoted open after state
+### 8.11 Definition destination quoted open after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
     ↪ **U+003C LESS THAN (`<`)**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a
     [*Content definition destination quoted close label*][l-content-definition-destination-quoted-close], and switch to the
     [*Definition destination quoted close after state*][s-definition-destination-quoted-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -1818,16 +1818,16 @@ document and must start in the [*Initial content state*][s-initial-content].
     Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Definition destination quoted inside state*][s-definition-destination-quoted-inside]
 
-### 9.12 Definition destination quoted inside state
+### 8.12 Definition destination quoted inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
     ↪ **U+003C LESS THAN (`<`)**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a
     [*Content definition destination quoted close label*][l-content-definition-destination-quoted-close], and switch to the
     [*Definition destination quoted close after state*][s-definition-destination-quoted-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -1837,7 +1837,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Consume
 
-### 9.13 Definition destination quoted escape state
+### 8.13 Definition destination quoted escape state
 
 *   ↪ **U+003C LESS THAN (`<`)**\
     ↪ **U+003E GREATER THAN (`>`)**\
@@ -1848,14 +1848,15 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition destination quoted inside state*][s-definition-destination-quoted-inside]
 
-### 9.14 Definition destination quoted close after state
+### 8.14 Definition destination quoted close after state
 
 *   ↪ **[EOF][ceof]**
 
-    Emit a [*Content definition label*][l-content-definition]
+    Enqueue a [*Content definition label*][l-content-definition]
 *   ↪ **[EOL][ceol]**
 
-    Emit a [*Content definition partial label*][l-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Enqueue a [*Content definition partial label*][l-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and
+    consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -1863,22 +1864,23 @@ document and must start in the [*Initial content state*][s-initial-content].
     [*Definition destination after state*][s-definition-destination-after]
 *   ↪ **Anything else**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 
-### 9.15 Definition destination unquoted inside state
+### 8.15 Definition destination unquoted inside state
 
 *   ↪ **[EOF][ceof]**
 
-    Unset `balance`, emit a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close], and
-    emit a [*Content definition label*][l-content-definition]
+    Unset `balance`, enqueue a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close],
+    and emit a [*Content definition label*][l-content-definition]
 *   ↪ **[EOL][ceol]**
 
-    Unset `balance`, emit a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close],
-    emit a [*Content definition partial label*][l-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Unset `balance`, enqueue a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close],
+    enqueue a [*Content definition partial label*][l-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and
+    consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Unset `balance`, emit a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close],
+    Unset `balance`, enqueue a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close],
     enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
     [*Definition destination after state*][s-definition-destination-after]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
@@ -1886,7 +1888,7 @@ document and must start in the [*Initial content state*][s-initial-content].
     Increment `balance` by `1` and consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    If `balance` is `0`, unset `balance` and emit a [*Content phrasing label*][l-content-phrasing]
+    If `balance` is `0`, unset `balance` and enqueue a [*Content phrasing label*][l-content-phrasing]
 
     Otherwise, decrement `balance` by `1`, and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -1894,12 +1896,12 @@ document and must start in the [*Initial content state*][s-initial-content].
     Consume and switch to the [*Definition destination unquoted escape state*][s-definition-destination-unquoted-escape]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Unset `balance` and emit a [*Content phrasing label*][l-content-phrasing]
+    Unset `balance` and enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **Anything else**
 
     Consume
 
-### 9.16 Definition destination unquoted escape state
+### 8.16 Definition destination unquoted escape state
 
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**\
     ↪ **U+0029 RIGHT PARENTHESIS (`)`)**\
@@ -1910,45 +1912,46 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
-### 9.17 Definition destination after state
+### 8.17 Definition destination after state
 
 *   ↪ **[EOF][ceof]**
 
-    Emit a [*Content definition label*][l-content-definition]
+    Enqueue a [*Content definition label*][l-content-definition]
 *   ↪ **[EOL][ceol]**
 
-    Emit a [*Content definition partial label*][l-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Enqueue a [*Content definition partial label*][l-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and
+    consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Emit a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
+    Enqueue a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
     switch to the [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Emit a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
+    Enqueue a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
     switch to the [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
-    Emit a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
+    Enqueue a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
     switch to the [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
 *   ↪ **Anything else**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 
-### 9.18 Definition title double quoted open after state
+### 8.18 Definition title double quoted open after state
 
 *   ↪ **[EOF][ceof]**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Content definition title close label*][l-content-definition-title-close], and
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
     switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1959,18 +1962,18 @@ document and must start in the [*Initial content state*][s-initial-content].
     Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Definition title double quoted inside state*][s-definition-title-double-quoted-inside]
 
-### 9.19 Definition title double quoted inside state
+### 8.19 Definition title double quoted inside state
 
 *   ↪ **[EOF][ceof]**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Content definition title close label*][l-content-definition-title-close], and
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
     switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1979,7 +1982,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Consume
 
-### 9.20 Definition title double quoted escape state
+### 8.20 Definition title double quoted escape state
 
 *   ↪ **U+0022 QUOTATION MARK (`"`)**\
     ↪ **U+005C BACKSLASH (`\`)**
@@ -1989,17 +1992,17 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
 
-### 9.21 Definition title single quoted open after state
+### 8.21 Definition title single quoted open after state
 
 *   ↪ **[EOF][ceof]**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Content definition title close label*][l-content-definition-title-close], and
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
     switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -2010,18 +2013,18 @@ document and must start in the [*Initial content state*][s-initial-content].
     Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Definition title single quoted inside state*][s-definition-title-single-quoted-inside]
 
-### 9.22 Definition title single quoted inside state
+### 8.22 Definition title single quoted inside state
 
 *   ↪ **[EOF][ceof]**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Content definition title close label*][l-content-definition-title-close], and
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
     switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -2030,7 +2033,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Consume
 
-### 9.23 Definition title single quoted escape state
+### 8.23 Definition title single quoted escape state
 
 *   ↪ **U+0027 APOSTROPHE (`'`)**\
     ↪ **U+005C BACKSLASH (`\`)**
@@ -2040,17 +2043,17 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
 
-### 9.24 Definition title paren quoted open after state
+### 8.24 Definition title paren quoted open after state
 
 *   ↪ **[EOF][ceof]**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Content definition title close label*][l-content-definition-title-close], and
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
     switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -2061,18 +2064,18 @@ document and must start in the [*Initial content state*][s-initial-content].
     Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Definition title paren quoted inside state*][s-definition-title-paren-quoted-inside]
 
-### 9.25 Definition title paren quoted inside state
+### 8.25 Definition title paren quoted inside state
 
 *   ↪ **[EOF][ceof]**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
     [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Content definition title close label*][l-content-definition-title-close], and
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
     switch to the [*Definition title close after state*][s-definition-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -2081,7 +2084,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Consume
 
-### 9.26 Definition title paren quoted escape state
+### 8.26 Definition title paren quoted escape state
 
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**\
     ↪ **U+005C BACKSLASH (`\`)**
@@ -2091,50 +2094,50 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
 
-### 9.27 Definition title close after state
+### 8.27 Definition title close after state
 
 *   ↪ **[EOF][ceof]**
 
-    Emit a [*Content definition label*][l-content-definition]
+    Enqueue a [*Content definition label*][l-content-definition]
 *   ↪ **[EOL][ceol]**
 
-    Emit a [*Content definition label*][l-content-definition], enqueue an [*End-of-line token*][t-end-of-line], consume, and switch
-    to the [*Initial content state*][s-initial-content]
+    Enqueue a [*Content definition label*][l-content-definition], enqueue an [*End-of-line token*][t-end-of-line], consume, and
+    switch to the [*Initial content state*][s-initial-content]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition after state*][s-definition-after]
 *   ↪ **Anything else**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 
-### 9.28 Definition after state
+### 8.28 Definition after state
 
 *   ↪ **[EOF][ceof]**
 
-    Emit a [*Content definition label*][l-content-definition]
+    Enqueue a [*Content definition label*][l-content-definition]
 *   ↪ **[EOL][ceol]**
 
-    Emit a [*Content definition label*][l-content-definition], enqueue an [*End-of-line token*][t-end-of-line], consume, and switch
-    to the [*Initial content state*][s-initial-content]
+    Enqueue a [*Content definition label*][l-content-definition], enqueue an [*End-of-line token*][t-end-of-line], consume, and
+    switch to the [*Initial content state*][s-initial-content]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **Anything else**
 
-    Emit a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 
-### 9.29 Phrasing content state
+### 8.29 Phrasing content state
 
 > ❗️ Todo: define.
 
-## 10 Text state machine
+## 9 Text state machine
 
 The <a id="text-state-machine" href="#text-state-machine">**text state machine**</a> is used to tokenize inline values (plain text or
 rich text) of a document and must start in the [*After whitespace state*][s-after-whitespace].
 
-### 10.1 After whitespace state
+### 9.1 After whitespace state
 
 If text is parsed as plain text, this state should forward to the [*Plain text state*][s-plain-text].
 Otherwise:
@@ -2152,7 +2155,7 @@ Otherwise:
 
     Reconsume in the [*Text state*][s-text]
 
-### 10.2 After punctuation state
+### 9.2 After punctuation state
 
 If text is parsed as plain text, this state should forward to the [*Plain text state*][s-plain-text].
 Otherwise:
@@ -2170,22 +2173,22 @@ Otherwise:
 
     Reconsume in the [*Text state*][s-text]
 
-### 10.3 Text state
+### 9.3 Text state
 
 If text is parsed as plain text, this state should forward to the [*Plain text state*][s-plain-text].
 Otherwise:
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue an [*End-of-file token*][t-end-of-file] and emit
+    Enqueue an [*End-of-file token*][t-end-of-file]
 *   ↪ **[EOL][ceol]**
 
     If the break represented by the character starts with a [*Whitespace token*][t-whitespace] that
-    consists of two or more U+0020 SPACE (SP), emit [*Text hard break label*][l-text-hard-break], enqueue an
+    consists of two or more U+0020 SPACE (SP), enqueue a [*Text hard break label*][l-text-hard-break], enqueue an
     [*End-of-line token*][t-end-of-line], consume, and switch to the [*After whitespace state*][s-after-whitespace]
 
-    Otherwise, emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and
-    switch to the [*After whitespace state*][s-after-whitespace]
+    Otherwise, enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume,
+    and switch to the [*After whitespace state*][s-after-whitespace]
 *   ↪ **U+0021 EXCLAMATION MARK (`!`)**
 
     Enqueue a [*Marker token*][t-marker], consume, and switch to the
@@ -2203,7 +2206,7 @@ Otherwise:
     [*HTML or autolink less than after state*][s-html-or-autolink-less-than-after]
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit [*Text link open label*][l-text-link-open]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text link open label*][l-text-link-open]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Escape backslash after state*][s-escape-backslash-after]
@@ -2229,14 +2232,14 @@ Otherwise:
 
     > ❗️ Todo: handle
 
-### 10.4 Plain text state
+### 9.4 Plain text state
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue an [*End-of-file token*][t-end-of-file] and emit
+    Enqueue an [*End-of-file token*][t-end-of-file]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0026 AMPERSAND (`&`)**
 
     Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Character reference state*][s-character-reference]
@@ -2247,7 +2250,7 @@ Otherwise:
 
     > ❗️ Todo: handle
 
-### 10.5 Emphasis asterisk state
+### 9.5 Emphasis asterisk state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -2272,10 +2275,10 @@ Otherwise:
     `'whitespace'`, and that either `delimiterRunBefore` is not `'punctuation'`
     or that `delimiterRunAfter` is not `null`
 
-    Unset `delimiterRunBefore`, unset `delimiterRunAfter`, emit [*Text emphasis label*][l-text-emphasis],
-    and reconsume in the [*After punctuation state*][s-after-punctuation]
+    Unset `delimiterRunBefore`, unset `delimiterRunAfter`, enqueue a
+    [*Text emphasis label*][l-text-emphasis], and reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.6 Character reference state
+### 9.6 Character reference state
 
 *   ↪ **U+0023 NUMBER SIGN (`#`)**
 
@@ -2290,13 +2293,13 @@ Otherwise:
 
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.7 Character reference named state
+### 9.7 Character reference named state
 
 *   ↪ **U+003B SEMICOLON (`;`)**
 
     If `entityName` is a [character reference name][character-reference-name], unset `entityName`,
-    enqueue a [*Marker token*][t-marker], consume, emit [*Text character reference label*][l-text-character-reference], and switch
-    to the [*After punctuation state*][s-after-punctuation]
+    enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text character reference label*][l-text-character-reference], and
+    switch to the [*After punctuation state*][s-after-punctuation]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
@@ -2308,7 +2311,7 @@ Otherwise:
 
     Unset `entityName` and reconsume in the [*Text state*][s-text]
 
-### 10.8 Character reference numeric state
+### 9.8 Character reference numeric state
 
 *   ↪ **U+0058 (`X`)**\
     ↪ **U+0078 (`x`)**
@@ -2325,7 +2328,7 @@ Otherwise:
 
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.9 Character reference hexadecimal start state
+### 9.9 Character reference hexadecimal start state
 
 *   ↪ **[ASCII hex digit][ascii-hex-digit]**
 
@@ -2336,59 +2339,55 @@ Otherwise:
 
     Unset `characterReferenceCode` and reconsume in the [*Text state*][s-text]
 
-### 10.10 Character reference hexadecimal state
+### 9.10 Character reference hexadecimal state
 
 *   ↪ **U+003B SEMICOLON (`;`)**
 
-    Unset `characterReferenceCode`, enqueue a [*Marker token*][t-marker], consume, emit
+    Unset `characterReferenceCode`, enqueue a [*Marker token*][t-marker], consume, enqueue a
     [*Text character reference label*][l-text-character-reference], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **[ASCII digit][ascii-digit]**
 
-    Multiply `characterReferenceCode` by `0x10`, add a numeric version of the
-    [content character][content-character] (subtract `0x30` from the character) to
-    `characterReferenceCode`, and consume
+    Multiply `characterReferenceCode` by `0x10`, add the [digitize][digitize]d
+    [input character][input-character] to `characterReferenceCode`, and consume
 *   ↪ **[ASCII upper hex digit][ascii-upper-hex-digit]**
 
-    Multiply `characterReferenceCode` by `0x10`, add a numeric version of the
-    [content character][content-character] (subtract `0x37` from the character) to
-    `characterReferenceCode`, and consume
+    Multiply `characterReferenceCode` by `0x10`, add the [digitize][digitize]d
+    [input character][input-character] to `characterReferenceCode`, and consume
 *   ↪ **[ASCII lower hex digit][ascii-lower-hex-digit]**
 
-    Multiply `characterReferenceCode` by `0x10`, add a numeric version of the
-    [content character][content-character] (subtract `0x57` from the character) to
-    `characterReferenceCode`, and consume
+    Multiply `characterReferenceCode` by `0x10`, add the [digitize][digitize]d
+    [input character][input-character] to `characterReferenceCode`, and consume
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat if extensions are supported
 
     Unset `characterReferenceCode` and reconsume in the [*Text state*][s-text]
 
-### 10.11 Character reference decimal state
+### 9.11 Character reference decimal state
 
 *   ↪ **U+003B SEMICOLON (`;`)**
 
-    Unset `characterReferenceCode`, enqueue a [*Marker token*][t-marker], consume, emit
+    Unset `characterReferenceCode`, enqueue a [*Marker token*][t-marker], consume, enqueue a
     [*Text character reference label*][l-text-character-reference], and switch to the [*Text state*][s-text]
 *   ↪ **[ASCII digit][ascii-digit]**
 
-    Multiply `characterReferenceCode` by `10`, add a numeric version of the
-    [content character][content-character] (subtract `0x30` from the character) to
-    `characterReferenceCode`, and consume
+    Multiply `characterReferenceCode` by `10`, add the [digitize][digitize]d
+    [input character][input-character] to `characterReferenceCode`, and consume
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat if extensions are supported
 
     Unset `characterReferenceCode` and reconsume in the [*Text state*][s-text]
 
-### 10.12 Code span open state
+### 9.12 Code span open state
 
 *   ↪ **[EOF][ceof]**
 
     Unset `sizeOpen` and reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Code span inside start after state*][s-code-span-inside-start-after]
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and switch
+    to the [*Code span inside start after state*][s-code-span-inside-start-after]
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
     Increment `sizeOpen` by `1` and consume
@@ -2396,7 +2395,7 @@ Otherwise:
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Code span inside state*][s-code-span-inside]
 
-### 10.13 Code span inside start after state
+### 9.13 Code span inside start after state
 
 > **Note**: EOL is not possible.
 
@@ -2413,7 +2412,7 @@ Otherwise:
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Code span inside state*][s-code-span-inside]
 
-### 10.14 Code span inside state
+### 9.14 Code span inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2422,8 +2421,8 @@ Otherwise:
     Unset `sizeOpen` and reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Code span inside start after state*][s-code-span-inside-start-after]
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and switch
+    to the [*Code span inside start after state*][s-code-span-inside-start-after]
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
     Enqueue a [*Sequence token*][t-sequence], let `sizeClose` be `1`, consume, and switch to the
@@ -2432,11 +2431,11 @@ Otherwise:
 
     Consume
 
-### 10.15 Code span close state
+### 9.15 Code span close state
 
 *   ↪ **[EOF][ceof]**
 
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, enqueue a
     [*Text code label*][l-text-code], and reconsume in the [*After punctuation state*][s-after-punctuation]
 
     > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
@@ -2445,22 +2444,22 @@ Otherwise:
     [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, enqueue a
     [*Text code label*][l-text-code], and reconsume in the [*After punctuation state*][s-after-punctuation]
 
-    Otherwise, unset `sizeClose`, emit [*Text soft break label*][l-text-soft-break], enqueue an
+    Otherwise, unset `sizeClose`, enqueue a [*Text soft break label*][l-text-soft-break], enqueue an
     [*End-of-line token*][t-end-of-line], consume, and switch to the [*Code span inside start after state*][s-code-span-inside-start-after]
 *   ↪ **U+0060 GRAVE ACCENT (`` ` ``)**
 
     Increment `sizeClose` by `1` and consume
 *   ↪ **Anything else**
 
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, emit
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, enqueue a
     [*Text code label*][l-text-code], and reconsume in the [*After punctuation state*][s-after-punctuation]
 
     Otherwise, unset `sizeClose`, consume, and switch to the [*Code span inside state*][s-code-span-inside]
 
-### 10.16 Emphasis underscore state
+### 9.16 Emphasis underscore state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -2485,26 +2484,27 @@ Otherwise:
     `'whitespace'`, and that either `delimiterRunBefore` is not `'punctuation'`
     or that `delimiterRunAfter` is not `null`
 
-    Unset `delimiterRunBefore`, unset `delimiterRunAfter`, emit [*Text emphasis label*][l-text-emphasis],
-    and reconsume in the [*After punctuation state*][s-after-punctuation]
+    Unset `delimiterRunBefore`, unset `delimiterRunAfter`, enqueue a
+    [*Text emphasis label*][l-text-emphasis], and reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.17 Escape backslash after state
+### 9.17 Escape backslash after state
 
 *   ↪ **[EOL][ceol]**
 
     If text is parsed as rich text, and the break represented by the character
-    does not start with a [*Whitespace token*][t-whitespace], emit [*Text hard break label*][l-text-hard-break], enqueue an
+    does not start with a [*Whitespace token*][t-whitespace], enqueue a [*Text hard break label*][l-text-hard-break], enqueue an
     [*End-of-line token*][t-end-of-line], consume, and switch to the [*After whitespace state*][s-after-whitespace]
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **[ASCII punctuation][ascii-punctuation]**
 
-    Enqueue a [*Content token*][t-content], consume, emit [*Text escape label*][l-text-escape], and switch to the [*Text state*][s-text]
+    Enqueue a [*Content token*][t-content], consume, enqueue a [*Text escape label*][l-text-escape], and switch to the
+    [*Text state*][s-text]
 *   ↪ **Anything else**
 
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.18 HTML or autolink less than after state
+### 9.18 HTML or autolink less than after state
 
 *   ↪ **U+0021 EXCLAMATION MARK (`!`)**
 
@@ -2529,7 +2529,7 @@ Otherwise:
 
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.19 HTML instruction or email atext state
+### 9.19 HTML instruction or email atext state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
@@ -2553,7 +2553,7 @@ Otherwise:
 
     Consume and switch to the [*HTML instruction state*][s-html-instruction]
 
-### 10.20 HTML instruction close or email atext state
+### 9.20 HTML instruction close or email atext state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
@@ -2564,7 +2564,7 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
+    Consume, enqueue a [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
     Consume
@@ -2580,7 +2580,7 @@ Otherwise:
 
     Consume and switch to the [*HTML instruction state*][s-html-instruction]
 
-### 10.21 HTML instruction or email at sign or dot state
+### 9.21 HTML instruction or email at sign or dot state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
@@ -2602,7 +2602,7 @@ Otherwise:
 
     Unset `sizeLabel`, consume, and switch to the [*HTML instruction state*][s-html-instruction]
 
-### 10.22 HTML instruction or email label state
+### 9.22 HTML instruction or email label state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
@@ -2625,8 +2625,8 @@ Otherwise:
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Unset `sizeLabel`, consume, emit [*Text autolink email label*][l-text-autolink-email], and switch to the
-    [*After punctuation state*][s-after-punctuation]
+    Unset `sizeLabel`, consume, enqueue a [*Text autolink email label*][l-text-autolink-email], and switch to
+    the [*After punctuation state*][s-after-punctuation]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
     Unset `sizeLabel`, consume, and switch to the [*HTML instruction close state*][s-html-instruction-close]
@@ -2640,7 +2640,7 @@ Otherwise:
 
     Unset `sizeLabel`, consume, and switch to the [*HTML instruction state*][s-html-instruction]
 
-### 10.23 HTML instruction or email dash state
+### 9.23 HTML instruction or email dash state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**
@@ -2668,7 +2668,7 @@ Otherwise:
 
     Unset `sizeLabel`, consume, and switch to the [*HTML instruction state*][s-html-instruction]
 
-### 10.24 HTML instruction state
+### 9.24 HTML instruction state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2678,8 +2678,8 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a
-    [*Content token*][t-content]
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue
+    a [*Content token*][t-content]
 *   ↪ **U+003F QUESTION MARK (`?`)**
 
     Consume and switch to the [*HTML instruction close state*][s-html-instruction-close]
@@ -2687,7 +2687,7 @@ Otherwise:
 
     Consume
 
-### 10.25 HTML instruction close state
+### 9.25 HTML instruction close state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2697,16 +2697,16 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
     [*Content token*][t-content], and switch to the [*HTML instruction state*][s-html-instruction]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
+    Consume, enqueue a [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     Consume
 
-### 10.26 HTML declaration or email atext state
+### 9.26 HTML declaration or email atext state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -2733,7 +2733,7 @@ Otherwise:
 
     Reconsume in the [*Text state*][s-text]
 
-### 10.27 HTML comment open inside or email atext state
+### 9.27 HTML comment open inside or email atext state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -2750,7 +2750,7 @@ Otherwise:
 
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.28 HTML comment or email atext state
+### 9.28 HTML comment or email atext state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2773,7 +2773,7 @@ Otherwise:
 
     Reconsume in the [*HTML comment state*][s-html-comment]
 
-### 10.29 HTML comment close inside or email atext state
+### 9.29 HTML comment close inside or email atext state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2796,7 +2796,7 @@ Otherwise:
 
     Reconsume in the [*HTML comment state*][s-html-comment]
 
-### 10.30 HTML comment close or email atext state
+### 9.30 HTML comment close or email atext state
 
 > **Note**: a comment may not contain two dashes (`--`), and may not end in a
 > dash (which would result in `--->`).
@@ -2805,7 +2805,7 @@ Otherwise:
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
+    Consume, enqueue a [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -2820,7 +2820,7 @@ Otherwise:
 
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.31 HTML comment or email at sign or dot state
+### 9.31 HTML comment or email at sign or dot state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2840,7 +2840,7 @@ Otherwise:
 
     Unset `sizeLabel` and reconsume in the [*HTML comment state*][s-html-comment]
 
-### 10.32 HTML comment or email label state
+### 9.32 HTML comment or email label state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2862,8 +2862,8 @@ Otherwise:
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Unset `sizeLabel`, consume, emit [*Text autolink email label*][l-text-autolink-email], and switch to the
-    [*After punctuation state*][s-after-punctuation]
+    Unset `sizeLabel`, consume, enqueue a [*Text autolink email label*][l-text-autolink-email], and switch to
+    the [*After punctuation state*][s-after-punctuation]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2874,7 +2874,7 @@ Otherwise:
 
     Unset `sizeLabel` and reconsume in the [*HTML comment state*][s-html-comment]
 
-### 10.33 HTML comment close inside or email label dash state
+### 9.33 HTML comment close inside or email label dash state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+003E GREATER THAN (`>`)**
@@ -2898,7 +2898,7 @@ Otherwise:
 
     Unset `sizeLabel` and reconsume in the [*HTML comment state*][s-html-comment]
 
-### 10.34 HTML comment close or email label dash state
+### 9.34 HTML comment close or email label dash state
 
 > **Note**: a comment may not contain two dashes (`--`), and may not end in a
 > dash (which would result in `--->`).
@@ -2907,7 +2907,7 @@ Otherwise:
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Unset `sizeLabel`, consume, emit [*Text HTML label*][l-text-html], and switch to the
+    Unset `sizeLabel`, consume, enqueue a [*Text HTML label*][l-text-html], and switch to the
     [*After punctuation state*][s-after-punctuation]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
@@ -2921,7 +2921,7 @@ Otherwise:
 
     Unset `sizeLabel` and reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.35 HTML comment state
+### 9.35 HTML comment state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2931,8 +2931,8 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a
-    [*Content token*][t-content]
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue
+    a [*Content token*][t-content]
 *   ↪ **U+002D DASH (`-`)**
 
     Consume and switch to the [*HTML comment close inside state*][s-html-comment-close-inside]
@@ -2940,7 +2940,7 @@ Otherwise:
 
     Consume
 
-### 10.36 HTML comment close inside state
+### 9.36 HTML comment close inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2949,7 +2949,7 @@ Otherwise:
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
     [*Content token*][t-content], and switch to the [*HTML comment state*][s-html-comment]
 *   ↪ **U+002D DASH (`-`)**
 
@@ -2958,7 +2958,7 @@ Otherwise:
 
     Consume
 
-### 10.37 HTML comment close state
+### 9.37 HTML comment close state
 
 > **Note**: a comment may not contain two dashes (`--`), and may not end in a
 > dash (which would result in `--->`).
@@ -2967,14 +2967,14 @@ Otherwise:
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
+    Consume, enqueue a [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
 
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.38 HTML CDATA state
+### 9.38 HTML CDATA state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2983,16 +2983,16 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a
-    [*Content token*][t-content]
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue
+    a [*Content token*][t-content]
 *   ↪ **`]]>` (two of U+005D RIGHT SQUARE BRACKET (`]`), with a U+003E GREATER THAN (`>`) after)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
+    Consume, enqueue a [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     Consume
 
-### 10.39 HTML declaration name or email atext state
+### 9.39 HTML declaration name or email atext state
 
 *   ↪ **[EOL][ceol]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
@@ -3016,24 +3016,24 @@ Otherwise:
 
     Reconsume in the [*Text state*][s-text]
 
-### 10.40 HTML declaration between state
+### 9.40 HTML declaration between state
 
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a
-    [*Content token*][t-content]
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue
+    a [*Content token*][t-content]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Consume
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
+    Consume, enqueue a [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     Reconsume in the [*HTML declaration content state*][s-html-declaration-content]
 
-### 10.41 HTML declaration content state
+### 9.41 HTML declaration content state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3043,16 +3043,16 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a
-    [*Content token*][t-content]
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue
+    a [*Content token*][t-content]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
+    Consume, enqueue a [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     Consume
 
-### 10.42 HTML tag close or email atext state
+### 9.42 HTML tag close or email atext state
 
 *   ↪ **U+0040 AT SIGN (`@`)**
 
@@ -3071,7 +3071,7 @@ Otherwise:
 
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.43 HTML tag close inside or email atext state
+### 9.43 HTML tag close inside or email atext state
 
 *   ↪ **[EOL][ceol]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
@@ -3080,7 +3080,7 @@ Otherwise:
     Reconsume in the [*HTML tag close between state*][s-html-tag-close-between]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
+    Consume, enqueue a [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **U+0040 AT SIGN (`@`)**
 
     Consume, let `sizeLabel` be `1`, and switch to the
@@ -3099,7 +3099,7 @@ Otherwise:
 
     Reconsume in the [*Text state*][s-text]
 
-### 10.44 HTML tag close between state
+### 9.44 HTML tag close between state
 
 > **Note**: an EOL would technically be allowed here, but anything else isn’t,
 > and as a `>` after an EOL would start a blockquote, practically it’s not
@@ -3107,14 +3107,14 @@ Otherwise:
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
+    Consume, enqueue a [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat if extensions are supported
 
     Reconsume in the [*After whitespace state*][s-after-whitespace]
 
-### 10.45 HTML tag open scheme or email atext state
+### 9.45 HTML tag open scheme or email atext state
 
 *   ↪ **U+002B PLUS SIGN (`+`)**\
     ↪ **U+002E DOT (`.`)**
@@ -3123,7 +3123,7 @@ Otherwise:
     [*Autolink scheme inside or email atext state*][s-autolink-scheme-inside-or-email-atext]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Unset `sizeScheme`, consume, emit [*Text HTML label*][l-text-html], and switch to the
+    Unset `sizeScheme`, consume, enqueue a [*Text HTML label*][l-text-html], and switch to the
     [*After punctuation state*][s-after-punctuation]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
     ↪ **U+002D DASH (`-`)**
@@ -3139,11 +3139,11 @@ Otherwise:
 
     Unset `sizeScheme` and reconsume in the [*Text state*][s-text]
 
-### 10.46 HTML tag open inside scheme inside or email atext state
+### 9.46 HTML tag open inside scheme inside or email atext state
 
 *   ↪ **[EOL][ceol]**
 
-    Unset `sizeScheme`, emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line],
+    Unset `sizeScheme`, enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line],
     consume, enqueue a [*Content token*][t-content], and switch to the
     [*HTML tag open between start after state*][s-html-tag-open-between-start-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
@@ -3180,11 +3180,11 @@ Otherwise:
 
     Unset `sizeScheme` and reconsume in the [*Text state*][s-text]
 
-### 10.47 HTML tag open inside or email atext state
+### 9.47 HTML tag open inside or email atext state
 
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
     [*Content token*][t-content], and switch to the [*HTML tag open between start after state*][s-html-tag-open-between-start-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -3208,7 +3208,7 @@ Otherwise:
 
     Reconsume in the [*Text state*][s-text]
 
-### 10.48 HTML tag open between start after state
+### 9.48 HTML tag open between start after state
 
 > **Note**: EOL is not possible.
 
@@ -3220,11 +3220,11 @@ Otherwise:
 
     Reconsume in the [*HTML tag open between state*][s-html-tag-open-between]
 
-### 10.49 HTML tag open between state
+### 9.49 HTML tag open between state
 
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
     [*Content token*][t-content], and switch to the [*HTML tag open between start after state*][s-html-tag-open-between-start-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -3235,7 +3235,7 @@ Otherwise:
     Consume and switch to the [*HTML tag open self closing state*][s-html-tag-open-self-closing]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
+    Consume, enqueue a [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **[ASCII alpha][ascii-alpha]**\
     ↪ **U+003A COLON (`:`)**\
     ↪ **U+005F UNDERSCORE (`_`)**
@@ -3247,7 +3247,7 @@ Otherwise:
 
     Reconsume in the [*After whitespace state*][s-after-whitespace]
 
-### 10.50 HTML tag open attribute name state
+### 9.50 HTML tag open attribute name state
 
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**\
     ↪ **U+002D DASH (`-`)**\
@@ -3260,12 +3260,12 @@ Otherwise:
 
     Reconsume in the [*HTML tag open attribute name after state*][s-html-tag-open-attribute-name-after]
 
-### 10.51 HTML tag open attribute name after state
+### 9.51 HTML tag open attribute name after state
 
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a
-    [*Content token*][t-content]
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue
+    a [*Content token*][t-content]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -3278,19 +3278,19 @@ Otherwise:
     Consume and switch to the [*HTML tag open attribute value before state*][s-html-tag-open-attribute-value-before]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
+    Consume, enqueue a [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
 
     Reconsume in the [*Text state*][s-text]
 
-### 10.52 HTML tag open attribute value before state
+### 9.52 HTML tag open attribute value before state
 
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a
-    [*Content token*][t-content]
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue
+    a [*Content token*][t-content]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -3313,7 +3313,7 @@ Otherwise:
 
     Consume and switch to the [*HTML tag open unquoted attribute value state*][s-html-tag-open-unquoted-attribute-value]
 
-### 10.53 HTML tag open double quoted attribute value state
+### 9.53 HTML tag open double quoted attribute value state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3322,8 +3322,8 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a
-    [*Content token*][t-content]
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue
+    a [*Content token*][t-content]
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
     Consume and switch to the [*HTML tag open between state*][s-html-tag-open-between]
@@ -3331,7 +3331,7 @@ Otherwise:
 
     Consume
 
-### 10.54 HTML tag open single quoted attribute value state
+### 9.54 HTML tag open single quoted attribute value state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3340,8 +3340,8 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue a
-    [*Content token*][t-content]
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and enqueue
+    a [*Content token*][t-content]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
     Consume and switch to the [*HTML tag open between state*][s-html-tag-open-between]
@@ -3349,7 +3349,7 @@ Otherwise:
 
     Consume
 
-### 10.55 HTML tag open unquoted attribute value state
+### 9.55 HTML tag open unquoted attribute value state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **U+0022 QUOTATION MARK (`"`)**\
@@ -3363,7 +3363,7 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
     [*Content token*][t-content], and switch to the [*HTML tag open between state*][s-html-tag-open-between]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**\\
@@ -3371,23 +3371,23 @@ Otherwise:
     Consume and switch to the [*HTML tag open between state*][s-html-tag-open-between]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
+    Consume, enqueue a [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     Consume
 
-### 10.56 HTML tag open self closing state
+### 9.56 HTML tag open self closing state
 
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
+    Consume, enqueue a [*Text HTML label*][l-text-html], and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
 
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.57 Autolink scheme inside or email atext state
+### 9.57 Autolink scheme inside or email atext state
 
 *   ↪ **U+003A COLON (`:`)**
 
@@ -3413,7 +3413,7 @@ Otherwise:
 
     Unset `sizeScheme` and reconsume in the [*Text state*][s-text]
 
-### 10.58 Autolink URI inside state
+### 9.58 Autolink URI inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -3426,12 +3426,13 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Consume, emit [*Text autolink URI label*][l-text-autolink-uri], and switch to the [*After punctuation state*][s-after-punctuation]
+    Consume, enqueue a [*Text autolink URI label*][l-text-autolink-uri], and switch to the
+    [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     Consume
 
-### 10.59 Autolink email atext state
+### 9.59 Autolink email atext state
 
 *   ↪ **U+0040 AT SIGN (`@`)**
 
@@ -3447,7 +3448,7 @@ Otherwise:
 
     Reconsume in the [*Text state*][s-text]
 
-### 10.60 Autolink email label state
+### 9.60 Autolink email label state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -3463,8 +3464,8 @@ Otherwise:
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Unset `sizeLabel`, consume, emit [*Text autolink email label*][l-text-autolink-email], and switch to the
-    [*After punctuation state*][s-after-punctuation]
+    Unset `sizeLabel`, consume, enqueue a [*Text autolink email label*][l-text-autolink-email], and switch to
+    the [*After punctuation state*][s-after-punctuation]
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1` and consume
@@ -3476,7 +3477,7 @@ Otherwise:
 
     Unset `sizeLabel` and reconsume in the [*Text state*][s-text]
 
-### 10.61 Autolink email at sign or dot state
+### 9.61 Autolink email at sign or dot state
 
 *   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
 
@@ -3490,7 +3491,7 @@ Otherwise:
 
     Unset `sizeLabel` and reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.62 Autolink email dash state
+### 9.62 Autolink email dash state
 
 *   ↪ **U+002D DASH (`-`)**
 
@@ -3509,11 +3510,11 @@ Otherwise:
 
     Unset `sizeLabel` and reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.63 Image exclamation mark after state
+### 9.63 Image exclamation mark after state
 
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit [*Text image open label*][l-text-image-open], and switch to the
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text image open label*][l-text-image-open], and switch to the
     [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
@@ -3521,21 +3522,21 @@ Otherwise:
 
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.64 Resource text or label after state
+### 9.64 Resource text or label after state
 
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit [*Text resource information open label*][l-text-resource-information-open], and
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text resource information open label*][l-text-resource-information-open], and
     switch to the [*Resource information open state*][s-resource-information-open]
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit [*Text reference label open label*][l-text-reference-label-open], and switch to
-    the [*Reference label open after state*][s-reference-label-open-after]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text reference label open label*][l-text-reference-label-open], and
+    switch to the [*Reference label open after state*][s-reference-label-open-after]
 *   ↪ **Anything else**
 
     > ❗️ Todo: shortcut reference
 
-### 10.65 Resource information open state
+### 9.65 Resource information open state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3544,7 +3545,7 @@ Otherwise:
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -3552,12 +3553,12 @@ Otherwise:
     [*Resource information open after state*][s-resource-information-open-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
-    switch to the [*After punctuation state*][s-after-punctuation]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text resource information close label*][l-text-resource-information-close],
+    and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Emit a [*Text resource destination quoted open label*][l-text-resource-destination-quoted-open], enqueue a [*Marker token*][t-marker], consume,
-    and switch to the [*Resource destination quoted open after state*][s-resource-destination-quoted-open-after]
+    Enqueue a [*Text resource destination quoted open label*][l-text-resource-destination-quoted-open], enqueue a [*Marker token*][t-marker],
+    consume, and switch to the [*Resource destination quoted open after state*][s-resource-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
     > ❗️ Todo: retreat
@@ -3565,11 +3566,11 @@ Otherwise:
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, emit a [*Text resource destination unquoted open label*][l-text-resource-destination-unquoted-open],
+    Let `balance` be `0`, enqueue a [*Text resource destination unquoted open label*][l-text-resource-destination-unquoted-open],
     enqueue a [*Content token*][t-content] and reconsume in the
     [*Resource destination unquoted inside state*][s-resource-destination-unquoted-inside]
 
-### 10.66 Resource information open after state
+### 9.66 Resource information open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3578,7 +3579,7 @@ Otherwise:
     Reconsume in the [*After whitespace state*][s-after-whitespace]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
     [*Content token*][t-content], and switch to the [*Resource information open state*][s-resource-information-open]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -3586,12 +3587,12 @@ Otherwise:
     Consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
-    switch to the [*After punctuation state*][s-after-punctuation]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text resource information close label*][l-text-resource-information-close],
+    and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Emit a [*Text resource destination quoted open label*][l-text-resource-destination-quoted-open], enqueue a [*Marker token*][t-marker], consume,
-    and switch to the [*Resource destination quoted open after state*][s-resource-destination-quoted-open-after]
+    Enqueue a [*Text resource destination quoted open label*][l-text-resource-destination-quoted-open], enqueue a [*Marker token*][t-marker],
+    consume, and switch to the [*Resource destination quoted open after state*][s-resource-destination-quoted-open-after]
 *   ↪ **[ASCII control][ascii-control]**
 
     > ❗️ Todo: retreat
@@ -3599,11 +3600,11 @@ Otherwise:
     Reconsume in the [*After whitespace state*][s-after-whitespace]
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, emit a [*Text resource destination unquoted open label*][l-text-resource-destination-unquoted-open],
+    Let `balance` be `0`, enqueue a [*Text resource destination unquoted open label*][l-text-resource-destination-unquoted-open],
     enqueue a [*Content token*][t-content] and reconsume in the
     [*Resource destination unquoted inside state*][s-resource-destination-unquoted-inside]
 
-### 10.67 Resource destination quoted open after state
+### 9.67 Resource destination quoted open after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -3614,7 +3615,7 @@ Otherwise:
     Reconsume in the [*After whitespace state*][s-after-whitespace]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a
     [*Text resource destination quoted close label*][l-text-resource-destination-quoted-close], and switch to the
     [*Resource destination quoted close after state*][s-resource-destination-quoted-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -3626,7 +3627,7 @@ Otherwise:
     Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Resource destination quoted inside state*][s-resource-destination-quoted-inside]
 
-### 10.68 Resource destination quoted inside state
+### 9.68 Resource destination quoted inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -3637,7 +3638,7 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a
     [*Text resource destination quoted close label*][l-text-resource-destination-quoted-close], and switch to the
     [*Resource destination quoted close after state*][s-resource-destination-quoted-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
@@ -3647,7 +3648,7 @@ Otherwise:
 
     Consume
 
-### 10.69 Resource destination quoted escape state
+### 9.69 Resource destination quoted escape state
 
 *   ↪ **U+003C LESS THAN (`<`)**\
     ↪ **U+003E GREATER THAN (`>`)**\
@@ -3658,7 +3659,7 @@ Otherwise:
 
     Reconsume in the [*Resource destination quoted inside state*][s-resource-destination-quoted-inside]
 
-### 10.70 Resource destination quoted close after state
+### 9.70 Resource destination quoted close after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3667,7 +3668,7 @@ Otherwise:
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
     [*Content token*][t-content], and switch to the [*Resource information between state*][s-resource-information-between]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -3676,19 +3677,19 @@ Otherwise:
     [*Resource information between after state*][s-resource-information-between-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
-    switch to the [*After punctuation state*][s-after-punctuation]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text resource information close label*][l-text-resource-information-close],
+    and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat
 
     Reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 10.71 Resource information between state
+### 9.71 Resource information between state
 
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -3698,7 +3699,7 @@ Otherwise:
 
     Reconsume in the [*Resource information between after state*][s-resource-information-between-after]
 
-### 10.72 Resource information between after state
+### 9.72 Resource information between after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3707,7 +3708,7 @@ Otherwise:
     Reconsume in the [*After whitespace state*][s-after-whitespace]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
     [*Content token*][t-content], and switch to the [*Resource information between state*][s-resource-information-between]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -3715,27 +3716,27 @@ Otherwise:
     Consume
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Emit a [*Text resource title open label*][l-text-resource-title-open], enqueue a [*Marker token*][t-marker], consume, and switch
-    to the [*Resource title double quoted open after state*][s-resource-title-double-quoted-open-after]
+    Enqueue a [*Text resource title open label*][l-text-resource-title-open], enqueue a [*Marker token*][t-marker], consume, and
+    switch to the [*Resource title double quoted open after state*][s-resource-title-double-quoted-open-after]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Emit a [*Text resource title open label*][l-text-resource-title-open], enqueue a [*Marker token*][t-marker], consume, and switch
-    to the [*Resource title single quoted open after state*][s-resource-title-single-quoted-open-after]
+    Enqueue a [*Text resource title open label*][l-text-resource-title-open], enqueue a [*Marker token*][t-marker], consume, and
+    switch to the [*Resource title single quoted open after state*][s-resource-title-single-quoted-open-after]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
-    Emit a [*Text resource title open label*][l-text-resource-title-open], enqueue a [*Marker token*][t-marker], consume, and switch
-    to the [*Resource title paren quoted open after state*][s-resource-title-paren-quoted-open-after]
+    Enqueue a [*Text resource title open label*][l-text-resource-title-open], enqueue a [*Marker token*][t-marker], consume, and
+    switch to the [*Resource title paren quoted open after state*][s-resource-title-paren-quoted-open-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
-    switch to the [*After punctuation state*][s-after-punctuation]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text resource information close label*][l-text-resource-information-close],
+    and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat
 
     Reconsume in the [*Initial whitespace state*][s-initial-whitespace]
 
-### 10.73 Resource destination unquoted inside state
+### 9.73 Resource destination unquoted inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3746,16 +3747,16 @@ Otherwise:
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Unset `balance`, emit a [*Text resource destination unquoted close label*][l-text-resource-destination-unquoted-close], and
+    Unset `balance`, enqueue a [*Text resource destination unquoted close label*][l-text-resource-destination-unquoted-close], and
     reconsume in the [*Resource information between state*][s-resource-information-between]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
     Increment `balance` by `1` and consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    If `balance` is `0`, unset `balance`, emit a
+    If `balance` is `0`, unset `balance`, enqueue a
     [*Text resource destination unquoted close label*][l-text-resource-destination-unquoted-close], enqueue a [*Marker token*][t-marker], consume,
-    emit a [*Text resource information close label*][l-text-resource-information-close], and switch to the
+    enqueue a [*Text resource information close label*][l-text-resource-information-close], and switch to the
     [*After punctuation state*][s-after-punctuation]
 
     Otherwise, decrement `balance` by `1`, and consume
@@ -3771,7 +3772,7 @@ Otherwise:
 
     Consume
 
-### 10.74 Resource destination unquoted escape state
+### 9.74 Resource destination unquoted escape state
 
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**\
     ↪ **U+0029 RIGHT PARENTHESIS (`)`)**\
@@ -3782,7 +3783,7 @@ Otherwise:
 
     Reconsume in the [*Resource destination unquoted inside state*][s-resource-destination-unquoted-inside]
 
-### 10.75 Resource title double quoted open after state
+### 9.75 Resource title double quoted open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3791,11 +3792,11 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource title close label*][l-text-resource-title-close], and switch
-    to the [*Resource title close after state*][s-resource-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text resource title close label*][l-text-resource-title-close], and
+    switch to the [*Resource title close after state*][s-resource-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
@@ -3805,7 +3806,7 @@ Otherwise:
     Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Resource title double quoted inside state*][s-resource-title-double-quoted-inside]
 
-### 10.76 Resource title double quoted inside state
+### 9.76 Resource title double quoted inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3814,12 +3815,12 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
     [*Content token*][t-content], and switch to the [*Resource title double quoted open after state*][s-resource-title-double-quoted-open-after]
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource title close label*][l-text-resource-title-close], and switch
-    to the [*Resource title close after state*][s-resource-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text resource title close label*][l-text-resource-title-close], and
+    switch to the [*Resource title close after state*][s-resource-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Resource title double quoted escape state*][s-resource-title-double-quoted-escape]
@@ -3827,7 +3828,7 @@ Otherwise:
 
     Consume
 
-### 10.77 Resource title double quoted escape state
+### 9.77 Resource title double quoted escape state
 
 *   ↪ **U+0022 QUOTATION MARK (`"`)**\
     ↪ **U+005C BACKSLASH (`\`)**
@@ -3837,7 +3838,7 @@ Otherwise:
 
     Reconsume in the [*Resource title double quoted open after state*][s-resource-title-double-quoted-open-after]
 
-### 10.78 Resource title single quoted open after state
+### 9.78 Resource title single quoted open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3846,11 +3847,11 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource title close label*][l-text-resource-title-close], and switch
-    to the [*Resource title close after state*][s-resource-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text resource title close label*][l-text-resource-title-close], and
+    switch to the [*Resource title close after state*][s-resource-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
@@ -3860,7 +3861,7 @@ Otherwise:
     Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Resource title single quoted inside state*][s-resource-title-single-quoted-inside]
 
-### 10.79 Resource title single quoted inside state
+### 9.79 Resource title single quoted inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3869,12 +3870,12 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
     [*Content token*][t-content], and switch to the [*Resource title single quoted open after state*][s-resource-title-single-quoted-open-after]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource title close label*][l-text-resource-title-close], and switch
-    to the [*Resource title close after state*][s-resource-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text resource title close label*][l-text-resource-title-close], and
+    switch to the [*Resource title close after state*][s-resource-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Resource title single quoted escape state*][s-resource-title-single-quoted-escape]
@@ -3882,7 +3883,7 @@ Otherwise:
 
     Consume
 
-### 10.80 Resource title single quoted escape state
+### 9.80 Resource title single quoted escape state
 
 *   ↪ **U+0027 APOSTROPHE (`'`)**\
     ↪ **U+005C BACKSLASH (`\`)**
@@ -3892,7 +3893,7 @@ Otherwise:
 
     Reconsume in the [*Resource title single quoted open after state*][s-resource-title-single-quoted-open-after]
 
-### 10.81 Resource title paren quoted open after state
+### 9.81 Resource title paren quoted open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3901,11 +3902,11 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource title close label*][l-text-resource-title-close], and switch
-    to the [*Resource title close after state*][s-resource-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text resource title close label*][l-text-resource-title-close], and
+    switch to the [*Resource title close after state*][s-resource-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the
@@ -3915,7 +3916,7 @@ Otherwise:
     Enqueue a [*Content token*][t-content], consume, and switch to the
     [*Resource title paren quoted inside state*][s-resource-title-paren-quoted-inside]
 
-### 10.82 Resource title paren quoted inside state
+### 9.82 Resource title paren quoted inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3924,12 +3925,12 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
     [*Content token*][t-content], and switch to the [*Resource title paren quoted open after state*][s-resource-title-paren-quoted-open-after]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource title close label*][l-text-resource-title-close], and switch
-    to the [*Resource title close after state*][s-resource-title-close-after]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text resource title close label*][l-text-resource-title-close], and
+    switch to the [*Resource title close after state*][s-resource-title-close-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Consume and switch to the [*Resource title paren quoted escape state*][s-resource-title-paren-quoted-escape]
@@ -3937,7 +3938,7 @@ Otherwise:
 
     Consume
 
-### 10.83 Resource title paren quoted escape state
+### 9.83 Resource title paren quoted escape state
 
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**\
     ↪ **U+005C BACKSLASH (`\`)**
@@ -3947,7 +3948,7 @@ Otherwise:
 
     Reconsume in the [*Resource title paren quoted open after state*][s-resource-title-paren-quoted-open-after]
 
-### 10.84 Resource title close after state
+### 9.84 Resource title close after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -3956,7 +3957,7 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
@@ -3964,15 +3965,15 @@ Otherwise:
     [*Resource information close before state*][s-resource-information-close-before]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
-    switch to the [*After punctuation state*][s-after-punctuation]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text resource information close label*][l-text-resource-information-close],
+    and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
 
     Reconsume in the [*Text state*][s-text]
 
-### 10.85 Resource information close before state
+### 9.85 Resource information close before state
 
 *   ↪ **[EOL][ceol]**
 
@@ -3983,15 +3984,15 @@ Otherwise:
     Consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text resource information close label*][l-text-resource-information-close], and
-    switch to the [*After punctuation state*][s-after-punctuation]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text resource information close label*][l-text-resource-information-close],
+    and switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
 
     Reconsume in the [*After whitespace state*][s-after-whitespace]
 
-### 10.86 Reference label open after state
+### 9.86 Reference label open after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -4000,20 +4001,20 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
     Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Reference label before state*][s-reference-label-before]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text reference label close label*][l-text-reference-label-close], and switch
-    to the [*After punctuation state*][s-after-punctuation]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text reference label close label*][l-text-reference-label-close], and
+    switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
 
-### 10.87 Reference label before state
+### 9.87 Reference label before state
 
 > **Note**: EOL is not possible.
 
@@ -4032,7 +4033,7 @@ Otherwise:
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
 
-### 10.88 Reference label inside state
+### 9.88 Reference label inside state
 
 *   ↪ **[EOF][ceof]**
 
@@ -4041,7 +4042,7 @@ Otherwise:
     Reconsume in the [*Text state*][s-text]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
     [*Content token*][t-content], and switch to the [*Reference label inside start after state*][s-reference-label-inside-start-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -4052,13 +4053,13 @@ Otherwise:
     Consume and switch to the [*Reference label escape state*][s-reference-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text reference label close label*][l-text-reference-label-close], and switch
-    to the [*After punctuation state*][s-after-punctuation]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text reference label close label*][l-text-reference-label-close], and
+    switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     Consume
 
-### 10.89 Reference label inside start after state
+### 9.89 Reference label inside start after state
 
 > **Note**: EOL is not possible.
 
@@ -4076,13 +4077,13 @@ Otherwise:
     Consume and switch to the [*Reference label escape state*][s-reference-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text reference label close label*][l-text-reference-label-close], and switch
-    to the [*After punctuation state*][s-after-punctuation]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text reference label close label*][l-text-reference-label-close], and
+    switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
 
-### 10.90 Reference label between state
+### 9.90 Reference label between state
 
 *   ↪ **[EOF][ceof]**
 
@@ -4091,7 +4092,7 @@ Otherwise:
     Reconsume in the [*After whitespace state*][s-after-whitespace]
 *   ↪ **[EOL][ceol]**
 
-    Emit [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
+    Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume, enqueue a
     [*Content token*][t-content], and switch to the [*Reference label inside start after state*][s-reference-label-inside-start-after]
 *   ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -4102,13 +4103,13 @@ Otherwise:
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label escape state*][s-reference-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, emit a [*Text reference label close label*][l-text-reference-label-close], and switch
-    to the [*After punctuation state*][s-after-punctuation]
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Text reference label close label*][l-text-reference-label-close], and
+    switch to the [*After punctuation state*][s-after-punctuation]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Reference label inside state*][s-reference-label-inside]
 
-### 10.91 Reference label escape state
+### 9.91 Reference label escape state
 
 *   ↪ **U+005C BACKSLASH (`\`)**\
     ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
@@ -4118,19 +4119,19 @@ Otherwise:
 
     Reconsume in the [*Reference label inside state*][s-reference-label-inside]
 
-## 11 Labels
+## 10 Labels
 
-### 11.1 Content phrasing label
+### 10.1 Content phrasing label
 
 When a [*Content phrasing label*][l-content-phrasing] is received, the queue up to that point does not
 construct a definition.
 
-### 11.2 Content definition label
+### 10.2 Content definition label
 
 When a [*Content definition label*][l-content-definition] is received, the queue up to that point constructs a
 definition.
 
-### 11.3 Content definition partial label
+### 10.3 Content definition partial label
 
 When a [*Content definition partial label*][l-content-definition-partial] is received, the queue up to that point
 constructs a definition without a title.
@@ -4138,129 +4139,129 @@ It is later followed by a [*Content definition label*][l-content-definition] if 
 construct a title, or [*Content phrasing label*][l-content-phrasing] if further queued tokens do not
 construct a title.
 
-### 11.4 Content definition label open label
+### 10.4 Content definition label open label
 
 When a [*Content definition label open label*][l-content-definition-label-open] is received, …
 
-### 11.5 Content definition label close label
+### 10.5 Content definition label close label
 
 When a [*Content definition label close label*][l-content-definition-label-close] is received, …
 
-### 11.6 Content definition destination quoted open label
+### 10.6 Content definition destination quoted open label
 
 When a [*Content definition destination quoted open label*][l-content-definition-destination-quoted-open] is received, …
 
-### 11.7 Content definition destination quoted close label
+### 10.7 Content definition destination quoted close label
 
 When a [*Content definition destination quoted close label*][l-content-definition-destination-quoted-close] is received, …
 
-### 11.8 Content definition destination unquoted open label
+### 10.8 Content definition destination unquoted open label
 
 When a [*Content definition destination unquoted open label*][l-content-definition-destination-unquoted-open] is received, …
 
-### 11.9 Content definition destination unquoted close label
+### 10.9 Content definition destination unquoted close label
 
 When a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close] is received, …
 
-### 11.10 Content definition title open label
+### 10.10 Content definition title open label
 
 When a [*Content definition title open label*][l-content-definition-title-open] is received, …
 
-### 11.11 Content definition title close label
+### 10.11 Content definition title close label
 
 When a [*Content definition title close label*][l-content-definition-title-close] is received, …
 
-### 11.12 Text hard break label
+### 10.12 Text hard break label
 
 When a [*Text hard break label*][l-text-hard-break] is received, …
 
-### 11.13 Text soft break label
+### 10.13 Text soft break label
 
 When a [*Text hard break label*][l-text-hard-break] is received, …
 
-### 11.14 Text link open label
+### 10.14 Text link open label
 
 When a [*Text link open label*][l-text-link-open] is received, …
 
-### 11.15 Text image open label
+### 10.15 Text image open label
 
 When a [*Text image open label*][l-text-image-open] is received, …
 
-### 11.16 Text resource close label
+### 10.16 Text resource close label
 
 When a [*Text resource close label*][l-text-resource-close] is received, …
 
-### 11.17 Text reference label open label
+### 10.17 Text reference label open label
 
 When a [*Text reference label open label*][l-text-reference-label-open] is received, …
 
-### 11.18 Text reference label close label
+### 10.18 Text reference label close label
 
 When a [*Text reference label close label*][l-text-reference-label-close] is received, …
 
-### 11.19 Text resource information open label
+### 10.19 Text resource information open label
 
 When a [*Text resource information open label*][l-text-resource-information-open] is received, …
 
-### 11.20 Text resource destination quoted open label
+### 10.20 Text resource destination quoted open label
 
 When a [*Text resource destination quoted open label*][l-text-resource-destination-quoted-open] is received, …
 
-### 11.21 Text resource destination quoted close label
+### 10.21 Text resource destination quoted close label
 
 When a [*Text resource destination quoted close label*][l-text-resource-destination-quoted-close] is received, …
 
-### 11.22 Text resource destination unquoted open label
+### 10.22 Text resource destination unquoted open label
 
 When a [*Text resource destination unquoted open label*][l-text-resource-destination-unquoted-open] is received, …
 
-### 11.23 Text resource destination unquoted close label
+### 10.23 Text resource destination unquoted close label
 
 When a [*Text resource destination unquoted close label*][l-text-resource-destination-unquoted-close] is received, …
 
-### 11.24 Text resource title open label
+### 10.24 Text resource title open label
 
 When a [*Text resource title open label*][l-text-resource-title-open] is received, …
 
-### 11.25 Text resource title close label
+### 10.25 Text resource title close label
 
 When a [*Text resource title close label*][l-text-resource-title-close] is received, …
 
-### 11.26 Text resource information close label
+### 10.26 Text resource information close label
 
 When a [*Text resource information close label*][l-text-resource-information-close] is received, …
 
-### 11.27 Text emphasis label
+### 10.27 Text emphasis label
 
 When a [*Text emphasis label*][l-text-emphasis] is received, …
 
-### 11.28 Text character reference label
+### 10.28 Text character reference label
 
 When a [*Text character reference label*][l-text-character-reference] is received, …
 
-### 11.29 Text escape label
+### 10.29 Text escape label
 
 When a [*Text escape label*][l-text-escape] is received, …
 
-### 11.30 Text code label
+### 10.30 Text code label
 
 When a [*Text code label*][l-text-code] is received, …
 
-### 11.31 Text autolink email label
+### 10.31 Text autolink email label
 
 When a [*Text autolink email label*][l-text-autolink-email] is received, …
 
-### 11.32 Text autolink URI label
+### 10.32 Text autolink URI label
 
 When a [*Text autolink URI label*][l-text-autolink-uri] is received, …
 
-### 11.33 Text HTML label
+### 10.33 Text HTML label
 
 When a [*Text HTML label*][l-text-html] is received, …
 
-## 12 Processing
+## 11 Processing
 
-### 12.1 Process as an ATX heading
+### 11.1 Process as an ATX heading
 
 To <a id="process-as-an-atx-heading" href="#process-as-an-atx-heading">**process as an ATX heading**</a> is to perform the following steps:
 
@@ -4288,7 +4289,7 @@ To <a id="process-as-an-atx-heading" href="#process-as-an-atx-heading">**process
     *   Close
 *   Close
 
-### 12.2 Process as a Setext primary heading
+### 11.2 Process as a Setext primary heading
 
 To <a id="process-as-a-setext-primary-heading" href="#process-as-a-setext-primary-heading">**process as a Setext primary heading**</a> is to perform the following steps:
 
@@ -4307,7 +4308,7 @@ To <a id="process-as-a-setext-primary-heading" href="#process-as-a-setext-primar
     *   Emit the tokens before `index`
     *   Emit the tokens in the queue from `index` as a [*Content token*][t-content]
 
-### 12.3 Process as an asterisk line
+### 11.3 Process as an asterisk line
 
 To <a id="process-as-an-asterisk-line" href="#process-as-an-asterisk-line">**process as an asterisk line**</a> is to perform the following steps:
 
@@ -4315,7 +4316,7 @@ To <a id="process-as-an-asterisk-line" href="#process-as-an-asterisk-line">**pro
 > code, or content.
 > It’s easier to figure this out with a reference parser that is tested.
 
-### 12.4 Process as an asterisk line opening
+### 11.4 Process as an asterisk line opening
 
 To <a id="process-as-an-asterisk-line-opening" href="#process-as-an-asterisk-line-opening">**process as an asterisk line opening**</a> is to perform the following steps:
 
@@ -4323,7 +4324,7 @@ To <a id="process-as-an-asterisk-line-opening" href="#process-as-an-asterisk-lin
 > code, or content.
 > It’s easier to figure this out with a reference parser that is tested.
 
-### 12.5 Process as a Fenced code fence
+### 11.5 Process as a Fenced code fence
 
 To <a id="process-as-a-fenced-code-fence" href="#process-as-a-fenced-code-fence">**process as a Fenced code fence**</a> is to perform the following steps:
 
@@ -4362,22 +4363,22 @@ To <a id="process-as-a-fenced-code-fence" href="#process-as-a-fenced-code-fence"
 *   If there is a token at `lineEnd`, emit it.
 *   Close
 
-### 12.6 Process as Content
+### 11.6 Process as Content
 
-### 12.7 Process as plain text
+### 11.7 Process as plain text
 
 To <a id="process-as-plain-text" href="#process-as-plain-text">**process as plain text**</a> is to [process as Text][process-as-text] given `lines` and `kind`
 `plain`.
 
-### 12.8 Process as Phrasing
+### 11.8 Process as Phrasing
 
 To <a id="process-as-phrasing" href="#process-as-phrasing">**process as Phrasing**</a> is to [process as Text][process-as-text] given `lines`.
 
-### 12.9 Process as Text
+### 11.9 Process as Text
 
-## 13 Tokens
+## 12 Tokens
 
-### 13.1 Whitespace token
+### 12.1 Whitespace token
 
 A [*Whitespace token*][t-whitespace] represents inline whitespace that is part of syntax instead
 of content.
@@ -4399,7 +4400,7 @@ interface Whitespace <: Token {
 }
 ```
 
-### 13.2 Line terminator token
+### 12.2 Line terminator token
 
 A [*Line terminator token*][t-line-terminator] represents a line break.
 
@@ -4411,7 +4412,7 @@ interface LineEnding <: Token {}
 {type: 'lineEnding'}
 ```
 
-### 13.3 End-of-file token
+### 12.3 End-of-file token
 
 An [*End-of-file token*][t-end-of-file] represents the end of the syntax.
 
@@ -4423,7 +4424,7 @@ interface EndOfFile <: Token {}
 {type: 'endOfFile'}
 ```
 
-### 13.4 End-of-line token
+### 12.4 End-of-line token
 
 An [*End-of-line token*][t-end-of-line] represents a point between two runs of text in content.
 
@@ -4435,7 +4436,7 @@ interface EndOfLine <: Token {}
 {type: 'endOfLine'}
 ```
 
-### 13.5 Marker token
+### 12.5 Marker token
 
 A [*Marker token*][t-marker] represents one punctuation character that is part of syntax instead
 of content.
@@ -4448,7 +4449,7 @@ interface Marker <: Token {}
 {type: 'marker'}
 ```
 
-### 13.6 Sequence token
+### 12.6 Sequence token
 
 A [*Sequence token*][t-sequence] represents one or more of the same punctuation characters that are
 part of syntax instead of content.
@@ -4463,7 +4464,7 @@ interface Sequence <: Token {
 {type: 'sequence', size: 3}
 ```
 
-### 13.7 Content token
+### 12.7 Content token
 
 A [*Content token*][t-content] represents content.
 
@@ -4477,11 +4478,11 @@ interface Content <: Token {
 {type: 'content', prefix: '  '}
 ```
 
-## 14 Groups
+## 13 Groups
 
 Groups are named groups of tokens and other blocks.
 
-### 14.1 Blank line group
+### 13.1 Blank line group
 
 A [*Blank line group*][g-blank-line] represents an empty line.
 
@@ -4491,7 +4492,7 @@ interface BlankLine <: Group {
 }
 ```
 
-### 14.2 ATX heading group
+### 13.2 ATX heading group
 
 An [*ATX heading group*][g-atx-heading] represents a heading for a section.
 
@@ -4501,7 +4502,7 @@ interface AtxHeading <: Group {
 }
 ```
 
-### 14.3 ATX heading fence group
+### 13.3 ATX heading fence group
 
 An [*ATX heading fence group*][g-atx-heading-fence] represents a fence of a heading.
 
@@ -4511,7 +4512,7 @@ interface AtxHeadingFence <: Group {
 }
 ```
 
-### 14.4 ATX heading content group
+### 13.4 ATX heading content group
 
 An [*ATX heading content group*][g-atx-heading-content] represents the phrasing of a heading.
 
@@ -4521,7 +4522,7 @@ interface AtxHeadingContent <: Group {
 }
 ```
 
-### 14.5 Thematic break group
+### 13.5 Thematic break group
 
 A [*Thematic break group*][g-thematic-break] represents a thematic break in a section.
 
@@ -4531,7 +4532,7 @@ interface ThematicBreak <: Group {
 }
 ```
 
-### 14.6 HTML group
+### 13.6 HTML group
 
 An [*HTML group*][g-html] represents embedded HTML.
 
@@ -4541,7 +4542,7 @@ interface HTML <: Group {
 }
 ```
 
-### 14.7 HTML line group
+### 13.7 HTML line group
 
 An [*HTML line group*][g-html-line] represents a line of HTML.
 
@@ -4551,7 +4552,7 @@ interface HTMLLine <: Group {
 }
 ```
 
-### 14.8 Indented code group
+### 13.8 Indented code group
 
 An [*Indented code group*][g-indented-code] represents preformatted text.
 
@@ -4561,7 +4562,7 @@ interface IndentedCode <: Group {
 }
 ```
 
-### 14.9 Indented code line group
+### 13.9 Indented code line group
 
 An [*Indented code line group*][g-indented-code-line] represents a line of indented code.
 
@@ -4571,7 +4572,7 @@ interface IndentedCodeLine <: Group {
 }
 ```
 
-### 14.10 Blockquote group
+### 13.10 Blockquote group
 
 A [*Blockquote group*][g-blockquote] represents paraphrased text.
 
@@ -4581,7 +4582,7 @@ interface Blockquote <: Group {
 }
 ```
 
-### 14.11 Fenced code group
+### 13.11 Fenced code group
 
 A [*Fenced code group*][g-fenced-code] represents preformatted text.
 
@@ -4591,7 +4592,7 @@ interface FencedCode <: Group {
 }
 ```
 
-### 14.12 Fenced code fence group
+### 13.12 Fenced code fence group
 
 A [*Fenced code fence group*][g-fenced-code-fence] represents a fence of fenced code.
 
@@ -4601,7 +4602,7 @@ interface FencedCodeFence <: Group {
 }
 ```
 
-### 14.13 Fenced code language group
+### 13.13 Fenced code language group
 
 A [*Fenced code language group*][g-fenced-code-language] represents the programming language of fenced code.
 
@@ -4611,7 +4612,7 @@ interface FencedCodeLanguage <: Group {
 }
 ```
 
-### 14.14 Fenced code metadata group
+### 13.14 Fenced code metadata group
 
 A [*Fenced code metadata group*][g-fenced-code-metadata] represents the metadata about fenced code.
 
@@ -4621,7 +4622,7 @@ interface FencedCodeMetadata <: Group {
 }
 ```
 
-### 14.15 Fenced code line group
+### 13.15 Fenced code line group
 
 A [*Fenced code line group*][g-fenced-code-line] represents a line of fenced code.
 
@@ -4631,7 +4632,7 @@ interface FencedCodeLine <: Group {
 }
 ```
 
-### 14.16 Content group
+### 13.16 Content group
 
 A [*Content group*][g-content] represents content: definitions, paragraphs, and sometimes heading
 content.
@@ -4642,7 +4643,7 @@ interface Content <: Group {
 }
 ```
 
-### 14.17 Content line group
+### 13.17 Content line group
 
 A [*Content line group*][g-content-line] represents a line of content.
 
@@ -4652,7 +4653,7 @@ interface ContentLine <: Group {
 }
 ```
 
-### 14.18 Setext heading group
+### 13.18 Setext heading group
 
 A [*Setext heading group*][g-setext-heading] represents a heading for a section.
 
@@ -4662,7 +4663,7 @@ interface SetextHeading <: Group {
 }
 ```
 
-### 14.19 Setext heading underline group
+### 13.19 Setext heading underline group
 
 A [*Setext heading underline group*][g-setext-heading-underline] represents a fence of a heading.
 
@@ -4672,7 +4673,7 @@ interface SetextHeadingUnderline <: Group {
 }
 ```
 
-### 14.20 Definition group
+### 13.20 Definition group
 
 A [*Definition group*][g-definition] represents a link reference definition.
 
@@ -4682,7 +4683,7 @@ interface Definition <: Group {
 }
 ```
 
-### 14.21 Definition label group
+### 13.21 Definition label group
 
 A [*Definition label group*][g-definition-label] represents the label of a definition.
 
@@ -4692,7 +4693,7 @@ interface DefinitionLabel <: Group {
 }
 ```
 
-### 14.22 Definition label content group
+### 13.22 Definition label content group
 
 A [*Definition label content group*][g-definition-label-content] represents the content of the label of a
 definition.
@@ -4703,7 +4704,7 @@ interface DefinitionLabelContent <: Group {
 }
 ```
 
-### 14.23 Definition destination quoted group
+### 13.23 Definition destination quoted group
 
 A [*Definition destination quoted group*][g-definition-destination-quoted] represents an enclosed destination of a
 definition.
@@ -4714,7 +4715,7 @@ interface DefinitionDestinationQuoted <: Group {
 }
 ```
 
-### 14.24 Definition destination unquoted group
+### 13.24 Definition destination unquoted group
 
 A [*Definition destination unquoted group*][g-definition-destination-unquoted] represents an unclosed destination of a
 definition.
@@ -4725,7 +4726,7 @@ interface DefinitionDestinationUnquoted <: Group {
 }
 ```
 
-### 14.25 Definition title group
+### 13.25 Definition title group
 
 A [*Definition title group*][g-definition-title] represents advisory information, such as a description of
 the destination of the definition.
@@ -4736,7 +4737,7 @@ interface DefinitionTitle <: Group {
 }
 ```
 
-### 14.26 Escape group
+### 13.26 Escape group
 
 An [*Escape group*][g-escape] represents an escaped marker or an empty escape.
 
@@ -4746,7 +4747,7 @@ interface Escape <: Group {
 }
 ```
 
-### 14.27 Character reference group
+### 13.27 Character reference group
 
 A [*Character reference group*][g-character-reference] represents an escaped character.
 
@@ -4757,7 +4758,7 @@ interface CharacterReference <: Group {
 }
 ```
 
-### 14.28 Automatic link group
+### 13.28 Automatic link group
 
 An [*Automatic link group*][g-automatic-link] represents a literal URL or email address.
 
@@ -4768,7 +4769,7 @@ interface AutomaticLink <: Group {
 }
 ```
 
-### 14.29 HTML inline group
+### 13.29 HTML inline group
 
 An [*HTML inline group*][g-html-inline] represents XML-like structures.
 
@@ -4778,13 +4779,13 @@ interface HTMLInline <: Group {
 }
 ```
 
-## 15 Appendix
+## 14 Appendix
 
-### 15.1 Raw tags
+### 14.1 Raw tags
 
 A <a id="raw-tag" href="#raw-tag">**raw tag**</a> is one of: `script`, `pre`, and `style`.
 
-### 15.2 Basic tags
+### 14.2 Basic tags
 
 A <a id="basic-tag" href="#basic-tag">**basic tag**</a> is one of: `address`, `article`, `aside`, `base`, `basefont`,
 `blockquote`, `body`, `caption`, `center`, `col`, `colgroup`, `dd`, `details`,
@@ -4795,7 +4796,7 @@ A <a id="basic-tag" href="#basic-tag">**basic tag**</a> is one of: `address`, `a
 `param`, `section`, `source`, `summary`, `table`, `tbody`, `td`, `tfoot`, `th`,
 `thead`, `title`, `tr`, `track`, and `ul`.
 
-### 15.3 Named character references
+### 14.3 Named character references
 
 A <a id="character-reference-name" href="#character-reference-name">**character reference name**</a> is one of:
 `AEli`, `AElig`, `AM`, `AMP`, `Aacut`, `Aacute`,
@@ -5108,7 +5109,7 @@ A <a id="character-reference-name" href="#character-reference-name">**character 
 `yum`, `yuml`, `zacute`, `zcaron`, `zcy`, `zdot`, `zeetrf`, `zeta`, `zfr`,
 `zhcy`, `zigrarr`, `zopf`, `zscr`, `zwj`, or `zwnj`.
 
-## 16 References
+## 15 References
 
 *   **\[HTML]**:
     [HTML Standard](https://html.spec.whatwg.org/multipage/).
@@ -5127,7 +5128,7 @@ A <a id="character-reference-name" href="#character-reference-name">**character 
     [The Unicode Standard](https://www.unicode.org/versions/).
     Unicode Consortium.
 
-## 17 Acknowledgments
+## 16 Acknowledgments
 
 Thanks to John Gruber for inventing Markdown.
 
@@ -5137,13 +5138,11 @@ Thanks to ZEIT, Inc., Gatsby, Inc., Netlify, Inc., Holloway, Inc., and the many
 organizations and individuals for financial support through
 [OpenCollective](https://opencollective.com/unified)
 
-## 18 License
+## 17 License
 
 Copyright © 2019 Titus Wormer.
 This work is licensed under a
 [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
-
-[stack-of-continuation]: #stack-of-continuation
 
 [ascii-digit]: #ascii-digit
 
@@ -5165,13 +5164,15 @@ This work is licensed under a
 
 [ascii-control]: #ascii-control
 
-[ascii-lowercase]: #ascii-lowercase
-
 [unicode-whitespace]: #unicode-whitespace
 
 [unicode-punctuation]: #unicode-punctuation
 
 [atext]: #atext
+
+[ascii-lowercase]: #ascii-lowercase
+
+[digitize]: #digitize
 
 [cvs]: #cvs
 
@@ -5223,476 +5224,476 @@ This work is licensed under a
 
 [character-reference-name]: #character-reference-name
 
-[s-initial]: #81-initial-state
+[s-initial]: #71-initial-state
 
-[s-initial-whitespace]: #82-initial-whitespace-state
+[s-initial-whitespace]: #72-initial-whitespace-state
 
-[s-line-ending]: #83-line-ending-state
+[s-line-ending]: #73-line-ending-state
 
-[s-carriage-return]: #84-carriage-return-state
+[s-carriage-return]: #74-carriage-return-state
 
-[s-in-line]: #85-in-line-state
+[s-in-line]: #75-in-line-state
 
-[s-atx-heading-open-sequence]: #86-atx-heading-open-sequence-state
+[s-atx-heading-open-sequence]: #76-atx-heading-open-sequence-state
 
-[s-atx-heading-open-sequence-after]: #87-atx-heading-open-sequence-after-state
+[s-atx-heading-open-sequence-after]: #77-atx-heading-open-sequence-after-state
 
-[s-atx-heading-content]: #88-atx-heading-content-state
+[s-atx-heading-content]: #78-atx-heading-content-state
 
-[s-atx-heading-whitespace]: #89-atx-heading-whitespace-state
+[s-atx-heading-whitespace]: #79-atx-heading-whitespace-state
 
-[s-atx-heading-number-sign-sequence]: #810-atx-heading-number-sign-sequence-state
+[s-atx-heading-number-sign-sequence]: #710-atx-heading-number-sign-sequence-state
 
-[s-asterisk-line-asterisk-after]: #811-asterisk-line-asterisk-after-state
+[s-asterisk-line-asterisk-after]: #711-asterisk-line-asterisk-after-state
 
-[s-asterisk-line-whitespace]: #812-asterisk-line-whitespace-state
+[s-asterisk-line-whitespace]: #712-asterisk-line-whitespace-state
 
-[s-html-flow-open]: #813-html-flow-open-state
+[s-html-flow-open]: #713-html-flow-open-state
 
-[s-html-flow-open-markup-declaration]: #814-html-flow-open-markup-declaration-state
+[s-html-flow-open-markup-declaration]: #714-html-flow-open-markup-declaration-state
 
-[s-html-flow-open-comment-inside]: #815-html-flow-open-comment-inside-state
+[s-html-flow-open-comment-inside]: #715-html-flow-open-comment-inside-state
 
-[s-html-flow-open-character-data-inside]: #816-html-flow-open-character-data-inside-state
+[s-html-flow-open-character-data-inside]: #716-html-flow-open-character-data-inside-state
 
-[s-html-flow-open-close-tag-start]: #817-html-flow-open-close-tag-start-state
+[s-html-flow-open-close-tag-start]: #717-html-flow-open-close-tag-start-state
 
-[s-html-flow-open-tag-name-inside]: #818-html-flow-open-tag-name-inside-state
+[s-html-flow-open-tag-name-inside]: #718-html-flow-open-tag-name-inside-state
 
-[s-html-flow-open-basic-self-closing]: #819-html-flow-open-basic-self-closing-state
+[s-html-flow-open-basic-self-closing]: #719-html-flow-open-basic-self-closing-state
 
-[s-html-flow-open-complete-attribute-before]: #820-html-flow-open-complete-attribute-before-state
+[s-html-flow-open-complete-attribute-before]: #720-html-flow-open-complete-attribute-before-state
 
-[s-html-flow-open-complete-attribute-name]: #821-html-flow-open-complete-attribute-name-state
+[s-html-flow-open-complete-attribute-name]: #721-html-flow-open-complete-attribute-name-state
 
-[s-html-flow-open-complete-attribute-name-after]: #822-html-flow-open-complete-attribute-name-after-state
+[s-html-flow-open-complete-attribute-name-after]: #722-html-flow-open-complete-attribute-name-after-state
 
-[s-html-flow-open-complete-attribute-value-before]: #823-html-flow-open-complete-attribute-value-before-state
+[s-html-flow-open-complete-attribute-value-before]: #723-html-flow-open-complete-attribute-value-before-state
 
-[s-html-flow-open-complete-double-quoted-attribute-value]: #824-html-flow-open-complete-double-quoted-attribute-value-state
+[s-html-flow-open-complete-double-quoted-attribute-value]: #724-html-flow-open-complete-double-quoted-attribute-value-state
 
-[s-html-flow-open-complete-single-quoted-attribute-value]: #825-html-flow-open-complete-single-quoted-attribute-value-state
+[s-html-flow-open-complete-single-quoted-attribute-value]: #725-html-flow-open-complete-single-quoted-attribute-value-state
 
-[s-html-flow-open-complete-unquoted-attribute-value]: #826-html-flow-open-complete-unquoted-attribute-value-state
+[s-html-flow-open-complete-unquoted-attribute-value]: #726-html-flow-open-complete-unquoted-attribute-value-state
 
-[s-html-flow-open-complete-self-closing]: #827-html-flow-open-complete-self-closing-state
+[s-html-flow-open-complete-self-closing]: #727-html-flow-open-complete-self-closing-state
 
-[s-html-flow-open-complete-tag-after]: #828-html-flow-open-complete-tag-after-state
+[s-html-flow-open-complete-tag-after]: #728-html-flow-open-complete-tag-after-state
 
-[s-html-flow-continuation-line]: #829-html-flow-continuation-line-state
+[s-html-flow-continuation-line]: #729-html-flow-continuation-line-state
 
-[s-html-flow-continuation-tag-close]: #830-html-flow-continuation-tag-close-state
+[s-html-flow-continuation-tag-close]: #730-html-flow-continuation-tag-close-state
 
-[s-html-flow-continuation-tag-close-name-inside]: #831-html-flow-continuation-tag-close-name-inside-state
+[s-html-flow-continuation-tag-close-name-inside]: #731-html-flow-continuation-tag-close-name-inside-state
 
-[s-html-flow-continuation-comment-inside]: #832-html-flow-continuation-comment-inside-state
+[s-html-flow-continuation-comment-inside]: #732-html-flow-continuation-comment-inside-state
 
-[s-html-flow-continuation-character-data-inside]: #833-html-flow-continuation-character-data-inside-state
+[s-html-flow-continuation-character-data-inside]: #733-html-flow-continuation-character-data-inside-state
 
-[s-html-flow-continuation-declaration-before]: #834-html-flow-continuation-declaration-before-state
+[s-html-flow-continuation-declaration-before]: #734-html-flow-continuation-declaration-before-state
 
-[s-html-flow-close-line]: #835-html-flow-close-line-state
+[s-html-flow-close-line]: #735-html-flow-close-line-state
 
-[s-setext-heading-underline-equals-to-sequence]: #836-setext-heading-underline-equals-to-sequence-state
+[s-setext-heading-underline-equals-to-sequence]: #736-setext-heading-underline-equals-to-sequence-state
 
-[s-setext-heading-underline-equals-to-after]: #837-setext-heading-underline-equals-to-after-state
+[s-setext-heading-underline-equals-to-after]: #737-setext-heading-underline-equals-to-after-state
 
-[s-fenced-code-grave-accent-fence-open]: #838-fenced-code-grave-accent-fence-open-state
+[s-fenced-code-grave-accent-fence-open]: #738-fenced-code-grave-accent-fence-open-state
 
-[s-fenced-code-grave-accent-fence-open-whitespace]: #839-fenced-code-grave-accent-fence-open-whitespace-state
+[s-fenced-code-grave-accent-fence-open-whitespace]: #739-fenced-code-grave-accent-fence-open-whitespace-state
 
-[s-fenced-code-grave-accent-fence-open-metadata]: #840-fenced-code-grave-accent-fence-open-metadata-state
+[s-fenced-code-grave-accent-fence-open-metadata]: #740-fenced-code-grave-accent-fence-open-metadata-state
 
-[s-fenced-code-tilde-fence-open]: #841-fenced-code-tilde-fence-open-state
+[s-fenced-code-tilde-fence-open]: #741-fenced-code-tilde-fence-open-state
 
-[s-fenced-code-tilde-fence-open-whitespace]: #842-fenced-code-tilde-fence-open-whitespace-state
+[s-fenced-code-tilde-fence-open-whitespace]: #742-fenced-code-tilde-fence-open-whitespace-state
 
-[s-fenced-code-tilde-fence-open-metadata]: #843-fenced-code-tilde-fence-open-metadata-state
+[s-fenced-code-tilde-fence-open-metadata]: #743-fenced-code-tilde-fence-open-metadata-state
 
-[s-fenced-code-continuation-line]: #844-fenced-code-continuation-line-state
+[s-fenced-code-continuation-line]: #744-fenced-code-continuation-line-state
 
-[s-fenced-code-close-sequence]: #845-fenced-code-close-sequence-state
+[s-fenced-code-close-sequence]: #745-fenced-code-close-sequence-state
 
-[s-fenced-code-close-whitespace]: #846-fenced-code-close-whitespace-state
+[s-fenced-code-close-whitespace]: #746-fenced-code-close-whitespace-state
 
-[s-indented-code-line]: #847-indented-code-line-state
+[s-indented-code-line]: #747-indented-code-line-state
 
-[s-content-continuation]: #848-content-continuation-state
+[s-content-continuation]: #748-content-continuation-state
 
-[s-initial-content]: #91-initial-content-state
+[s-initial-content]: #81-initial-content-state
 
-[s-definition-label-open-after]: #92-definition-label-open-after-state
+[s-definition-label-open-after]: #82-definition-label-open-after-state
 
-[s-definition-label-before]: #93-definition-label-before-state
+[s-definition-label-before]: #83-definition-label-before-state
 
-[s-definition-label-inside]: #94-definition-label-inside-state
+[s-definition-label-inside]: #84-definition-label-inside-state
 
-[s-definition-label-inside-start-after]: #95-definition-label-inside-start-after-state
+[s-definition-label-inside-start-after]: #85-definition-label-inside-start-after-state
 
-[s-definition-label-between]: #96-definition-label-between-state
+[s-definition-label-between]: #86-definition-label-between-state
 
-[s-definition-label-escape]: #97-definition-label-escape-state
+[s-definition-label-escape]: #87-definition-label-escape-state
 
-[s-definition-label-close-after]: #98-definition-label-close-after-state
+[s-definition-label-close-after]: #88-definition-label-close-after-state
 
-[s-definition-label-after]: #99-definition-label-after-state
+[s-definition-label-after]: #89-definition-label-after-state
 
-[s-definition-destination-before]: #910-definition-destination-before-state
+[s-definition-destination-before]: #810-definition-destination-before-state
 
-[s-definition-destination-quoted-open-after]: #911-definition-destination-quoted-open-after-state
+[s-definition-destination-quoted-open-after]: #811-definition-destination-quoted-open-after-state
 
-[s-definition-destination-quoted-inside]: #912-definition-destination-quoted-inside-state
+[s-definition-destination-quoted-inside]: #812-definition-destination-quoted-inside-state
 
-[s-definition-destination-quoted-escape]: #913-definition-destination-quoted-escape-state
+[s-definition-destination-quoted-escape]: #813-definition-destination-quoted-escape-state
 
-[s-definition-destination-quoted-close-after]: #914-definition-destination-quoted-close-after-state
+[s-definition-destination-quoted-close-after]: #814-definition-destination-quoted-close-after-state
 
-[s-definition-destination-unquoted-inside]: #915-definition-destination-unquoted-inside-state
+[s-definition-destination-unquoted-inside]: #815-definition-destination-unquoted-inside-state
 
-[s-definition-destination-unquoted-escape]: #916-definition-destination-unquoted-escape-state
+[s-definition-destination-unquoted-escape]: #816-definition-destination-unquoted-escape-state
 
-[s-definition-destination-after]: #917-definition-destination-after-state
+[s-definition-destination-after]: #817-definition-destination-after-state
 
-[s-definition-title-double-quoted-open-after]: #918-definition-title-double-quoted-open-after-state
+[s-definition-title-double-quoted-open-after]: #818-definition-title-double-quoted-open-after-state
 
-[s-definition-title-double-quoted-inside]: #919-definition-title-double-quoted-inside-state
+[s-definition-title-double-quoted-inside]: #819-definition-title-double-quoted-inside-state
 
-[s-definition-title-double-quoted-escape]: #920-definition-title-double-quoted-escape-state
+[s-definition-title-double-quoted-escape]: #820-definition-title-double-quoted-escape-state
 
-[s-definition-title-single-quoted-open-after]: #921-definition-title-single-quoted-open-after-state
+[s-definition-title-single-quoted-open-after]: #821-definition-title-single-quoted-open-after-state
 
-[s-definition-title-single-quoted-inside]: #922-definition-title-single-quoted-inside-state
+[s-definition-title-single-quoted-inside]: #822-definition-title-single-quoted-inside-state
 
-[s-definition-title-single-quoted-escape]: #923-definition-title-single-quoted-escape-state
+[s-definition-title-single-quoted-escape]: #823-definition-title-single-quoted-escape-state
 
-[s-definition-title-paren-quoted-open-after]: #924-definition-title-paren-quoted-open-after-state
+[s-definition-title-paren-quoted-open-after]: #824-definition-title-paren-quoted-open-after-state
 
-[s-definition-title-paren-quoted-inside]: #925-definition-title-paren-quoted-inside-state
+[s-definition-title-paren-quoted-inside]: #825-definition-title-paren-quoted-inside-state
 
-[s-definition-title-paren-quoted-escape]: #926-definition-title-paren-quoted-escape-state
+[s-definition-title-paren-quoted-escape]: #826-definition-title-paren-quoted-escape-state
 
-[s-definition-title-close-after]: #927-definition-title-close-after-state
+[s-definition-title-close-after]: #827-definition-title-close-after-state
 
-[s-definition-after]: #928-definition-after-state
+[s-definition-after]: #828-definition-after-state
 
-[s-phrasing-content]: #929-phrasing-content-state
+[s-phrasing-content]: #829-phrasing-content-state
 
-[s-after-whitespace]: #101-after-whitespace-state
+[s-after-whitespace]: #91-after-whitespace-state
 
-[s-after-punctuation]: #102-after-punctuation-state
+[s-after-punctuation]: #92-after-punctuation-state
 
-[s-text]: #103-text-state
+[s-text]: #93-text-state
 
-[s-plain-text]: #104-plain-text-state
+[s-plain-text]: #94-plain-text-state
 
-[s-emphasis-asterisk]: #105-emphasis-asterisk-state
+[s-emphasis-asterisk]: #95-emphasis-asterisk-state
 
-[s-character-reference]: #106-character-reference-state
+[s-character-reference]: #96-character-reference-state
 
-[s-character-reference-named]: #107-character-reference-named-state
+[s-character-reference-named]: #97-character-reference-named-state
 
-[s-character-reference-numeric]: #108-character-reference-numeric-state
+[s-character-reference-numeric]: #98-character-reference-numeric-state
 
-[s-character-reference-hexadecimal-start]: #109-character-reference-hexadecimal-start-state
+[s-character-reference-hexadecimal-start]: #99-character-reference-hexadecimal-start-state
 
-[s-character-reference-hexadecimal]: #1010-character-reference-hexadecimal-state
+[s-character-reference-hexadecimal]: #910-character-reference-hexadecimal-state
 
-[s-character-reference-decimal]: #1011-character-reference-decimal-state
+[s-character-reference-decimal]: #911-character-reference-decimal-state
 
-[s-code-span-open]: #1012-code-span-open-state
+[s-code-span-open]: #912-code-span-open-state
 
-[s-code-span-inside-start-after]: #1013-code-span-inside-start-after-state
+[s-code-span-inside-start-after]: #913-code-span-inside-start-after-state
 
-[s-code-span-inside]: #1014-code-span-inside-state
+[s-code-span-inside]: #914-code-span-inside-state
 
-[s-code-span-close]: #1015-code-span-close-state
+[s-code-span-close]: #915-code-span-close-state
 
-[s-emphasis-underscore]: #1016-emphasis-underscore-state
+[s-emphasis-underscore]: #916-emphasis-underscore-state
 
-[s-escape-backslash-after]: #1017-escape-backslash-after-state
+[s-escape-backslash-after]: #917-escape-backslash-after-state
 
-[s-html-or-autolink-less-than-after]: #1018-html-or-autolink-less-than-after-state
+[s-html-or-autolink-less-than-after]: #918-html-or-autolink-less-than-after-state
 
-[s-html-instruction-or-email-atext]: #1019-html-instruction-or-email-atext-state
+[s-html-instruction-or-email-atext]: #919-html-instruction-or-email-atext-state
 
-[s-html-instruction-close-or-email-atext]: #1020-html-instruction-close-or-email-atext-state
+[s-html-instruction-close-or-email-atext]: #920-html-instruction-close-or-email-atext-state
 
-[s-html-instruction-or-email-at-sign-or-dot]: #1021-html-instruction-or-email-at-sign-or-dot-state
+[s-html-instruction-or-email-at-sign-or-dot]: #921-html-instruction-or-email-at-sign-or-dot-state
 
-[s-html-instruction-or-email-label]: #1022-html-instruction-or-email-label-state
+[s-html-instruction-or-email-label]: #922-html-instruction-or-email-label-state
 
-[s-html-instruction-or-email-dash]: #1023-html-instruction-or-email-dash-state
+[s-html-instruction-or-email-dash]: #923-html-instruction-or-email-dash-state
 
-[s-html-instruction]: #1024-html-instruction-state
+[s-html-instruction]: #924-html-instruction-state
 
-[s-html-instruction-close]: #1025-html-instruction-close-state
+[s-html-instruction-close]: #925-html-instruction-close-state
 
-[s-html-declaration-or-email-atext]: #1026-html-declaration-or-email-atext-state
+[s-html-declaration-or-email-atext]: #926-html-declaration-or-email-atext-state
 
-[s-html-comment-open-inside-or-email-atext]: #1027-html-comment-open-inside-or-email-atext-state
+[s-html-comment-open-inside-or-email-atext]: #927-html-comment-open-inside-or-email-atext-state
 
-[s-html-comment-or-email-atext]: #1028-html-comment-or-email-atext-state
+[s-html-comment-or-email-atext]: #928-html-comment-or-email-atext-state
 
-[s-html-comment-close-inside-or-email-atext]: #1029-html-comment-close-inside-or-email-atext-state
+[s-html-comment-close-inside-or-email-atext]: #929-html-comment-close-inside-or-email-atext-state
 
-[s-html-comment-close-or-email-atext]: #1030-html-comment-close-or-email-atext-state
+[s-html-comment-close-or-email-atext]: #930-html-comment-close-or-email-atext-state
 
-[s-html-comment-or-email-at-sign-or-dot]: #1031-html-comment-or-email-at-sign-or-dot-state
+[s-html-comment-or-email-at-sign-or-dot]: #931-html-comment-or-email-at-sign-or-dot-state
 
-[s-html-comment-or-email-label]: #1032-html-comment-or-email-label-state
+[s-html-comment-or-email-label]: #932-html-comment-or-email-label-state
 
-[s-html-comment-close-inside-or-email-label-dash]: #1033-html-comment-close-inside-or-email-label-dash-state
+[s-html-comment-close-inside-or-email-label-dash]: #933-html-comment-close-inside-or-email-label-dash-state
 
-[s-html-comment-close-or-email-label-dash]: #1034-html-comment-close-or-email-label-dash-state
+[s-html-comment-close-or-email-label-dash]: #934-html-comment-close-or-email-label-dash-state
 
-[s-html-comment]: #1035-html-comment-state
+[s-html-comment]: #935-html-comment-state
 
-[s-html-comment-close-inside]: #1036-html-comment-close-inside-state
+[s-html-comment-close-inside]: #936-html-comment-close-inside-state
 
-[s-html-comment-close]: #1037-html-comment-close-state
+[s-html-comment-close]: #937-html-comment-close-state
 
-[s-html-cdata]: #1038-html-cdata-state
+[s-html-cdata]: #938-html-cdata-state
 
-[s-html-declaration-name-or-email-atext]: #1039-html-declaration-name-or-email-atext-state
+[s-html-declaration-name-or-email-atext]: #939-html-declaration-name-or-email-atext-state
 
-[s-html-declaration-between]: #1040-html-declaration-between-state
+[s-html-declaration-between]: #940-html-declaration-between-state
 
-[s-html-declaration-content]: #1041-html-declaration-content-state
+[s-html-declaration-content]: #941-html-declaration-content-state
 
-[s-html-tag-close-or-email-atext]: #1042-html-tag-close-or-email-atext-state
+[s-html-tag-close-or-email-atext]: #942-html-tag-close-or-email-atext-state
 
-[s-html-tag-close-inside-or-email-atext]: #1043-html-tag-close-inside-or-email-atext-state
+[s-html-tag-close-inside-or-email-atext]: #943-html-tag-close-inside-or-email-atext-state
 
-[s-html-tag-close-between]: #1044-html-tag-close-between-state
+[s-html-tag-close-between]: #944-html-tag-close-between-state
 
-[s-html-tag-open-scheme-or-email-atext]: #1045-html-tag-open-scheme-or-email-atext-state
+[s-html-tag-open-scheme-or-email-atext]: #945-html-tag-open-scheme-or-email-atext-state
 
-[s-html-tag-open-inside-scheme-inside-or-email-atext]: #1046-html-tag-open-inside-scheme-inside-or-email-atext-state
+[s-html-tag-open-inside-scheme-inside-or-email-atext]: #946-html-tag-open-inside-scheme-inside-or-email-atext-state
 
-[s-html-tag-open-inside-or-email-atext]: #1047-html-tag-open-inside-or-email-atext-state
+[s-html-tag-open-inside-or-email-atext]: #947-html-tag-open-inside-or-email-atext-state
 
-[s-html-tag-open-between-start-after]: #1048-html-tag-open-between-start-after-state
+[s-html-tag-open-between-start-after]: #948-html-tag-open-between-start-after-state
 
-[s-html-tag-open-between]: #1049-html-tag-open-between-state
+[s-html-tag-open-between]: #949-html-tag-open-between-state
 
-[s-html-tag-open-attribute-name]: #1050-html-tag-open-attribute-name-state
+[s-html-tag-open-attribute-name]: #950-html-tag-open-attribute-name-state
 
-[s-html-tag-open-attribute-name-after]: #1051-html-tag-open-attribute-name-after-state
+[s-html-tag-open-attribute-name-after]: #951-html-tag-open-attribute-name-after-state
 
-[s-html-tag-open-attribute-value-before]: #1052-html-tag-open-attribute-value-before-state
+[s-html-tag-open-attribute-value-before]: #952-html-tag-open-attribute-value-before-state
 
-[s-html-tag-open-double-quoted-attribute-value]: #1053-html-tag-open-double-quoted-attribute-value-state
+[s-html-tag-open-double-quoted-attribute-value]: #953-html-tag-open-double-quoted-attribute-value-state
 
-[s-html-tag-open-single-quoted-attribute-value]: #1054-html-tag-open-single-quoted-attribute-value-state
+[s-html-tag-open-single-quoted-attribute-value]: #954-html-tag-open-single-quoted-attribute-value-state
 
-[s-html-tag-open-unquoted-attribute-value]: #1055-html-tag-open-unquoted-attribute-value-state
+[s-html-tag-open-unquoted-attribute-value]: #955-html-tag-open-unquoted-attribute-value-state
 
-[s-html-tag-open-self-closing]: #1056-html-tag-open-self-closing-state
+[s-html-tag-open-self-closing]: #956-html-tag-open-self-closing-state
 
-[s-autolink-scheme-inside-or-email-atext]: #1057-autolink-scheme-inside-or-email-atext-state
+[s-autolink-scheme-inside-or-email-atext]: #957-autolink-scheme-inside-or-email-atext-state
 
-[s-autolink-uri-inside]: #1058-autolink-uri-inside-state
+[s-autolink-uri-inside]: #958-autolink-uri-inside-state
 
-[s-autolink-email-atext]: #1059-autolink-email-atext-state
+[s-autolink-email-atext]: #959-autolink-email-atext-state
 
-[s-autolink-email-label]: #1060-autolink-email-label-state
+[s-autolink-email-label]: #960-autolink-email-label-state
 
-[s-autolink-email-at-sign-or-dot]: #1061-autolink-email-at-sign-or-dot-state
+[s-autolink-email-at-sign-or-dot]: #961-autolink-email-at-sign-or-dot-state
 
-[s-autolink-email-dash]: #1062-autolink-email-dash-state
+[s-autolink-email-dash]: #962-autolink-email-dash-state
 
-[s-image-exclamation-mark-after]: #1063-image-exclamation-mark-after-state
+[s-image-exclamation-mark-after]: #963-image-exclamation-mark-after-state
 
-[s-resource-text-or-label-after]: #1064-resource-text-or-label-after-state
+[s-resource-text-or-label-after]: #964-resource-text-or-label-after-state
 
-[s-resource-information-open]: #1065-resource-information-open-state
+[s-resource-information-open]: #965-resource-information-open-state
 
-[s-resource-information-open-after]: #1066-resource-information-open-after-state
+[s-resource-information-open-after]: #966-resource-information-open-after-state
 
-[s-resource-destination-quoted-open-after]: #1067-resource-destination-quoted-open-after-state
+[s-resource-destination-quoted-open-after]: #967-resource-destination-quoted-open-after-state
 
-[s-resource-destination-quoted-inside]: #1068-resource-destination-quoted-inside-state
+[s-resource-destination-quoted-inside]: #968-resource-destination-quoted-inside-state
 
-[s-resource-destination-quoted-escape]: #1069-resource-destination-quoted-escape-state
+[s-resource-destination-quoted-escape]: #969-resource-destination-quoted-escape-state
 
-[s-resource-destination-quoted-close-after]: #1070-resource-destination-quoted-close-after-state
+[s-resource-destination-quoted-close-after]: #970-resource-destination-quoted-close-after-state
 
-[s-resource-information-between]: #1071-resource-information-between-state
+[s-resource-information-between]: #971-resource-information-between-state
 
-[s-resource-information-between-after]: #1072-resource-information-between-after-state
+[s-resource-information-between-after]: #972-resource-information-between-after-state
 
-[s-resource-destination-unquoted-inside]: #1073-resource-destination-unquoted-inside-state
+[s-resource-destination-unquoted-inside]: #973-resource-destination-unquoted-inside-state
 
-[s-resource-destination-unquoted-escape]: #1074-resource-destination-unquoted-escape-state
+[s-resource-destination-unquoted-escape]: #974-resource-destination-unquoted-escape-state
 
-[s-resource-title-double-quoted-open-after]: #1075-resource-title-double-quoted-open-after-state
+[s-resource-title-double-quoted-open-after]: #975-resource-title-double-quoted-open-after-state
 
-[s-resource-title-double-quoted-inside]: #1076-resource-title-double-quoted-inside-state
+[s-resource-title-double-quoted-inside]: #976-resource-title-double-quoted-inside-state
 
-[s-resource-title-double-quoted-escape]: #1077-resource-title-double-quoted-escape-state
+[s-resource-title-double-quoted-escape]: #977-resource-title-double-quoted-escape-state
 
-[s-resource-title-single-quoted-open-after]: #1078-resource-title-single-quoted-open-after-state
+[s-resource-title-single-quoted-open-after]: #978-resource-title-single-quoted-open-after-state
 
-[s-resource-title-single-quoted-inside]: #1079-resource-title-single-quoted-inside-state
+[s-resource-title-single-quoted-inside]: #979-resource-title-single-quoted-inside-state
 
-[s-resource-title-single-quoted-escape]: #1080-resource-title-single-quoted-escape-state
+[s-resource-title-single-quoted-escape]: #980-resource-title-single-quoted-escape-state
 
-[s-resource-title-paren-quoted-open-after]: #1081-resource-title-paren-quoted-open-after-state
+[s-resource-title-paren-quoted-open-after]: #981-resource-title-paren-quoted-open-after-state
 
-[s-resource-title-paren-quoted-inside]: #1082-resource-title-paren-quoted-inside-state
+[s-resource-title-paren-quoted-inside]: #982-resource-title-paren-quoted-inside-state
 
-[s-resource-title-paren-quoted-escape]: #1083-resource-title-paren-quoted-escape-state
+[s-resource-title-paren-quoted-escape]: #983-resource-title-paren-quoted-escape-state
 
-[s-resource-title-close-after]: #1084-resource-title-close-after-state
+[s-resource-title-close-after]: #984-resource-title-close-after-state
 
-[s-resource-information-close-before]: #1085-resource-information-close-before-state
+[s-resource-information-close-before]: #985-resource-information-close-before-state
 
-[s-reference-label-open-after]: #1086-reference-label-open-after-state
+[s-reference-label-open-after]: #986-reference-label-open-after-state
 
-[s-reference-label-before]: #1087-reference-label-before-state
+[s-reference-label-before]: #987-reference-label-before-state
 
-[s-reference-label-inside]: #1088-reference-label-inside-state
+[s-reference-label-inside]: #988-reference-label-inside-state
 
-[s-reference-label-inside-start-after]: #1089-reference-label-inside-start-after-state
+[s-reference-label-inside-start-after]: #989-reference-label-inside-start-after-state
 
-[s-reference-label-between]: #1090-reference-label-between-state
+[s-reference-label-between]: #990-reference-label-between-state
 
-[s-reference-label-escape]: #1091-reference-label-escape-state
+[s-reference-label-escape]: #991-reference-label-escape-state
 
-[l-content-phrasing]: #111-content-phrasing-label
+[l-content-phrasing]: #101-content-phrasing-label
 
-[l-content-definition]: #112-content-definition-label
+[l-content-definition]: #102-content-definition-label
 
-[l-content-definition-partial]: #113-content-definition-partial-label
+[l-content-definition-partial]: #103-content-definition-partial-label
 
-[l-content-definition-label-open]: #114-content-definition-label-open-label
+[l-content-definition-label-open]: #104-content-definition-label-open-label
 
-[l-content-definition-label-close]: #115-content-definition-label-close-label
+[l-content-definition-label-close]: #105-content-definition-label-close-label
 
-[l-content-definition-destination-quoted-open]: #116-content-definition-destination-quoted-open-label
+[l-content-definition-destination-quoted-open]: #106-content-definition-destination-quoted-open-label
 
-[l-content-definition-destination-quoted-close]: #117-content-definition-destination-quoted-close-label
+[l-content-definition-destination-quoted-close]: #107-content-definition-destination-quoted-close-label
 
-[l-content-definition-destination-unquoted-open]: #118-content-definition-destination-unquoted-open-label
+[l-content-definition-destination-unquoted-open]: #108-content-definition-destination-unquoted-open-label
 
-[l-content-definition-destination-unquoted-close]: #119-content-definition-destination-unquoted-close-label
+[l-content-definition-destination-unquoted-close]: #109-content-definition-destination-unquoted-close-label
 
-[l-content-definition-title-open]: #1110-content-definition-title-open-label
+[l-content-definition-title-open]: #1010-content-definition-title-open-label
 
-[l-content-definition-title-close]: #1111-content-definition-title-close-label
+[l-content-definition-title-close]: #1011-content-definition-title-close-label
 
-[l-text-hard-break]: #1112-text-hard-break-label
+[l-text-hard-break]: #1012-text-hard-break-label
 
-[l-text-soft-break]: #1113-text-soft-break-label
+[l-text-soft-break]: #1013-text-soft-break-label
 
-[l-text-link-open]: #1114-text-link-open-label
+[l-text-link-open]: #1014-text-link-open-label
 
-[l-text-image-open]: #1115-text-image-open-label
+[l-text-image-open]: #1015-text-image-open-label
 
-[l-text-resource-close]: #1116-text-resource-close-label
+[l-text-resource-close]: #1016-text-resource-close-label
 
-[l-text-reference-label-open]: #1117-text-reference-label-open-label
+[l-text-reference-label-open]: #1017-text-reference-label-open-label
 
-[l-text-reference-label-close]: #1118-text-reference-label-close-label
+[l-text-reference-label-close]: #1018-text-reference-label-close-label
 
-[l-text-resource-information-open]: #1119-text-resource-information-open-label
+[l-text-resource-information-open]: #1019-text-resource-information-open-label
 
-[l-text-resource-destination-quoted-open]: #1120-text-resource-destination-quoted-open-label
+[l-text-resource-destination-quoted-open]: #1020-text-resource-destination-quoted-open-label
 
-[l-text-resource-destination-quoted-close]: #1121-text-resource-destination-quoted-close-label
+[l-text-resource-destination-quoted-close]: #1021-text-resource-destination-quoted-close-label
 
-[l-text-resource-destination-unquoted-open]: #1122-text-resource-destination-unquoted-open-label
+[l-text-resource-destination-unquoted-open]: #1022-text-resource-destination-unquoted-open-label
 
-[l-text-resource-destination-unquoted-close]: #1123-text-resource-destination-unquoted-close-label
+[l-text-resource-destination-unquoted-close]: #1023-text-resource-destination-unquoted-close-label
 
-[l-text-resource-title-open]: #1124-text-resource-title-open-label
+[l-text-resource-title-open]: #1024-text-resource-title-open-label
 
-[l-text-resource-title-close]: #1125-text-resource-title-close-label
+[l-text-resource-title-close]: #1025-text-resource-title-close-label
 
-[l-text-resource-information-close]: #1126-text-resource-information-close-label
+[l-text-resource-information-close]: #1026-text-resource-information-close-label
 
-[l-text-emphasis]: #1127-text-emphasis-label
+[l-text-emphasis]: #1027-text-emphasis-label
 
-[l-text-character-reference]: #1128-text-character-reference-label
+[l-text-character-reference]: #1028-text-character-reference-label
 
-[l-text-escape]: #1129-text-escape-label
+[l-text-escape]: #1029-text-escape-label
 
-[l-text-code]: #1130-text-code-label
+[l-text-code]: #1030-text-code-label
 
-[l-text-autolink-email]: #1131-text-autolink-email-label
+[l-text-autolink-email]: #1031-text-autolink-email-label
 
-[l-text-autolink-uri]: #1132-text-autolink-uri-label
+[l-text-autolink-uri]: #1032-text-autolink-uri-label
 
-[l-text-html]: #1133-text-html-label
+[l-text-html]: #1033-text-html-label
 
-[t-whitespace]: #131-whitespace-token
+[t-whitespace]: #121-whitespace-token
 
-[t-line-terminator]: #132-line-terminator-token
+[t-line-terminator]: #122-line-terminator-token
 
-[t-end-of-file]: #133-end-of-file-token
+[t-end-of-file]: #123-end-of-file-token
 
-[t-end-of-line]: #134-end-of-line-token
+[t-end-of-line]: #124-end-of-line-token
 
-[t-marker]: #135-marker-token
+[t-marker]: #125-marker-token
 
-[t-sequence]: #136-sequence-token
+[t-sequence]: #126-sequence-token
 
-[t-content]: #137-content-token
+[t-content]: #127-content-token
 
-[g-blank-line]: #141-blank-line-group
+[g-blank-line]: #131-blank-line-group
 
-[g-atx-heading]: #142-atx-heading-group
+[g-atx-heading]: #132-atx-heading-group
 
-[g-atx-heading-fence]: #143-atx-heading-fence-group
+[g-atx-heading-fence]: #133-atx-heading-fence-group
 
-[g-atx-heading-content]: #144-atx-heading-content-group
+[g-atx-heading-content]: #134-atx-heading-content-group
 
-[g-thematic-break]: #145-thematic-break-group
+[g-thematic-break]: #135-thematic-break-group
 
-[g-html]: #146-html-group
+[g-html]: #136-html-group
 
-[g-html-line]: #147-html-line-group
+[g-html-line]: #137-html-line-group
 
-[g-indented-code]: #148-indented-code-group
+[g-indented-code]: #138-indented-code-group
 
-[g-indented-code-line]: #149-indented-code-line-group
+[g-indented-code-line]: #139-indented-code-line-group
 
-[g-blockquote]: #1410-blockquote-group
+[g-blockquote]: #1310-blockquote-group
 
-[g-fenced-code]: #1411-fenced-code-group
+[g-fenced-code]: #1311-fenced-code-group
 
-[g-fenced-code-fence]: #1412-fenced-code-fence-group
+[g-fenced-code-fence]: #1312-fenced-code-fence-group
 
-[g-fenced-code-language]: #1413-fenced-code-language-group
+[g-fenced-code-language]: #1313-fenced-code-language-group
 
-[g-fenced-code-metadata]: #1414-fenced-code-metadata-group
+[g-fenced-code-metadata]: #1314-fenced-code-metadata-group
 
-[g-fenced-code-line]: #1415-fenced-code-line-group
+[g-fenced-code-line]: #1315-fenced-code-line-group
 
-[g-content]: #1416-content-group
+[g-content]: #1316-content-group
 
-[g-content-line]: #1417-content-line-group
+[g-content-line]: #1317-content-line-group
 
-[g-setext-heading]: #1418-setext-heading-group
+[g-setext-heading]: #1318-setext-heading-group
 
-[g-setext-heading-underline]: #1419-setext-heading-underline-group
+[g-setext-heading-underline]: #1319-setext-heading-underline-group
 
-[g-definition]: #1420-definition-group
+[g-definition]: #1320-definition-group
 
-[g-definition-label]: #1421-definition-label-group
+[g-definition-label]: #1321-definition-label-group
 
-[g-definition-label-content]: #1422-definition-label-content-group
+[g-definition-label-content]: #1322-definition-label-content-group
 
-[g-definition-destination-quoted]: #1423-definition-destination-quoted-group
+[g-definition-destination-quoted]: #1323-definition-destination-quoted-group
 
-[g-definition-destination-unquoted]: #1424-definition-destination-unquoted-group
+[g-definition-destination-unquoted]: #1324-definition-destination-unquoted-group
 
-[g-definition-title]: #1425-definition-title-group
+[g-definition-title]: #1325-definition-title-group
 
-[g-escape]: #1426-escape-group
+[g-escape]: #1326-escape-group
 
-[g-character-reference]: #1427-character-reference-group
+[g-character-reference]: #1327-character-reference-group
 
-[g-automatic-link]: #1428-automatic-link-group
+[g-automatic-link]: #1328-automatic-link-group
 
-[g-html-inline]: #1429-html-inline-group
+[g-html-inline]: #1329-html-inline-group
