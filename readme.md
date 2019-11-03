@@ -87,34 +87,30 @@ Common Markup parser.
     *   [7.48 Content continuation state](#748-content-continuation-state)
 *   [8 Content state machine](#8-content-state-machine)
     *   [8.1 Initial content state](#81-initial-content-state)
-    *   [8.2 Definition label open after state](#82-definition-label-open-after-state)
-    *   [8.3 Definition label before state](#83-definition-label-before-state)
-    *   [8.4 Definition label inside state](#84-definition-label-inside-state)
-    *   [8.5 Definition label inside start after state](#85-definition-label-inside-start-after-state)
-    *   [8.6 Definition label between state](#86-definition-label-between-state)
-    *   [8.7 Definition label escape state](#87-definition-label-escape-state)
-    *   [8.8 Definition label close after state](#88-definition-label-close-after-state)
-    *   [8.9 Definition label after state](#89-definition-label-after-state)
-    *   [8.10 Definition destination before state](#810-definition-destination-before-state)
-    *   [8.11 Definition destination quoted open after state](#811-definition-destination-quoted-open-after-state)
-    *   [8.12 Definition destination quoted inside state](#812-definition-destination-quoted-inside-state)
-    *   [8.13 Definition destination quoted escape state](#813-definition-destination-quoted-escape-state)
-    *   [8.14 Definition destination quoted close after state](#814-definition-destination-quoted-close-after-state)
-    *   [8.15 Definition destination unquoted inside state](#815-definition-destination-unquoted-inside-state)
-    *   [8.16 Definition destination unquoted escape state](#816-definition-destination-unquoted-escape-state)
-    *   [8.17 Definition destination after state](#817-definition-destination-after-state)
-    *   [8.18 Definition title double quoted open after state](#818-definition-title-double-quoted-open-after-state)
-    *   [8.19 Definition title double quoted inside state](#819-definition-title-double-quoted-inside-state)
-    *   [8.20 Definition title double quoted escape state](#820-definition-title-double-quoted-escape-state)
-    *   [8.21 Definition title single quoted open after state](#821-definition-title-single-quoted-open-after-state)
-    *   [8.22 Definition title single quoted inside state](#822-definition-title-single-quoted-inside-state)
-    *   [8.23 Definition title single quoted escape state](#823-definition-title-single-quoted-escape-state)
-    *   [8.24 Definition title paren quoted open after state](#824-definition-title-paren-quoted-open-after-state)
-    *   [8.25 Definition title paren quoted inside state](#825-definition-title-paren-quoted-inside-state)
-    *   [8.26 Definition title paren quoted escape state](#826-definition-title-paren-quoted-escape-state)
-    *   [8.27 Definition title close after state](#827-definition-title-close-after-state)
-    *   [8.28 Definition after state](#828-definition-after-state)
-    *   [8.29 Phrasing content state](#829-phrasing-content-state)
+    *   [8.2 Definition label before state](#82-definition-label-before-state)
+    *   [8.3 Definition label inside state](#83-definition-label-inside-state)
+    *   [8.4 Definition label between state](#84-definition-label-between-state)
+    *   [8.5 Definition label escape state](#85-definition-label-escape-state)
+    *   [8.6 Definition label after state](#86-definition-label-after-state)
+    *   [8.7 Definition destination before state](#87-definition-destination-before-state)
+    *   [8.8 Definition destination quoted inside state](#88-definition-destination-quoted-inside-state)
+    *   [8.9 Definition destination quoted escape state](#89-definition-destination-quoted-escape-state)
+    *   [8.10 Definition destination unquoted inside state](#810-definition-destination-unquoted-inside-state)
+    *   [8.11 Definition destination unquoted escape state](#811-definition-destination-unquoted-escape-state)
+    *   [8.12 Definition destination after state](#812-definition-destination-after-state)
+    *   [8.13 Definition title before state](#813-definition-title-before-state)
+    *   [8.14 Definition title or label before state](#814-definition-title-or-label-before-state)
+    *   [8.15 Definition title double quoted state](#815-definition-title-double-quoted-state)
+    *   [8.16 Definition title double quoted between state](#816-definition-title-double-quoted-between-state)
+    *   [8.17 Definition title double quoted escape state](#817-definition-title-double-quoted-escape-state)
+    *   [8.18 Definition title single quoted state](#818-definition-title-single-quoted-state)
+    *   [8.19 Definition title single quoted between state](#819-definition-title-single-quoted-between-state)
+    *   [8.20 Definition title single quoted escape state](#820-definition-title-single-quoted-escape-state)
+    *   [8.21 Definition title paren quoted state](#821-definition-title-paren-quoted-state)
+    *   [8.22 Definition title paren quoted between state](#822-definition-title-paren-quoted-between-state)
+    *   [8.23 Definition title paren quoted escape state](#823-definition-title-paren-quoted-escape-state)
+    *   [8.24 Definition title after state](#824-definition-title-after-state)
+    *   [8.25 Phrasing content state](#825-phrasing-content-state)
 *   [9 Text state machine](#9-text-state-machine)
     *   [9.1 After whitespace state](#91-after-whitespace-state)
     *   [9.2 After punctuation state](#92-after-punctuation-state)
@@ -585,6 +581,11 @@ at which point there is no [current token][current-token].
 
 To enqueue a token is to add a new token of the given type to the [queue][queue],
 making it the new [current token][current-token].
+
+#### 6.4.5 Ensure
+
+To ensure a token is to enqueue that token if the [current token][current-token] is not of
+the given type, and otherwise do nothing.
 
 ## 7 Flow state machine
 
@@ -1616,118 +1617,69 @@ document and must start in the [*Initial content state*][s-initial-content].
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
     Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition label open label*][l-content-definition-label-open], and
-    switch to the [*Definition label open after state*][s-definition-label-open-after]
+    switch to the [*Definition label before state*][s-definition-label-before]
 *   ↪ **Anything else**
 
     Reconsume in the [*Phrasing content state*][s-phrasing-content]
 
-### 8.2 Definition label open after state
+### 8.2 Definition label before state
 
-*   ↪ **[EOF][ceof]**\
-    ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
+*   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
+    Treat it as per the “U+005D RIGHT SQUARE BRACKET (`]`)” entry below
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
-*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+*   ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition label before state*][s-definition-label-before]
+    Ensure a [*Whitespace token*][t-whitespace] and consume
+*   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
+
+    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
 
-### 8.3 Definition label before state
-
-> **Note**: EOL is not possible.
+### 8.3 Definition label inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
-    ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
-
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
-*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Consume
+    Reconsume in the [*Definition label between state*][s-definition-label-between]
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Ensure a [*Content token*][t-content], consume, and switch to the [*Definition label escape state*][s-definition-label-escape]
+*   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
+
+    Enqueue a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
+    switch to the [*Definition label after state*][s-definition-label-after]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
+    Ensure a [*Content token*][t-content] and consume
 
-### 8.4 Definition label inside state
+### 8.4 Definition label between state
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
 *   ↪ **[EOL][ceol]**
 
-    Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Definition label inside start after state*][s-definition-label-inside-start-after]
-*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    Enqueue an [*End-of-line token*][t-end-of-line] and consume
+*   ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Definition label between state*][s-definition-label-between]
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the [*Definition label escape state*][s-definition-label-escape]
-*   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
-
-    Enqueue a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
-    switch to the [*Definition label close after state*][s-definition-label-close-after]
+    Ensure a [*Whitespace token*][t-whitespace] and consume
 *   ↪ **Anything else**
 
-    Consume
+    Reconsume in the [*Definition label inside state*][s-definition-label-inside]
 
-### 8.5 Definition label inside start after state
-
-> **Note**: EOL is not possible.
-
-*   ↪ **[EOF][ceof]**
-
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
-*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
-    ↪ **U+0020 SPACE (SP)**
-
-    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Definition label between state*][s-definition-label-between]
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the [*Definition label escape state*][s-definition-label-escape]
-*   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
-
-    Enqueue a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
-    switch to the [*Definition label close after state*][s-definition-label-close-after]
-*   ↪ **Anything else**
-
-    Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
-
-### 8.6 Definition label between state
-
-*   ↪ **[EOF][ceof]**
-
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
-*   ↪ **[EOL][ceol]**
-
-    Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Definition label inside start after state*][s-definition-label-inside-start-after]
-*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
-    ↪ **U+0020 SPACE (SP)**
-
-    Consume
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label escape state*][s-definition-label-escape]
-*   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
-
-    Enqueue a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
-    switch to the [*Definition label close after state*][s-definition-label-close-after]
-*   ↪ **Anything else**
-
-    Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
-
-### 8.7 Definition label escape state
+### 8.5 Definition label escape state
 
 *   ↪ **U+005C BACKSLASH (`\`)**\
     ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
@@ -1737,107 +1689,63 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition label inside state*][s-definition-label-inside]
 
-### 8.8 Definition label close after state
+### 8.6 Definition label after state
 
 *   ↪ **U+003A COLON (`:`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Definition label after state*][s-definition-label-after]
+    Enqueue a [*Marker token*][t-marker], consume, and switch to the
+    [*Definition destination before state*][s-definition-destination-before]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
 
-### 8.9 Definition label after state
+### 8.7 Definition destination before state
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
+    Treat it as per the “ASCII control” entry below
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
-*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+*   ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Definition destination before state*][s-definition-destination-before]
+    Ensure a [*Whitespace token*][t-whitespace] and consume
 *   ↪ **U+003C LESS THAN (`<`)**
 
     Enqueue a [*Content definition destination quoted open label*][l-content-definition-destination-quoted-open], enqueue a [*Marker token*][t-marker],
-    consume, and switch to the [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
+    consume, and switch to the [*Definition destination quoted inside state*][s-definition-destination-quoted-inside]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
 *   ↪ **Anything else**
 
     Let `balance` be `0`, enqueue a
     [*Content definition destination unquoted open label*][l-content-definition-destination-unquoted-open], enqueue a [*Content token*][t-content], and
     reconsume in the [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
-### 8.10 Definition destination before state
-
-> **Note**: EOL is not possible.
-
-*   ↪ **[EOF][ceof]**\
-    ↪ **[EOL][ceol]**
-
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
-*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
-    ↪ **U+0020 SPACE (SP)**
-
-    Consume
-*   ↪ **U+003C LESS THAN (`<`)**
-
-    Enqueue a [*Content definition destination quoted open label*][l-content-definition-destination-quoted-open], enqueue a [*Marker token*][t-marker],
-    consume, and switch to the [*Definition destination quoted open after state*][s-definition-destination-quoted-open-after]
-*   ↪ **[ASCII control][ascii-control]**
-
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
-*   ↪ **Anything else**
-
-    Let `balance` be `0`, enqueue a
-    [*Content definition destination unquoted open label*][l-content-definition-destination-unquoted-open], enqueue a [*Content token*][t-content], and
-    reconsume in the [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
-
-### 8.11 Definition destination quoted open after state
+### 8.8 Definition destination quoted inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
     ↪ **U+003C LESS THAN (`<`)**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
     Enqueue a [*Marker token*][t-marker], consume, enqueue a
     [*Content definition destination quoted close label*][l-content-definition-destination-quoted-close], and switch to the
-    [*Definition destination quoted close after state*][s-definition-destination-quoted-close-after]
+    [*Definition destination after state*][s-definition-destination-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Enqueue a [*Content token*][t-content], consume, and switch to the
+    Ensure a [*Content token*][t-content], consume, and switch to the
     [*Definition destination quoted escape state*][s-definition-destination-quoted-escape]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Definition destination quoted inside state*][s-definition-destination-quoted-inside]
+    Ensure a [*Content token*][t-content] and consume
 
-### 8.12 Definition destination quoted inside state
-
-*   ↪ **[EOF][ceof]**\
-    ↪ **[EOL][ceol]**\
-    ↪ **U+003C LESS THAN (`<`)**
-
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
-*   ↪ **U+003E GREATER THAN (`>`)**
-
-    Enqueue a [*Marker token*][t-marker], consume, enqueue a
-    [*Content definition destination quoted close label*][l-content-definition-destination-quoted-close], and switch to the
-    [*Definition destination quoted close after state*][s-definition-destination-quoted-close-after]
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the [*Definition destination quoted escape state*][s-definition-destination-quoted-escape]
-*   ↪ **Anything else**
-
-    Consume
-
-### 8.13 Definition destination quoted escape state
+### 8.9 Definition destination quoted escape state
 
 *   ↪ **U+003C LESS THAN (`<`)**\
     ↪ **U+003E GREATER THAN (`>`)**\
@@ -1848,60 +1756,36 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition destination quoted inside state*][s-definition-destination-quoted-inside]
 
-### 8.14 Definition destination quoted close after state
+### 8.10 Definition destination unquoted inside state
 
-*   ↪ **[EOF][ceof]**
-
-    Enqueue a [*Content definition label*][l-content-definition]
-*   ↪ **[EOL][ceol]**
-
-    Enqueue a [*Content definition partial label*][l-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and
-    consume
-*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**\
+    ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Definition destination after state*][s-definition-destination-after]
-*   ↪ **Anything else**
-
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
-
-### 8.15 Definition destination unquoted inside state
-
-*   ↪ **[EOF][ceof]**
-
-    Unset `balance`, enqueue a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close],
-    and emit a [*Content definition label*][l-content-definition]
-*   ↪ **[EOL][ceol]**
-
-    Unset `balance`, enqueue a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close],
-    enqueue a [*Content definition partial label*][l-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and
-    consume
-*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
-    ↪ **U+0020 SPACE (SP)**
-
-    Unset `balance`, enqueue a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close],
-    enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the
-    [*Definition destination after state*][s-definition-destination-after]
+    Unset `balance` and reconsume in the [*Definition title before state*][s-definition-title-before]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
-    Increment `balance` by `1` and consume
+    Increment `balance` by `1`, ensure a [*Content token*][t-content], and consume
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    If `balance` is `0`, unset `balance` and enqueue a [*Content phrasing label*][l-content-phrasing]
+    If `balance` is `0`, treat it as per the “ASCII control” entry below
 
-    Otherwise, decrement `balance` by `1`, and consume
+    Otherwise, decrement `balance` by `1`, ensure a [*Content token*][t-content], and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Definition destination unquoted escape state*][s-definition-destination-unquoted-escape]
+    Ensure a [*Content token*][t-content], consume, and switch to the
+    [*Definition destination unquoted escape state*][s-definition-destination-unquoted-escape]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Unset `balance` and enqueue a [*Content phrasing label*][l-content-phrasing]
+    Unset `balance`, enqueue a [*Content phrasing label*][l-content-phrasing], and reconsume in the
+    [*Phrasing content state*][s-phrasing-content]
 *   ↪ **Anything else**
 
-    Consume
+    Ensure a [*Content token*][t-content] and consume
 
-### 8.16 Definition destination unquoted escape state
+### 8.11 Definition destination unquoted escape state
 
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**\
     ↪ **U+0029 RIGHT PARENTHESIS (`)`)**\
@@ -1912,189 +1796,215 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
-### 8.17 Definition destination after state
+### 8.12 Definition destination after state
+
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**\
+    ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
+
+    Reconsume in the [*Definition title before state*][s-definition-title-before]
+*   ↪ **Anything else**
+
+    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
+
+### 8.13 Definition title before state
+
+*   ↪ **[EOL][ceol]**
+
+    Enqueue a [*Content definition partial label*][l-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], consume,
+    and switch to the [*Definition title or label before state*][s-definition-title-or-label-before]
+*   ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
+
+    Ensure a [*Whitespace token*][t-whitespace] and consume
+*   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
+
+    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
+*   ↪ **Anything else**
+
+    Reconsume in the [*Definition title or label before state*][s-definition-title-or-label-before]
+
+### 8.14 Definition title or label before state
 
 *   ↪ **[EOF][ceof]**
 
     Enqueue a [*Content definition label*][l-content-definition]
 *   ↪ **[EOL][ceol]**
 
-    Enqueue a [*Content definition partial label*][l-content-definition-partial], enqueue an [*End-of-line token*][t-end-of-line], and
-    consume
-*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    Enqueue an [*End-of-line token*][t-end-of-line] and consume
+*   ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Consume
+    Ensure a [*Whitespace token*][t-whitespace] and consume
+*   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
+
+    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition label open label*][l-content-definition-label-open], and
+    switch to the [*Definition label before state*][s-definition-label-before]
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
     Enqueue a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
-    switch to the [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
+    switch to the [*Definition title double quoted state*][s-definition-title-double-quoted]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
     Enqueue a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
-    switch to the [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
+    switch to the [*Definition title single quoted state*][s-definition-title-single-quoted]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
     Enqueue a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
-    switch to the [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
+    switch to the [*Definition title paren quoted state*][s-definition-title-paren-quoted]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
 
-### 8.18 Definition title double quoted open after state
+### 8.15 Definition title double quoted state
 
-*   ↪ **[EOF][ceof]**
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**\
+    ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
-*   ↪ **[EOL][ceol]**
-
-    Enqueue an [*End-of-line token*][t-end-of-line] and consume
+    Reconsume in the [*Definition title double quoted between state*][s-definition-title-double-quoted-between]
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
     Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
-    switch to the [*Definition title close after state*][s-definition-title-close-after]
+    switch to the [*Definition title after state*][s-definition-title-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Enqueue a [*Content token*][t-content], consume, and switch to the
+    Ensure a [*Content token*][t-content], consume, and switch to the
     [*Definition title double quoted escape state*][s-definition-title-double-quoted-escape]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Definition title double quoted inside state*][s-definition-title-double-quoted-inside]
+    Ensure a [*Content token*][t-content] and consume
 
-### 8.19 Definition title double quoted inside state
+### 8.16 Definition title double quoted between state
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
 *   ↪ **[EOL][ceol]**
 
-    Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
-*   ↪ **U+0022 QUOTATION MARK (`"`)**
+    Enqueue an [*End-of-line token*][t-end-of-line] and consume
+*   ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
-    switch to the [*Definition title close after state*][s-definition-title-close-after]
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the [*Definition title double quoted escape state*][s-definition-title-double-quoted-escape]
+    Ensure a [*Whitespace token*][t-whitespace] and consume
 *   ↪ **Anything else**
 
-    Consume
+    Reconsume in the [*Definition title double quoted state*][s-definition-title-double-quoted]
 
-### 8.20 Definition title double quoted escape state
+### 8.17 Definition title double quoted escape state
 
 *   ↪ **U+0022 QUOTATION MARK (`"`)**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
+    Consume and switch to the [*Definition title double quoted state*][s-definition-title-double-quoted]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Definition title double quoted open after state*][s-definition-title-double-quoted-open-after]
+    Reconsume in the [*Definition title double quoted state*][s-definition-title-double-quoted]
 
-### 8.21 Definition title single quoted open after state
+### 8.18 Definition title single quoted state
 
-*   ↪ **[EOF][ceof]**
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**\
+    ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
-*   ↪ **[EOL][ceol]**
-
-    Enqueue an [*End-of-line token*][t-end-of-line] and consume
+    Reconsume in the [*Definition title single quoted between state*][s-definition-title-single-quoted-between]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
     Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
-    switch to the [*Definition title close after state*][s-definition-title-close-after]
+    switch to the [*Definition title after state*][s-definition-title-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Enqueue a [*Content token*][t-content], consume, and switch to the
+    Ensure a [*Content token*][t-content], consume, and switch to the
     [*Definition title single quoted escape state*][s-definition-title-single-quoted-escape]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Definition title single quoted inside state*][s-definition-title-single-quoted-inside]
+    Ensure a [*Content token*][t-content] and consume
 
-### 8.22 Definition title single quoted inside state
+### 8.19 Definition title single quoted between state
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
 *   ↪ **[EOL][ceol]**
 
-    Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
-*   ↪ **U+0027 APOSTROPHE (`'`)**
+    Enqueue an [*End-of-line token*][t-end-of-line] and consume
+*   ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
-    switch to the [*Definition title close after state*][s-definition-title-close-after]
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the [*Definition title single quoted escape state*][s-definition-title-single-quoted-escape]
+    Ensure a [*Whitespace token*][t-whitespace] and consume
 *   ↪ **Anything else**
 
-    Consume
+    Reconsume in the [*Definition title single quoted state*][s-definition-title-single-quoted]
 
-### 8.23 Definition title single quoted escape state
+### 8.20 Definition title single quoted escape state
 
 *   ↪ **U+0027 APOSTROPHE (`'`)**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
+    Consume and switch to the [*Definition title single quoted state*][s-definition-title-single-quoted]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Definition title single quoted open after state*][s-definition-title-single-quoted-open-after]
+    Reconsume in the [*Definition title single quoted state*][s-definition-title-single-quoted]
 
-### 8.24 Definition title paren quoted open after state
+### 8.21 Definition title paren quoted state
 
-*   ↪ **[EOF][ceof]**
+*   ↪ **[EOF][ceof]**\
+    ↪ **[EOL][ceol]**\
+    ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
-*   ↪ **[EOL][ceol]**
-
-    Enqueue an [*End-of-line token*][t-end-of-line] and consume
+    Reconsume in the [*Definition title paren quoted between state*][s-definition-title-paren-quoted-between]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
     Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
-    switch to the [*Definition title close after state*][s-definition-title-close-after]
+    switch to the [*Definition title after state*][s-definition-title-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Enqueue a [*Content token*][t-content], consume, and switch to the
+    Ensure a [*Content token*][t-content], consume, and switch to the
     [*Definition title paren quoted escape state*][s-definition-title-paren-quoted-escape]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content token*][t-content], consume, and switch to the
-    [*Definition title paren quoted inside state*][s-definition-title-paren-quoted-inside]
+    Ensure a [*Content token*][t-content] and consume
 
-### 8.25 Definition title paren quoted inside state
+### 8.22 Definition title paren quoted between state
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
 *   ↪ **[EOL][ceol]**
 
-    Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
-    [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
-*   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
+    Enqueue an [*End-of-line token*][t-end-of-line] and consume
+*   ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
+    ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
-    switch to the [*Definition title close after state*][s-definition-title-close-after]
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the [*Definition title paren quoted escape state*][s-definition-title-paren-quoted-escape]
+    Ensure a [*Whitespace token*][t-whitespace] and consume
 *   ↪ **Anything else**
 
-    Consume
+    Reconsume in the [*Definition title paren quoted state*][s-definition-title-paren-quoted]
 
-### 8.26 Definition title paren quoted escape state
+### 8.23 Definition title paren quoted escape state
 
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
+    Consume and switch to the [*Definition title paren quoted state*][s-definition-title-paren-quoted]
 *   ↪ **Anything else**
 
-    Reconsume in the [*Definition title paren quoted open after state*][s-definition-title-paren-quoted-open-after]
+    Reconsume in the [*Definition title paren quoted state*][s-definition-title-paren-quoted]
 
-### 8.27 Definition title close after state
+### 8.24 Definition title after state
 
 *   ↪ **[EOF][ceof]**
 
@@ -2103,32 +2013,16 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Enqueue a [*Content definition label*][l-content-definition], enqueue an [*End-of-line token*][t-end-of-line], consume, and
     switch to the [*Initial content state*][s-initial-content]
-*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
+*   ↪ **[VIRTUAL SPACE][cvs]**\
+    ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Enqueue a [*Whitespace token*][t-whitespace], consume, and switch to the [*Definition after state*][s-definition-after]
+    Ensure a [*Whitespace token*][t-whitespace] and consume
 *   ↪ **Anything else**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
+    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
 
-### 8.28 Definition after state
-
-*   ↪ **[EOF][ceof]**
-
-    Enqueue a [*Content definition label*][l-content-definition]
-*   ↪ **[EOL][ceol]**
-
-    Enqueue a [*Content definition label*][l-content-definition], enqueue an [*End-of-line token*][t-end-of-line], consume, and
-    switch to the [*Initial content state*][s-initial-content]
-*   ↪ **U+0009 CHARACTER TABULATION (HT)**\
-    ↪ **U+0020 SPACE (SP)**
-
-    Consume
-*   ↪ **Anything else**
-
-    Enqueue a [*Content phrasing label*][l-content-phrasing]
-
-### 8.29 Phrasing content state
+### 8.25 Phrasing content state
 
 > ❗️ Todo: define.
 
@@ -5322,61 +5216,53 @@ This work is licensed under a
 
 [s-initial-content]: #81-initial-content-state
 
-[s-definition-label-open-after]: #82-definition-label-open-after-state
+[s-definition-label-before]: #82-definition-label-before-state
 
-[s-definition-label-before]: #83-definition-label-before-state
+[s-definition-label-inside]: #83-definition-label-inside-state
 
-[s-definition-label-inside]: #84-definition-label-inside-state
+[s-definition-label-between]: #84-definition-label-between-state
 
-[s-definition-label-inside-start-after]: #85-definition-label-inside-start-after-state
+[s-definition-label-escape]: #85-definition-label-escape-state
 
-[s-definition-label-between]: #86-definition-label-between-state
+[s-definition-label-after]: #86-definition-label-after-state
 
-[s-definition-label-escape]: #87-definition-label-escape-state
+[s-definition-destination-before]: #87-definition-destination-before-state
 
-[s-definition-label-close-after]: #88-definition-label-close-after-state
+[s-definition-destination-quoted-inside]: #88-definition-destination-quoted-inside-state
 
-[s-definition-label-after]: #89-definition-label-after-state
+[s-definition-destination-quoted-escape]: #89-definition-destination-quoted-escape-state
 
-[s-definition-destination-before]: #810-definition-destination-before-state
+[s-definition-destination-unquoted-inside]: #810-definition-destination-unquoted-inside-state
 
-[s-definition-destination-quoted-open-after]: #811-definition-destination-quoted-open-after-state
+[s-definition-destination-unquoted-escape]: #811-definition-destination-unquoted-escape-state
 
-[s-definition-destination-quoted-inside]: #812-definition-destination-quoted-inside-state
+[s-definition-destination-after]: #812-definition-destination-after-state
 
-[s-definition-destination-quoted-escape]: #813-definition-destination-quoted-escape-state
+[s-definition-title-before]: #813-definition-title-before-state
 
-[s-definition-destination-quoted-close-after]: #814-definition-destination-quoted-close-after-state
+[s-definition-title-or-label-before]: #814-definition-title-or-label-before-state
 
-[s-definition-destination-unquoted-inside]: #815-definition-destination-unquoted-inside-state
+[s-definition-title-double-quoted]: #815-definition-title-double-quoted-state
 
-[s-definition-destination-unquoted-escape]: #816-definition-destination-unquoted-escape-state
+[s-definition-title-double-quoted-between]: #816-definition-title-double-quoted-between-state
 
-[s-definition-destination-after]: #817-definition-destination-after-state
+[s-definition-title-double-quoted-escape]: #817-definition-title-double-quoted-escape-state
 
-[s-definition-title-double-quoted-open-after]: #818-definition-title-double-quoted-open-after-state
+[s-definition-title-single-quoted]: #818-definition-title-single-quoted-state
 
-[s-definition-title-double-quoted-inside]: #819-definition-title-double-quoted-inside-state
+[s-definition-title-single-quoted-between]: #819-definition-title-single-quoted-between-state
 
-[s-definition-title-double-quoted-escape]: #820-definition-title-double-quoted-escape-state
+[s-definition-title-single-quoted-escape]: #820-definition-title-single-quoted-escape-state
 
-[s-definition-title-single-quoted-open-after]: #821-definition-title-single-quoted-open-after-state
+[s-definition-title-paren-quoted]: #821-definition-title-paren-quoted-state
 
-[s-definition-title-single-quoted-inside]: #822-definition-title-single-quoted-inside-state
+[s-definition-title-paren-quoted-between]: #822-definition-title-paren-quoted-between-state
 
-[s-definition-title-single-quoted-escape]: #823-definition-title-single-quoted-escape-state
+[s-definition-title-paren-quoted-escape]: #823-definition-title-paren-quoted-escape-state
 
-[s-definition-title-paren-quoted-open-after]: #824-definition-title-paren-quoted-open-after-state
+[s-definition-title-after]: #824-definition-title-after-state
 
-[s-definition-title-paren-quoted-inside]: #825-definition-title-paren-quoted-inside-state
-
-[s-definition-title-paren-quoted-escape]: #826-definition-title-paren-quoted-escape-state
-
-[s-definition-title-close-after]: #827-definition-title-close-after-state
-
-[s-definition-after]: #828-definition-after-state
-
-[s-phrasing-content]: #829-phrasing-content-state
+[s-phrasing-content]: #825-phrasing-content-state
 
 [s-after-whitespace]: #91-after-whitespace-state
 

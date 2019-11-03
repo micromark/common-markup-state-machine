@@ -311,6 +311,11 @@ at which point there is no [current token][].
 To enqueue a token is to add a new token of the given type to the [queue][],
 making it the new [current token][].
 
+#### Ensure
+
+To ensure a token is to enqueue that token if the [current token][] is not of
+the given type, and otherwise do nothing.
+
 ## Flow state machine
 
 The [flow state machine](#) is used to tokenize the main structure of a
@@ -1342,116 +1347,67 @@ document and must start in the s:initial-content.
 *   ↪ **c:[**
 
     Enqueue a t:marker, consume, enqueue a l:content-definition-label-open, and
-    switch to the s:definition-label-open-after
+    switch to the s:definition-label-before
 *   ↪ **Anything else**
 
     Reconsume in the s:phrasing-content
 
-### Definition label open after state
+### Definition label before state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **c:]**
+*   ↪ **[c:EOF][]**
 
-    Enqueue a l:content-phrasing
+    Treat it as per the “c:]” entry below
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
-*   ↪ **c:HT**\
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Enqueue a t:whitespace, consume, and switch to the s:definition-label-before
-*   ↪ **Anything else**
+    Ensure a t:whitespace and consume
+*   ↪ **c:]**
 
-    Enqueue a t:content, consume, and switch to the s:definition-label-inside
-
-### Definition label before state
-
-> **Note**: EOL is not possible.
-
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**\
-    ↪ **c:]**
-
-    Enqueue a l:content-phrasing
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Consume
+    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:definition-label-inside
 
 ### Definition label inside state
 
-*   ↪ **[c:EOF][]**
-
-    Enqueue a l:content-phrasing
-*   ↪ **[c:EOL][]**
-
-    Enqueue an t:end-of-line, consume, and switch to the
-    s:definition-label-inside-start-after
-*   ↪ **c:HT**\
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Enqueue a t:whitespace, consume, and switch to the
-    s:definition-label-between
+    Reconsume in the s:definition-label-between
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the s:definition-label-escape
+    Ensure a t:content, consume, and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
     Enqueue a l:content-definition-label-close, enqueue a t:marker, consume, and
-    switch to the s:definition-label-close-after
+    switch to the s:definition-label-after
 *   ↪ **Anything else**
 
-    Consume
-
-### Definition label inside start after state
-
-> **Note**: EOL is not possible.
-
-*   ↪ **[c:EOF][]**
-
-    Enqueue a l:content-phrasing
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Enqueue a t:whitespace, consume, and switch to the
-    s:definition-label-between
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the s:definition-label-escape
-*   ↪ **c:]**
-
-    Enqueue a l:content-definition-label-close, enqueue a t:marker, consume, and
-    switch to the s:definition-label-close-after
-*   ↪ **Anything else**
-
-    Enqueue a t:content, consume, and switch to the s:definition-label-inside
+    Ensure a t:content and consume
 
 ### Definition label between state
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a l:content-phrasing
+    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the
-    s:definition-label-inside-start-after
-*   ↪ **c:HT**\
+    Enqueue an t:end-of-line and consume
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Consume
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Enqueue a t:content, consume, and switch to the s:definition-label-escape
-*   ↪ **c:]**
-
-    Enqueue a l:content-definition-label-close, enqueue a t:marker, consume, and
-    switch to the s:definition-label-close-after
+    Ensure a t:whitespace and consume
 *   ↪ **Anything else**
 
-    Enqueue a t:content, consume, and switch to the s:definition-label-inside
+    Reconsume in the s:definition-label-inside
 
 ### Definition label escape state
 
@@ -1463,86 +1419,41 @@ document and must start in the s:initial-content.
 
     Reconsume in the s:definition-label-inside
 
-### Definition label close after state
+### Definition label after state
 
 *   ↪ **c::**
 
-    Enqueue a t:marker, consume, and switch to the s:definition-label-after
-*   ↪ **Anything else**
-
-    Enqueue a l:content-phrasing
-
-### Definition label after state
-
-*   ↪ **[c:EOF][]**
-
-    Enqueue a l:content-phrasing
-*   ↪ **[c:EOL][]**
-
-    Enqueue an t:end-of-line and consume
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Enqueue a t:whitespace, consume, and switch to the
+    Enqueue a t:marker, consume, and switch to the
     s:definition-destination-before
-*   ↪ **c:<**
-
-    Enqueue a l:content-definition-destination-quoted-open, enqueue a t:marker,
-    consume, and switch to the s:definition-destination-quoted-open-after
-*   ↪ **[ASCII control][]**
-
-    Enqueue a l:content-phrasing
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, enqueue a
-    l:content-definition-destination-unquoted-open, enqueue a t:content, and
-    reconsume in the s:definition-destination-unquoted-inside
+    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
 
 ### Definition destination before state
 
-> **Note**: EOL is not possible.
+*   ↪ **[c:EOF][]**
 
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**
+    Treat it as per the “ASCII control” entry below
+*   ↪ **[c:EOL][]**
 
-    Enqueue a l:content-phrasing
-*   ↪ **c:HT**\
+    Enqueue an t:end-of-line and consume
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Consume
+    Ensure a t:whitespace and consume
 *   ↪ **c:<**
 
     Enqueue a l:content-definition-destination-quoted-open, enqueue a t:marker,
-    consume, and switch to the s:definition-destination-quoted-open-after
+    consume, and switch to the s:definition-destination-quoted-inside
 *   ↪ **[ASCII control][]**
 
-    Enqueue a l:content-phrasing
+    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
 *   ↪ **Anything else**
 
     Let `balance` be `0`, enqueue a
     l:content-definition-destination-unquoted-open, enqueue a t:content, and
     reconsume in the s:definition-destination-unquoted-inside
-
-### Definition destination quoted open after state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**\
-    ↪ **c:<**
-
-    Enqueue a l:content-phrasing
-*   ↪ **c:>**
-
-    Enqueue a t:marker, consume, enqueue a
-    l:content-definition-destination-quoted-close, and switch to the
-    s:definition-destination-quoted-close-after
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Enqueue a t:content, consume, and switch to the
-    s:definition-destination-quoted-escape
-*   ↪ **Anything else**
-
-    Enqueue a t:content, consume, and switch to the
-    s:definition-destination-quoted-inside
 
 ### Definition destination quoted inside state
 
@@ -1550,18 +1461,19 @@ document and must start in the s:initial-content.
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    Enqueue a l:content-phrasing
+    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
 *   ↪ **c:>**
 
     Enqueue a t:marker, consume, enqueue a
     l:content-definition-destination-quoted-close, and switch to the
-    s:definition-destination-quoted-close-after
+    s:definition-destination-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the s:definition-destination-quoted-escape
+    Ensure a t:content, consume, and switch to the
+    s:definition-destination-quoted-escape
 *   ↪ **Anything else**
 
-    Consume
+    Ensure a t:content and consume
 
 ### Definition destination quoted escape state
 
@@ -1574,58 +1486,34 @@ document and must start in the s:initial-content.
 
     Reconsume in the s:definition-destination-quoted-inside
 
-### Definition destination quoted close after state
-
-*   ↪ **[c:EOF][]**
-
-    Enqueue a l:content-definition
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:content-definition-partial, enqueue an t:end-of-line, and
-    consume
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Enqueue a t:whitespace, consume, and switch to the
-    s:definition-destination-after
-*   ↪ **Anything else**
-
-    Enqueue a l:content-phrasing
-
 ### Definition destination unquoted inside state
 
-*   ↪ **[c:EOF][]**
-
-    Unset `balance`, enqueue a l:content-definition-destination-unquoted-close,
-    and emit a l:content-definition
-*   ↪ **[c:EOL][]**
-
-    Unset `balance`, enqueue a l:content-definition-destination-unquoted-close,
-    enqueue a l:content-definition-partial, enqueue an t:end-of-line, and
-    consume
-*   ↪ **c:HT**\
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Unset `balance`, enqueue a l:content-definition-destination-unquoted-close,
-    enqueue a t:whitespace, consume, and switch to the
-    s:definition-destination-after
+    Unset `balance` and reconsume in the s:definition-title-before
 *   ↪ **c:(**
 
-    Increment `balance` by `1` and consume
+    Increment `balance` by `1`, ensure a t:content, and consume
 *   ↪ **c:)**
 
-    If `balance` is `0`, unset `balance` and enqueue a l:content-phrasing
+    If `balance` is `0`, treat it as per the “ASCII control” entry below
 
-    Otherwise, decrement `balance` by `1`, and consume
+    Otherwise, decrement `balance` by `1`, ensure a t:content, and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the s:definition-destination-unquoted-escape
+    Ensure a t:content, consume, and switch to the
+    s:definition-destination-unquoted-escape
 *   ↪ **[ASCII control][]**
 
-    Unset `balance` and enqueue a l:content-phrasing
+    Unset `balance`, enqueue a l:content-phrasing, and reconsume in the
+    s:phrasing-content
 *   ↪ **Anything else**
 
-    Consume
+    Ensure a t:content and consume
 
 ### Definition destination unquoted escape state
 
@@ -1640,187 +1528,213 @@ document and must start in the s:initial-content.
 
 ### Definition destination after state
 
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Reconsume in the s:definition-title-before
+*   ↪ **Anything else**
+
+    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
+
+### Definition title before state
+
+*   ↪ **[c:EOL][]**
+
+    Enqueue a l:content-definition-partial, enqueue an t:end-of-line, consume,
+    and switch to the s:definition-title-or-label-before
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Ensure a t:whitespace and consume
+*   ↪ **c:[**
+
+    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
+*   ↪ **Anything else**
+
+    Reconsume in the s:definition-title-or-label-before
+
+### Definition title or label before state
+
 *   ↪ **[c:EOF][]**
 
     Enqueue a l:content-definition
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:content-definition-partial, enqueue an t:end-of-line, and
-    consume
-*   ↪ **c:HT**\
+    Enqueue an t:end-of-line and consume
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Consume
+    Ensure a t:whitespace and consume
+*   ↪ **c:[**
+
+    Enqueue a t:marker, consume, enqueue a l:content-definition-label-open, and
+    switch to the s:definition-label-before
 *   ↪ **c:"**
 
     Enqueue a l:content-definition-title-open, enqueue a t:marker, consume, and
-    switch to the s:definition-title-double-quoted-open-after
+    switch to the s:definition-title-double-quoted
 *   ↪ **c:'**
 
     Enqueue a l:content-definition-title-open, enqueue a t:marker, consume, and
-    switch to the s:definition-title-single-quoted-open-after
+    switch to the s:definition-title-single-quoted
 *   ↪ **c:(**
 
     Enqueue a l:content-definition-title-open, enqueue a t:marker, consume, and
-    switch to the s:definition-title-paren-quoted-open-after
+    switch to the s:definition-title-paren-quoted
 *   ↪ **Anything else**
 
-    Enqueue a l:content-phrasing
+    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
 
-### Definition title double quoted open after state
+### Definition title double quoted state
 
-*   ↪ **[c:EOF][]**
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
 
-    Enqueue a l:content-phrasing
-*   ↪ **[c:EOL][]**
-
-    Enqueue an t:end-of-line and consume
+    Reconsume in the s:definition-title-double-quoted-between
 *   ↪ **c:"**
 
     Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
-    switch to the s:definition-title-close-after
+    switch to the s:definition-title-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Enqueue a t:content, consume, and switch to the
+    Ensure a t:content, consume, and switch to the
     s:definition-title-double-quoted-escape
 *   ↪ **Anything else**
 
-    Enqueue a t:content, consume, and switch to the
-    s:definition-title-double-quoted-inside
+    Ensure a t:content and consume
 
-### Definition title double quoted inside state
+### Definition title double quoted between state
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a l:content-phrasing
+    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the
-    s:definition-title-double-quoted-open-after
-*   ↪ **c:"**
+    Enqueue an t:end-of-line and consume
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
 
-    Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
-    switch to the s:definition-title-close-after
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the s:definition-title-double-quoted-escape
+    Ensure a t:whitespace and consume
 *   ↪ **Anything else**
 
-    Consume
+    Reconsume in the s:definition-title-double-quoted
 
 ### Definition title double quoted escape state
 
 *   ↪ **c:"**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the s:definition-title-double-quoted-open-after
+    Consume and switch to the s:definition-title-double-quoted
 *   ↪ **Anything else**
 
-    Reconsume in the s:definition-title-double-quoted-open-after
+    Reconsume in the s:definition-title-double-quoted
 
-### Definition title single quoted open after state
+### Definition title single quoted state
 
-*   ↪ **[c:EOF][]**
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
 
-    Enqueue a l:content-phrasing
-*   ↪ **[c:EOL][]**
-
-    Enqueue an t:end-of-line and consume
+    Reconsume in the s:definition-title-single-quoted-between
 *   ↪ **c:'**
 
     Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
-    switch to the s:definition-title-close-after
+    switch to the s:definition-title-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Enqueue a t:content, consume, and switch to the
+    Ensure a t:content, consume, and switch to the
     s:definition-title-single-quoted-escape
 *   ↪ **Anything else**
 
-    Enqueue a t:content, consume, and switch to the
-    s:definition-title-single-quoted-inside
+    Ensure a t:content and consume
 
-### Definition title single quoted inside state
+### Definition title single quoted between state
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a l:content-phrasing
+    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the
-    s:definition-title-single-quoted-open-after
-*   ↪ **c:'**
+    Enqueue an t:end-of-line and consume
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
 
-    Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
-    switch to the s:definition-title-close-after
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the s:definition-title-single-quoted-escape
+    Ensure a t:whitespace and consume
 *   ↪ **Anything else**
 
-    Consume
+    Reconsume in the s:definition-title-single-quoted
 
 ### Definition title single quoted escape state
 
 *   ↪ **c:'**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the s:definition-title-single-quoted-open-after
+    Consume and switch to the s:definition-title-single-quoted
 *   ↪ **Anything else**
 
-    Reconsume in the s:definition-title-single-quoted-open-after
+    Reconsume in the s:definition-title-single-quoted
 
-### Definition title paren quoted open after state
+### Definition title paren quoted state
 
-*   ↪ **[c:EOF][]**
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
 
-    Enqueue a l:content-phrasing
-*   ↪ **[c:EOL][]**
-
-    Enqueue an t:end-of-line and consume
+    Reconsume in the s:definition-title-paren-quoted-between
 *   ↪ **c:)**
 
     Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
-    switch to the s:definition-title-close-after
+    switch to the s:definition-title-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Enqueue a t:content, consume, and switch to the
+    Ensure a t:content, consume, and switch to the
     s:definition-title-paren-quoted-escape
 *   ↪ **Anything else**
 
-    Enqueue a t:content, consume, and switch to the
-    s:definition-title-paren-quoted-inside
+    Ensure a t:content and consume
 
-### Definition title paren quoted inside state
+### Definition title paren quoted between state
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a l:content-phrasing
+    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
 *   ↪ **[c:EOL][]**
 
-    Enqueue an t:end-of-line, consume, and switch to the
-    s:definition-title-paren-quoted-open-after
-*   ↪ **c:)**
+    Enqueue an t:end-of-line and consume
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
 
-    Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
-    switch to the s:definition-title-close-after
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the s:definition-title-paren-quoted-escape
+    Ensure a t:whitespace and consume
 *   ↪ **Anything else**
 
-    Consume
+    Reconsume in the s:definition-title-paren-quoted
 
 ### Definition title paren quoted escape state
 
 *   ↪ **c:)**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the s:definition-title-paren-quoted-open-after
+    Consume and switch to the s:definition-title-paren-quoted
 *   ↪ **Anything else**
 
-    Reconsume in the s:definition-title-paren-quoted-open-after
+    Reconsume in the s:definition-title-paren-quoted
 
-### Definition title close after state
+### Definition title after state
 
 *   ↪ **[c:EOF][]**
 
@@ -1829,30 +1743,14 @@ document and must start in the s:initial-content.
 
     Enqueue a l:content-definition, enqueue an t:end-of-line, consume, and
     switch to the s:initial-content
-*   ↪ **c:HT**\
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Enqueue a t:whitespace, consume, and switch to the s:definition-after
+    Ensure a t:whitespace and consume
 *   ↪ **Anything else**
 
-    Enqueue a l:content-phrasing
-
-### Definition after state
-
-*   ↪ **[c:EOF][]**
-
-    Enqueue a l:content-definition
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:content-definition, enqueue an t:end-of-line, consume, and
-    switch to the s:initial-content
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Consume
-*   ↪ **Anything else**
-
-    Enqueue a l:content-phrasing
+    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
 
 ### Phrasing content state
 
