@@ -69,9 +69,7 @@ created, one state is switched to another, or something is labelled.
 Each line is made up of tokens, such as whitespace, markers, sequences, and
 content, and labels, that are both enqueued.
 At a certain point, it is known what to do with the queue, whether to discard it
-or to use it, in which case there are more effects: groups are closed, opened,
-or tokens are changed, for example because it is known that a punctuation marker
-should be treated as content.
+or to use it, in which case it is adapted.
 
 The parser parses in three stages: flow, content, and text, respectively coming
 with their own state machines ([flow state machine][], [content state machine][],
@@ -244,7 +242,7 @@ described in the following algorithm:
 
 ## Parsing
 
-The states of state machines have certain [effects][], such as that they create
+The states of state machines have certain effects, such as that they create
 items in the [queue][] (tokens and labels).
 The queue is used by tree adapters, in case a valid construct is found.
 After using the queue, or when in a bogus construct is found, the queue is
@@ -1355,7 +1353,7 @@ start in the s:content-start.
 
 *   ↪ **Anything else**
 
-    Reconsume in the s:phrasing-content
+    Reconsume in the s:content-initial
 
 ### Content initial state
 
@@ -1793,154 +1791,129 @@ start in the s:content-start.
 ## Text state machine
 
 The [text state machine](#) is used to tokenize the inline constructs part of
-rich text (such as resources and emphasis) or plain text (as in character
-escapes or character references) in a document and must start in the
-s:after-whitespace.
+rich text (such as regular resources and emphasis) or plain text (such as
+regular character escapes or character references) in a document and must start
+in the s:text-start.
 
-### After whitespace state
+If text is parsed as plain text, the s:text-start, s:text-initial, and s:text
+all forward to the s:plain-text.
 
-If text is parsed as plain text, this state should act as per the s:plain-text.
-Otherwise:
+If text is parsed as rich text, an additional variable `prev` must be tracked.
+Initial set to [c:EOF][], it must be set to the [input character][] right before
+a character is consumed.
 
-*   ↪ **c:***
+### Text start state
 
-    Let `delimiterRunBefore` be `'whitespace'`, let `delimiterRunAfter` be
-    `null`, enqueue a t:sequence, consume, and switch to the s:emphasis-asterisk
-*   ↪ **c:_**
+> **Hookable**, there are no regular hooks.
 
-    Let `delimiterRunBefore` be `'whitespace'`, let `delimiterRunAfter` be
-    `null`, enqueue a t:sequence, consume, and switch to the
-    s:emphasis-underscore
 *   ↪ **Anything else**
 
-    Reconsume in the s:text
+    Reconsume in the s:text-initial
 
-### After punctuation state
+### Text initial state
 
-If text is parsed as plain text, this state should act as per the s:plain-text.
-Otherwise:
+> **Hookable**, there are no regular hooks.
 
-*   ↪ **c:***
-
-    Let `delimiterRunBefore` be `'punctuation'`, let `delimiterRunAfter` be
-    `null`, enqueue a t:sequence, consume, and switch to the s:emphasis-asterisk
-*   ↪ **c:_**
-
-    Let `delimiterRunBefore` be `'punctuation'`, let `delimiterRunAfter` be
-    `null`, enqueue a t:sequence, consume, and switch to the
-    s:emphasis-underscore
 *   ↪ **Anything else**
 
     Reconsume in the s:text
 
 ### Text state
 
-If text is parsed as plain text, this state should act as per the s:plain-text.
-Otherwise:
+> **Hookable**, the regular hooks are:
+>
+> *   **[c:EOL][]**: s:end-of-line
+> *   **c:!**: s:image-label-start
+> *   **c:&**: s:character-reference
+> *   **c:***: s:delimiter-run-asterisk-start
+> *   **c:<**: s:autolink
+> *   **c:<**: s:html
+> *   **c:[**: s:link-label-start
+> *   **U+005C BACKSLASH (`\`)**: s:character-escape
+> *   **U+005C BACKSLASH (`\`)**: s:break-escape
+> *   **c:]**: s:label-resource-close
+> *   **c:]**: s:label-reference-close
+> *   **c:]**: s:label-reference-shortcut-close
+> *   **c:_**: s:delimiter-run-underscore-start
+> *   **c:`**: s:code-start
 
 *   ↪ **[c:EOF][]**
 
     Enqueue an t:end-of-file
-*   ↪ **[c:EOL][]**
-
-    If the break represented by the character starts with a t:whitespace that
-    consists of two or more of [c:VS][], [c:HT][], or [c:SP][], enqueue a
-    l:text-hard-break, enqueue an t:end-of-line, consume, and switch to the
-    s:after-whitespace
-
-    Otherwise, enqueue a l:text-soft-break, enqueue an t:end-of-line, consume,
-    and switch to the s:after-whitespace
-*   ↪ **c:!**
-
-    Enqueue a l:text-image-label-open, enqueue a t:marker, consume, and switch
-    to the s:image-label-exclamation-mark-after
-*   ↪ **c:&**
-
-    Enqueue a t:marker, consume, and switch to the s:character-reference
-*   ↪ **c:***
-
-    Let `delimiterRunBefore` be `null`, let `delimiterRunAfter` be `null`,
-    enqueue a t:sequence, consume, and switch to the s:emphasis-asterisk
-*   ↪ **c:<**
-
-    Enqueue a t:content, consume, and switch to the
-    s:html-or-autolink-less-than-after
-*   ↪ **c:[**
-
-    Enqueue a t:marker, consume, enqueue a l:text-link-open
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Enqueue a t:marker, consume, and switch to the s:escape-backslash-after
-*   ↪ **c:]**
-
-    Enqueue a t:marker, consume, and switch to the
-    s:resource-text-or-label-after
-*   ↪ **c:_**
-
-    Let `delimiterRunBefore` be `null`, let `delimiterRunAfter` be `null`,
-    enqueue a t:sequence, consume, and switch to the s:emphasis-underscore
-*   ↪ **c:`**
-
-    Let `sizeOpen` be `1`, enqueue a t:sequence, consume, and switch to the
-    s:code-span-open
-*   ↪ **[Unicode punctuation][]**
-
-    Consume and switch to the s:after-punctuation
-*   ↪ **[Unicode whitespace][]**
-
-    Consume and switch to the s:after-whitespace
 *   ↪ **Anything else**
 
-    > ❗️ Todo: handle
+    Ensure a t:content and consume
 
 ### Plain text state
 
+> **Hookable**, the regular hooks are:
+>
+> *   **[c:EOL][]**: s:plain-end-of-line
+> *   **c:&**: s:character-reference
+> *   **U+005C BACKSLASH (`\`)**: s:character-escape
+
 *   ↪ **[c:EOF][]**
 
     Enqueue an t:end-of-file
-    Enqueue a l:content-phrasing
+*   ↪ **Anything else**
+
+    Ensure a t:content and consume
+
+### End-of-line state
+
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
-*   ↪ **c:&**
+    If the break represented by the character starts with two or more of
+    [c:VS][], c:HT, or c:SP, enqueue a l:hard-break, enqueue an t:end-of-line,
+    consume, and switch to the s:text-initial
 
-    Enqueue a t:marker, consume, and switch to the s:character-reference
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Enqueue a t:marker, consume, and switch to the s:escape-backslash-after
+    Otherwise, enqueue a l:soft-break, enqueue an t:end-of-line, consume,
+    and switch to the s:text-initial
 *   ↪ **Anything else**
 
-    > ❗️ Todo: handle
+    Enqueue a l:nok
 
-### Emphasis asterisk state
+### Plain end-of-line state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**\
-    ↪ **[Unicode whitespace][]**
+*   ↪ **[c:EOL][]**
 
-    Let `delimiterRunAfter` be `'whitespace'` and treat it as per the “anything
-    else” entry below
-*   ↪ **c:***
-
-    Consume
-*   ↪ **[Unicode punctuation][]**
-
-    Let `delimiterRunAfter` be `'punctuation'` and treat it as per the “anything
-    else” entry below
+    Enqueue a l:soft-break, enqueue an t:end-of-line, consume, and switch to the
+    s:text-initial
 *   ↪ **Anything else**
 
-    Let `leftFlanking` be whether both `delimiterRunAfter` is not
-    `'whitespace'`, and that either `delimiterRunAfter` is not `'punctuation'`
-    or that `delimiterRunBefore` is not `null`
+    Enqueue a l:nok
 
-    Let `rightFlanking` be whether both `delimiterRunBefore` is not
-    `'whitespace'`, and that either `delimiterRunBefore` is not `'punctuation'`
-    or that `delimiterRunAfter` is not `null`
+### Image label start state
 
-    Unset `delimiterRunBefore`, unset `delimiterRunAfter`, enqueue a
-    l:text-emphasis, and reconsume in the s:after-punctuation
+*   ↪ **c:!**
+
+    Enqueue a l:image-label-start, enqueue a t:marker, consume, and switch to
+    the s:image-label-start-after
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Image label start after state
+
+*   ↪ **c:[**
+
+    Enqueue a t:marker, consume, enqueue a l:image-label-open, and switch to the
+    s:text
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
 
 ### Character reference state
+
+*   ↪ **c:&**
+
+    Enqueue a l:character-reference-start, enqueue a t:marker, consume, and
+    switch to the s:character-reference-start-after
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Character reference start after state
 
 *   ↪ **c:#**
 
@@ -1951,17 +1924,19 @@ Otherwise:
     enqueue a t:content, consume, and switch to the s:character-reference-named
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat if extensions are supported
-
-    Reconsume in the s:after-punctuation
+    Enqueue a l:nok
 
 ### Character reference named state
+
+> **Note**: This state can be optimized by either imposing a maximum size (the
+> size of the longest possible named character reference) or by using a trie of
+> the possible named character references.
 
 *   ↪ **c:;**
 
     If `entityName` is a [character reference name][], unset `entityName`,
-    enqueue a t:marker, consume, enqueue a l:text-character-reference, and
-    switch to the s:after-punctuation
+    enqueue a t:marker, consume, enqueue a l:character-reference-end, and switch
+    to the s:text
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **[ASCII alphanumeric][]**
@@ -1969,9 +1944,7 @@ Otherwise:
     Append the character to `entityName` and consume
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat if extensions are supported
-
-    Unset `entityName` and reconsume in the s:text
+    Unset `entityName` and enqueue a l:nok
 
 ### Character reference numeric state
 
@@ -1986,9 +1959,7 @@ Otherwise:
     the s:character-reference-decimal
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat if extensions are supported
-
-    Reconsume in the s:after-punctuation
+    Enqueue a l:nok
 
 ### Character reference hexadecimal start state
 
@@ -1997,16 +1968,17 @@ Otherwise:
     Enqueue a t:content and reconsume in the s:character-reference-hexadecimal
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat if extensions are supported
-
-    Unset `characterReferenceCode` and reconsume in the s:text
+    Unset `characterReferenceCode` and enqueue a l:nok
 
 ### Character reference hexadecimal state
+
+> **Note**: This state can be optimized by imposing a maximum size (the size of
+> the longest possible valid hexadecimal character reference, 6).
 
 *   ↪ **c:;**
 
     Unset `characterReferenceCode`, enqueue a t:marker, consume, enqueue a
-    l:text-character-reference, and switch to the s:after-punctuation
+    l:character-reference-end, and switch to the s:text
 *   ↪ **[ASCII digit][]**
 
     Multiply `characterReferenceCode` by `0x10`, add the [digitize][]d
@@ -2021,107 +1993,40 @@ Otherwise:
     [input character][] to `characterReferenceCode`, and consume
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat if extensions are supported
-
-    Unset `characterReferenceCode` and reconsume in the s:text
+    Unset `characterReferenceCode` and enqueue a l:nok
 
 ### Character reference decimal state
+
+> **Note**: This state can be optimized by imposing a maximum size (the size of
+> the longest possible valid decimal character reference, 7).
 
 *   ↪ **c:;**
 
     Unset `characterReferenceCode`, enqueue a t:marker, consume, enqueue a
-    l:text-character-reference, and switch to the s:text
+    l:character-reference-end, and switch to the s:text
 *   ↪ **[ASCII digit][]**
 
     Multiply `characterReferenceCode` by `10`, add the [digitize][]d
     [input character][] to `characterReferenceCode`, and consume
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat if extensions are supported
+    Unset `characterReferenceCode` and enqueue a l:nok
 
-    Unset `characterReferenceCode` and reconsume in the s:text
+### Delimiter run asterisk start state
 
-### Code span open state
+*   ↪ **c:***
 
-*   ↪ **[c:EOF][]**
+    Let `delimiterRunAfter` be `null` and let `delimiterRunBefore` be
+    `'whitespace'` if `prev` is [c:EOF][], [c:EOL][], or [Unicode whitespace][],
+    `'punctuation'` if it is [Unicode punctuation][], or `null` otherwise
 
-    Unset `sizeOpen` and reconsume in the s:text
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and switch
-    to the s:code-span-inside-start-after
-*   ↪ **c:`**
-
-    Increment `sizeOpen` by `1` and consume
+    Enqueue a l:delimiter-run-start, enqueue a t:sequence, consume, and switch
+    to the s:delimiter-run-asterisk
 *   ↪ **Anything else**
 
-    Enqueue a t:content, consume, and switch to the s:code-span-inside
+    Enqueue a l:nok
 
-### Code span inside start after state
-
-> **Note**: EOL is not possible.
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
-
-    Unset `sizeOpen` and reconsume in the s:text
-*   ↪ **c:`**
-
-    Enqueue a t:sequence, let `sizeClose` be `1`, consume, and switch to the
-    s:code-span-close
-*   ↪ **Anything else**
-
-    Enqueue a t:content, consume, and switch to the s:code-span-inside
-
-### Code span inside state
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
-
-    Unset `sizeOpen` and reconsume in the s:text
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and switch
-    to the s:code-span-inside-start-after
-*   ↪ **c:`**
-
-    Enqueue a t:sequence, let `sizeClose` be `1`, consume, and switch to the
-    s:code-span-close
-*   ↪ **Anything else**
-
-    Consume
-
-### Code span close state
-
-*   ↪ **[c:EOF][]**
-
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, enqueue a
-    l:text-code, and reconsume in the s:after-punctuation
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
-
-    Otherwise, unset `sizeOpen`, unset `sizeClose`, and reconsume in the
-    s:text
-*   ↪ **[c:EOL][]**
-
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, enqueue a
-    l:text-code, and reconsume in the s:after-punctuation
-
-    Otherwise, unset `sizeClose`, enqueue a l:text-soft-break, enqueue an
-    t:end-of-line, consume, and switch to the s:code-span-inside-start-after
-*   ↪ **c:`**
-
-    Increment `sizeClose` by `1` and consume
-*   ↪ **Anything else**
-
-    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, enqueue a
-    l:text-code, and reconsume in the s:after-punctuation
-
-    Otherwise, unset `sizeClose`, consume, and switch to the s:code-span-inside
-
-### Emphasis underscore state
+### Delimiter run asterisk state
 
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**\
@@ -2129,7 +2034,7 @@ Otherwise:
 
     Let `delimiterRunAfter` be `'whitespace'` and treat it as per the “anything
     else” entry below
-*   ↪ **c:_**
+*   ↪ **c:***
 
     Consume
 *   ↪ **[Unicode punctuation][]**
@@ -2147,430 +2052,75 @@ Otherwise:
     or that `delimiterRunAfter` is not `null`
 
     Unset `delimiterRunBefore`, unset `delimiterRunAfter`, enqueue a
-    l:text-emphasis, and reconsume in the s:after-punctuation
+    l:delimiter-run-end, and reconsume in the s:text
 
-### Escape backslash after state
+### Autolink state
 
-*   ↪ **[c:EOL][]**
+*   ↪ **c:<**
 
-    If text is parsed as rich text, and the break represented by the character
-    does not start with a t:whitespace, enqueue a l:text-hard-break, enqueue an
-    t:end-of-line, consume, and switch to the s:after-whitespace
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **[ASCII punctuation][]**
-
-    Enqueue a t:content, consume, enqueue a l:text-escape, and switch to the
-    s:text
+    Enqueue a l:autolink-start, enqueue a t:marker, consume, enqueue a
+    l:autolink-open, and switch to the s:autolink-open
 *   ↪ **Anything else**
 
-    Reconsume in the s:after-punctuation
+    Enqueue a l:nok
 
-### HTML or autolink less than after state
+### Autolink open state
 
-*   ↪ **c:!**
-
-    Consume and switch to the s:html-declaration-or-email-atext
-*   ↪ **c:/**
-
-    Consume and switch to the s:html-tag-close-or-email-atext
-*   ↪ **c:?**
-
-    Consume and switch to the s:html-instruction-or-email-atext
 *   ↪ **[ASCII alpha][]**
 
     Consume, let `sizeScheme` be `1`, and switch to the
-    s:html-tag-open-scheme-or-email-atext
+    s:autolink-scheme-or-email-atext
 *   ↪ **[atext][]**\
     ↪ **c:.**
 
     Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat if extensions are supported
+    Enqueue a l:nok
 
-    Reconsume in the s:after-punctuation
+### Autolink email atext state
 
-### HTML instruction or email atext state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
-    > we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
-*   ↪ **c:?**
-
-    Consume and switch to the s:html-instruction-close-or-email-atext
 *   ↪ **c:@**
 
-    Consume, let `sizeLabel` be `1`, and switch to the
-    s:html-instruction-or-email-at-sign-or-dot
+    Enqueue a t:marker, consume, let `sizeLabel` be `1`, enqueue a t:content,
+    and switch to the s:autolink-email-at-sign-or-dot
 *   ↪ **[atext][]**\
     ↪ **c:.**
 
     Consume
 *   ↪ **Anything else**
 
-    Consume and switch to the s:html-instruction
+    Enqueue a l:nok
 
-### HTML instruction close or email atext state
+### Autolink email label state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
-    > we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
-*   ↪ **c:>**
-
-    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
-*   ↪ **c:?**
-
-    Consume
-*   ↪ **c:@**
-
-    Consume, let `sizeLabel` be `1`, and switch to the
-    s:html-instruction-or-email-at-sign-or-dot
-*   ↪ **[atext][]**\
-    ↪ **c:.**
-
-    Consume and switch to the s:html-instruction-or-email-atext
-*   ↪ **Anything else**
-
-    Consume and switch to the s:html-instruction
-
-### HTML instruction or email at sign or dot state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
-    > we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
-*   ↪ **c:?**
-
-    Unset `sizeLabel`, consume, and switch to the s:html-instruction-close
-*   ↪ **[ASCII alphanumeric][]**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:html-instruction-or-email-label
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **Anything else**
-
-    Unset `sizeLabel`, consume, and switch to the s:html-instruction
-
-### HTML instruction or email label state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
-    > we don’t know if there was punctuation or whitespace)
-
-    Unset `sizeLabel` and reconsume in the s:text
 *   ↪ **c:-**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:html-instruction-or-email-dash
+    switch to the s:autolink-email-dash
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:.**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:html-instruction-or-email-at-sign-or-dot
+    switch to the s:autolink-email-at-sign-or-dot
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
 
-    Unset `sizeLabel`, consume, enqueue a l:text-autolink-email, and switch to
-    the s:after-punctuation
-*   ↪ **c:?**
-
-    Unset `sizeLabel`, consume, and switch to the s:html-instruction-close
+    Unset `sizeLabel`, enqueue a l:autolink-email-close, enqueue a t:marker,
+    consume, enqueue a l:autolink-email-end, and switch to the s:text
 *   ↪ **[ASCII alphanumeric][]**
 
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:html-instruction-or-email-label
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1` and consume
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Unset `sizeLabel`, consume, and switch to the s:html-instruction
+    Unset `sizeLabel` and enqueue a l:nok
 
-### HTML instruction or email dash state
+### Autolink email at sign or dot state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
-    > we don’t know if there was punctuation or whitespace)
-
-    Unset `sizeLabel` and reconsume in the s:text
-*   ↪ **c:-**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:html-instruction-or-email-dash
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **c:?**
-
-    Unset `sizeLabel`, consume, and switch to the s:html-instruction-close
-*   ↪ **[ASCII alphanumeric][]**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:html-instruction-or-email-label
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **Anything else**
-
-    Unset `sizeLabel`, consume, and switch to the s:html-instruction
-
-### HTML instruction state
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
-    > we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
-    a t:content
-*   ↪ **c:?**
-
-    Consume and switch to the s:html-instruction-close
-*   ↪ **Anything else**
-
-    Consume
-
-### HTML instruction close state
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
-    > we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
-    t:content, and switch to the s:html-instruction
-*   ↪ **c:>**
-
-    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
-*   ↪ **Anything else**
-
-    Consume
-
-### HTML declaration or email atext state
-
-*   ↪ **c:-**
-
-    Consume and switch to the s:html-comment-open-inside-or-email-atext
-*   ↪ **c:@**
-
-    Consume, let `sizeLabel` be `1`, and switch to the
-    s:autolink-email-at-sign-or-dot
-*   ↪ **`[CDATA[` (the five upper letters “CDATA” with a c:[ before and
-    after)**
-
-    Consume and switch to the s:html-cdata
-*   ↪ **[ASCII upper alpha][]**
-
-    Consume and switch to the s:html-declaration-name-or-email-atext
-*   ↪ **[atext][]**\
-    ↪ **c:.**
-
-    Consume and switch to the s:autolink-email-atext
-*   ↪ **Anything else**
-
-    > ❗️ Todo: figure out if we are after punctuation, whitespace, or something
-    > else?
-
-    Reconsume in the s:text
-
-### HTML comment open inside or email atext state
-
-*   ↪ **c:-**
-
-    Consume and switch to the s:html-comment-or-email-atext
-*   ↪ **c:@**
-
-    Consume, let `sizeLabel` be `1`, and switch to the
-    s:autolink-email-at-sign-or-dot
-*   ↪ **[atext][]**\
-    ↪ **c:.**
-
-    Consume and switch to the s:autolink-email-atext
-*   ↪ **Anything else**
-
-    Reconsume in the s:after-punctuation
-
-### HTML comment or email atext state
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
-    > we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
-*   ↪ **c:-**
-
-    Consume and switch to the s:html-comment-close-inside-or-email-atext
-*   ↪ **c:@**
-
-    Consume, let `sizeLabel` be `1`, and switch to the
-    s:html-comment-or-email-at-sign-or-dot
-*   ↪ **[atext][]**\
-    ↪ **c:.**
-
-    Consume and switch to the s:html-comment-or-email-atext
-*   ↪ **Anything else**
-
-    Reconsume in the s:html-comment
-
-### HTML comment close inside or email atext state
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
-    > we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
-*   ↪ **c:-**
-
-    Consume and switch to the s:html-comment-close-or-email-atext
-*   ↪ **c:@**
-
-    Consume, let `sizeLabel` be `1`, and switch to the
-    s:html-comment-or-email-at-sign-or-dot
-*   ↪ **[atext][]**\
-    ↪ **c:.**
-
-    Consume and switch to the s:html-comment-or-email-atext
-*   ↪ **Anything else**
-
-    Reconsume in the s:html-comment
-
-### HTML comment close or email atext state
-
-> **Note**: a comment may not contain two dashes (`--`), and may not end in a
-> dash (which would result in `--->`).
-> Here we have seen two dashes, so we can either be at the end of a comment, or
-> no longer in a comment.
-
-*   ↪ **c:>**
-
-    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
-*   ↪ **c:@**
-
-    Consume, let `sizeLabel` be `1`, and switch to the
-    s:autolink-email-at-sign-or-dot
-*   ↪ **[atext][]**\
-    ↪ **c:.**
-
-    Consume and switch to the s:autolink-email-atext
-*   ↪ **Anything else**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
-
-    Reconsume in the s:after-punctuation
-
-### HTML comment or email at sign or dot state
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
-
-    Unset `sizeLabel` and reconsume in the s:text
-*   ↪ **c:-**
-
-    Unset `sizeLabel`, consume, and switch to the s:html-comment-close-inside
-*   ↪ **[ASCII alphanumeric][]**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:html-comment-or-email-label
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **Anything else**
-
-    Unset `sizeLabel` and reconsume in the s:html-comment
-
-### HTML comment or email label state
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
-    > we don’t know if there was punctuation or whitespace)
-
-    Unset `sizeLabel` and reconsume in the s:text
-*   ↪ **c:-**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:html-comment-close-inside-or-email-label-dash
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **c:.**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:html-comment-or-email-at-sign-or-dot
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **c:>**
-
-    Unset `sizeLabel`, consume, enqueue a l:text-autolink-email, and switch to
-    the s:after-punctuation
-*   ↪ **[ASCII alphanumeric][]**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:html-comment-or-email-label
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **Anything else**
-
-    Unset `sizeLabel` and reconsume in the s:html-comment
-
-### HTML comment close inside or email label dash state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **c:>**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
-
-    Unset `sizeLabel` and reconsume in the s:after-punctuation
-*   ↪ **c:-**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:html-comment-close-or-email-label-dash
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **[ASCII alphanumeric][]**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:html-comment-or-email-label
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **Anything else**
-
-    Unset `sizeLabel` and reconsume in the s:html-comment
-
-### HTML comment close or email label dash state
-
-> **Note**: a comment may not contain two dashes (`--`), and may not end in a
-> dash (which would result in `--->`).
-> Here we have seen two dashes, so we can either be at the end of a comment, or
-> no longer in a comment.
-
-*   ↪ **c:>**
-
-    Unset `sizeLabel`, consume, enqueue a l:text-html, and switch to the
-    s:after-punctuation
 *   ↪ **[ASCII alphanumeric][]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
@@ -2579,22 +2129,145 @@ Otherwise:
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+    Unset `sizeLabel` and enqueue a l:nok
 
-    Unset `sizeLabel` and reconsume in the s:after-punctuation
+### Autolink email dash state
 
-### HTML comment state
+*   ↪ **c:-**
+
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1` and consume
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **[ASCII alphanumeric][]**
+
+    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
+    switch to the s:autolink-email-label
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **Anything else**
+
+    Unset `sizeLabel` and enqueue a l:nok
+
+### Autolink scheme or email atext state
+
+*   ↪ **c:+**\
+    ↪ **c:.**\
+    ↪ **c:-**\
+    ↪ **[ASCII alphanumeric][]**
+
+    Increment `sizeScheme` by `1`, consume, and switch to the
+    s:autolink-scheme-inside-or-email-atext
+*   ↪ **[atext][]**
+
+    Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
+*   ↪ **Anything else**
+
+    Unset `sizeScheme` and enqueue a l:nok
+
+### Autolink scheme inside or email atext state
+
+*   ↪ **c::**
+
+    Unset `sizeScheme`, enqueue a t:marker, consume, enqueue a t:content, and
+    switch to the s:autolink-uri-inside
+*   ↪ **c:@**
+
+    Unset `sizeScheme`, enqueue a t:marker, consume, let `sizeLabel` be `1`,
+    enqueue a t:content, and switch to the s:autolink-email-at-sign-or-dot
+*   ↪ **c:+**\
+    ↪ **c:.**\
+    ↪ **c:-**\
+    ↪ **[ASCII alphanumeric][]**
+
+    If `sizeScheme` is not `32`, increment `sizeScheme` by `1` and consume
+
+    Otherwise, treat it as per the “atext” entry below
+*   ↪ **[atext][]**
+
+    Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
+*   ↪ **Anything else**
+
+    Unset `sizeScheme` and enqueue a l:nok
+
+### Autolink URI inside state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[ASCII control][]**\
+    ↪ **c:SP**\
+    ↪ **c:<**
+
+    Enqueue a l:nok
+*   ↪ **c:>**
+
+    Enqueue a l:autolink-uri-close, enqueue a t:marker, consume, enqueue a
+    l:autolink-uri-end, and switch to the s:text
+*   ↪ **Anything else**
+
+    Consume
+
+### HTML state
+
+*   ↪ **c:<**
+
+    Enqueue an l:html-start, enqueue a t:content, consume, and switch to the
+    s:html-open
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### HTML open state
+
+*   ↪ **c:!**
+
+    Consume and switch to the s:html-declaration-start
+*   ↪ **c:/**
+
+    Consume and switch to the s:html-tag-close-start
+*   ↪ **c:?**
+
+    Consume and switch to the s:html-instruction-inside
+*   ↪ **[ASCII alpha][]**
+
+    Consume and switch to the s:html-tag-open-inside
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### HTML declaration start state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-comment-open-inside
+*   ↪ **`[CDATA[` (the five upper letters “CDATA” with a c:[ before and
+    after)**
+
+    Consume and switch to the s:html-cdata-inside
+*   ↪ **[ASCII alpha][]**
+
+    Reconsume in the s:html-declaration-inside
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### HTML comment open inside state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:html-comment-inside
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### HTML comment inside state
 
 *   ↪ **[c:EOF][]**
 
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
-    > we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
-    a t:content
+    Enqueue a l:soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
 *   ↪ **c:-**
 
     Consume and switch to the s:html-comment-close-inside
@@ -2604,291 +2277,160 @@ Otherwise:
 
 ### HTML comment close inside state
 
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
-
-    Reconsume in the s:after-punctuation
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
-    t:content, and switch to the s:html-comment
 *   ↪ **c:-**
 
     Consume and switch to the s:html-comment-close
 *   ↪ **Anything else**
 
-    Consume
+    Reconsume in the s:html-comment-inside
 
 ### HTML comment close state
 
-> **Note**: a comment may not contain two dashes (`--`), and may not end in a
+> **Note**: a CM comment may not contain two dashes (`--`), and may not end in a
 > dash (which would result in `--->`).
 > Here we have seen two dashes, so we can either be at the end of a comment, or
 > no longer in a comment.
 
 *   ↪ **c:>**
 
-    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue an l:html-end, and switch to the s:text
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
+    Enqueue a l:nok
 
-    Reconsume in the s:after-punctuation
-
-### HTML CDATA state
+### HTML CDATA inside state
 
 *   ↪ **[c:EOF][]**
 
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
-
-    Reconsume in the s:text
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
-    a t:content
+    Enqueue a l:soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
 *   ↪ **`]]>` (two of c:], with a c:> after)**
 
-    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue an l:html-end, and switch to the s:text
 *   ↪ **Anything else**
 
     Consume
 
-### HTML declaration name or email atext state
-
-*   ↪ **[c:EOL][]**\
-    ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Reconsume in the s:html-declaration-between
-*   ↪ **c:@**
-
-    Consume, let `sizeLabel` be `1`, and switch to the
-    s:autolink-email-at-sign-or-dot
-*   ↪ **[ASCII upper alpha][]**
-
-    Consume
-*   ↪ **[atext][]**\
-    ↪ **c:.**
-
-    Consume and switch to the s:autolink-email-atext
-*   ↪ **Anything else**
-
-    > ❗️ Todo: retreat if extensions are supported
-
-    Reconsume in the s:text
-
-### HTML declaration between state
-
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
-    a t:content
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Consume
-*   ↪ **c:>**
-
-    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
-*   ↪ **Anything else**
-
-    Reconsume in the s:html-declaration-content
-
-### HTML declaration content state
+### HTML declaration inside state
 
 *   ↪ **[c:EOF][]**
 
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for, and
-    > we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
-    a t:content
+    Enqueue a l:soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
 *   ↪ **c:>**
 
-    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue an l:html-end, and switch to the s:text
 *   ↪ **Anything else**
 
     Consume
 
-### HTML tag close or email atext state
+### HTML instruction inside state
 
-*   ↪ **c:@**
+*   ↪ **[c:EOF][]**
 
-    Consume, let `sizeLabel` be `1`, and switch to the
-    s:autolink-email-at-sign-or-dot
-*   ↪ **[ASCII alpha][]**
+    Enqueue a l:nok
+*   ↪ **[c:EOL][]**
 
-    Consume and switch to the s:html-tag-close-inside-or-email-atext
-*   ↪ **[atext][]**\
-    ↪ **c:.**
+    Enqueue a l:soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
+*   ↪ **c:?**
 
-    Consume and switch to the s:autolink-email-atext
+    Consume and switch to the s:html-instruction-close
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat if extensions are supported
+    Consume
 
-    Reconsume in the s:after-punctuation
+### HTML instruction close state
 
-### HTML tag close inside or email atext state
+*   ↪ **c:>**
+
+    Consume, enqueue an l:html-end, and switch to the s:text
+*   ↪ **Anything else**
+
+    Reconsume in the s:html-instruction-inside
+
+### HTML tag close start state
+
+*   ↪ **[ASCII alpha][]**
+
+    Consume and switch to the s:html-tag-close-inside
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### HTML tag close inside state
 
 *   ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
     ↪ **c:HT**\
     ↪ **c:SP**
 
     Reconsume in the s:html-tag-close-between
 *   ↪ **c:>**
 
-    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
-*   ↪ **c:@**
-
-    Consume, let `sizeLabel` be `1`, and switch to the
-    s:autolink-email-at-sign-or-dot
+    Consume, enqueue an l:html-end, and switch to the s:text
 *   ↪ **[ASCII alphanumeric][]**\
     ↪ **c:-**
 
     Consume
-*   ↪ **[atext][]**\
-    ↪ **c:.**
-
-    Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat if extensions are supported
-
-    Reconsume in the s:text
+    Enqueue a l:nok
 
 ### HTML tag close between state
 
-> **Note**: an EOL would technically be allowed here, but anything else isn’t,
-> and as a `>` after an EOL would start a blockquote, practically it’s not
-> possible.
-
-*   ↪ **c:>**
-
-    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
-*   ↪ **Anything else**
-
-    > ❗️ Todo: retreat if extensions are supported
-
-    Reconsume in the s:after-whitespace
-
-### HTML tag open scheme or email atext state
-
-*   ↪ **c:+**\
-    ↪ **c:.**
-
-    Increment `sizeScheme` by `1`, consume, and switch to the
-    s:autolink-scheme-inside-or-email-atext
-*   ↪ **c:>**
-
-    Unset `sizeScheme`, consume, enqueue a l:text-html, and switch to the
-    s:after-punctuation
-*   ↪ **[ASCII alphanumeric][]**\
-    ↪ **c:-**
-
-    Increment `sizeScheme` by `1`, consume, and switch to the
-    s:html-tag-open-inside-scheme-inside-or-email-atext
-*   ↪ **[atext][]**
-
-    Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
-*   ↪ **Anything else**
-
-    > ❗️ Todo: retreat (we don’t know if there was punctuation (dash) or not)
-
-    Unset `sizeScheme` and reconsume in the s:text
-
-### HTML tag open inside scheme inside or email atext state
+> **Note**: an EOL is technically allowed here, but as a `>` after an EOL would
+> start a blockquote, practically it’s not possible.
 
 *   ↪ **[c:EOL][]**
 
-    Unset `sizeScheme`, enqueue a l:text-soft-break, enqueue an t:end-of-line,
-    consume, enqueue a t:content, and switch to the
-    s:html-tag-open-between-start-after
-*   ↪ **c:HT**\
+    Enqueue a l:soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Unset `sizeScheme`, consume, and switch to the s:html-tag-open-between
-*   ↪ **c:+**\
-    ↪ **c:.**
+    Consume
+*   ↪ **c:>**
 
-    If `sizeScheme` is not `32`, increment `sizeScheme` by `1`, consume, and
-    switch to the s:autolink-scheme-inside-or-email-atext
-
-    Otherwise, treat it as per the “atext” entry below
-*   ↪ **c::**
-
-    Unset `sizeScheme`, consume, and switch to the s:autolink-uri-inside
-*   ↪ **c:@**
-
-    Unset `sizeScheme`, consume, let `sizeLabel` be `1`, and switch to the
-    s:autolink-email-at-sign-or-dot
-*   ↪ **[ASCII alphanumeric][]**\
-    ↪ **c:-**
-
-    If `sizeScheme` is not `32`, increment `sizeScheme` by `1` and consume
-
-    Otherwise, unset `sizeScheme`, consume, and switch to the
-    s:html-tag-open-inside-or-email-atext
-*   ↪ **[atext][]**
-
-    Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
+    Consume, enqueue an l:html-end, and switch to the s:text
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat (we don’t know if there was punctuation (dash) or not)
+    Enqueue a l:nok
 
-    Unset `sizeScheme` and reconsume in the s:text
+### HTML tag open inside state
 
-### HTML tag open inside or email atext state
-
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
-    t:content, and switch to the s:html-tag-open-between-start-after
-*   ↪ **c:HT**\
+*   ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Consume and switch to the s:html-tag-open-between
-*   ↪ **c:@**
+    Reconsume in the s:html-tag-open-between
+*   ↪ **c:>**
 
-    Consume, let `sizeLabel` be `1`, and switch to the
-    s:autolink-email-at-sign-or-dot
+    Consume, enqueue an l:html-end, and switch to the s:text
 *   ↪ **[ASCII alphanumeric][]**\
     ↪ **c:-**
 
     Consume
-*   ↪ **[atext][]**\
-    ↪ **c:.**
-
-    Consume and switch to the s:autolink-email-atext
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat (we don’t know if there was punctuation (dash) or not)
-
-    Reconsume in the s:text
-
-### HTML tag open between start after state
-
-> **Note**: EOL is not possible.
-
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Consume and switch to the s:html-tag-open-between
-*   ↪ **Anything else**
-
-    Reconsume in the s:html-tag-open-between
+    Enqueue a l:nok
 
 ### HTML tag open between state
 
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
-    t:content, and switch to the s:html-tag-open-between-start-after
-*   ↪ **c:HT**\
+    Enqueue a l:soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
@@ -2897,7 +2439,7 @@ Otherwise:
     Consume and switch to the s:html-tag-open-self-closing
 *   ↪ **c:>**
 
-    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue an l:html-end, and switch to the s:text
 *   ↪ **[ASCII alpha][]**\
     ↪ **c::**\
     ↪ **c:_**
@@ -2905,9 +2447,16 @@ Otherwise:
     Consume and switch to the s:html-tag-open-attribute-name
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat if extensions are supported
+    Enqueue a l:nok
 
-    Reconsume in the s:after-whitespace
+### HTML tag open self closing state
+
+*   ↪ **c:>**
+
+    Consume, enqueue an l:html-end, and switch to the s:text
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
 
 ### HTML tag open attribute name state
 
@@ -2926,9 +2475,10 @@ Otherwise:
 
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
-    a t:content
-*   ↪ **c:HT**\
+    Enqueue a l:soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
@@ -2937,55 +2487,50 @@ Otherwise:
     Consume and switch to the s:html-tag-open-self-closing
 *   ↪ **c:=**
 
-    Consume and switch to the s:html-tag-open-attribute-value-before
+    Consume and switch to the s:html-tag-open-attribute-before
 *   ↪ **c:>**
 
-    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
+    Consume, enqueue an l:html-end, and switch to the s:text
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+    Enqueue a l:nok
 
-    Reconsume in the s:text
-
-### HTML tag open attribute value before state
+### HTML tag open attribute before state
 
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
-    a t:content
-*   ↪ **c:HT**\
+    Enqueue a l:soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
     Consume
 *   ↪ **c:"**
 
-    Consume and switch to the s:html-tag-open-double-quoted-attribute-value
+    Consume and switch to the s:html-tag-open-double-quoted-attribute
 *   ↪ **c:'**
 
-    Consume and switch to the s:html-tag-open-single-quoted-attribute-value
+    Consume and switch to the s:html-tag-open-single-quoted-attribute
 *   ↪ **c:<**\
     ↪ **c:=**\
     ↪ **c:>**\
     ↪ **c:`**
 
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
+    Enqueue a l:nok
 *   ↪ **Anything else**
 
-    Consume and switch to the s:html-tag-open-unquoted-attribute-value
+    Consume and switch to the s:html-tag-open-unquoted-attribute
 
-### HTML tag open double quoted attribute value state
+### HTML tag open double quoted attribute state
 
 *   ↪ **[c:EOF][]**
 
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
-
-    Reconsume in the s:text
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
-    a t:content
+    Enqueue a l:soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
 *   ↪ **c:"**
 
     Consume and switch to the s:html-tag-open-between
@@ -2993,17 +2538,15 @@ Otherwise:
 
     Consume
 
-### HTML tag open single quoted attribute value state
+### HTML tag open single quoted attribute state
 
 *   ↪ **[c:EOF][]**
 
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
-
-    Reconsume in the s:text
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, and enqueue
-    a t:content
+    Enqueue a l:soft-break, enqueue an t:end-of-line, consume, and enqueue a
+    t:content
 *   ↪ **c:'**
 
     Consume and switch to the s:html-tag-open-between
@@ -3011,7 +2554,7 @@ Otherwise:
 
     Consume
 
-### HTML tag open unquoted attribute value state
+### HTML tag open unquoted attribute state
 
 *   ↪ **[c:EOF][]**\
     ↪ **c:"**\
@@ -3020,756 +2563,438 @@ Otherwise:
     ↪ **c:=**\
     ↪ **c:`**
 
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
-
-    Reconsume in the s:text
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
-    t:content, and switch to the s:html-tag-open-between
-*   ↪ **c:HT**\
+    Enqueue a l:nok
+*   ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**\
+    ↪ **c:>**
 
-    Consume and switch to the s:html-tag-open-between
-*   ↪ **c:>**
-
-    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
+    Reconsume in the s:html-tag-open-between
 *   ↪ **Anything else**
 
     Consume
 
-### HTML tag open self closing state
-
-*   ↪ **c:>**
-
-    Consume, enqueue a l:text-html, and switch to the s:after-punctuation
-*   ↪ **Anything else**
-
-    > ❗️ Todo: retreat (there may be other constructs we didn’t check for)
-
-    Reconsume in the s:after-punctuation
-
-### Autolink scheme inside or email atext state
-
-*   ↪ **c::**
-
-    Unset `sizeScheme`, consume, and switch to the s:autolink-uri-inside
-*   ↪ **c:@**
-
-    Unset `sizeScheme`, consume, let `sizeLabel` be `1`, and switch to the
-    s:autolink-email-at-sign-or-dot
-*   ↪ **[ASCII alphanumeric][]**\
-    ↪ **c:+**\
-    ↪ **c:-**\
-    ↪ **c:.**
-
-    If `sizeScheme` is not `32`, increment `sizeScheme` by `1` and consume
-
-    Otherwise, treat it as per the “atext” entry below
-*   ↪ **[atext][]**
-
-    Unset `sizeScheme`, consume, and switch to the s:autolink-email-atext
-*   ↪ **Anything else**
-
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or not)
-
-    Unset `sizeScheme` and reconsume in the s:text
-
-### Autolink URI inside state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**\
-    ↪ **[ASCII control][]**\
-    ↪ **c:SP**\
-    ↪ **c:<**
-
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
-*   ↪ **c:>**
-
-    Consume, enqueue a l:text-autolink-uri, and switch to the
-    s:after-punctuation
-*   ↪ **Anything else**
-
-    Consume
-
-### Autolink email atext state
-
-*   ↪ **c:@**
-
-    Consume, let `sizeLabel` be `1`, and switch to the
-    s:autolink-email-at-sign-or-dot
-*   ↪ **[atext][]**\
-    ↪ **c:.**
-
-    Consume
-*   ↪ **Anything else**
-
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
-
-### Autolink email label state
-
-*   ↪ **c:-**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:autolink-email-dash
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **c:.**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:autolink-email-at-sign-or-dot
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **c:>**
-
-    Unset `sizeLabel`, consume, enqueue a l:text-autolink-email, and switch to
-    the s:after-punctuation
-*   ↪ **[ASCII alphanumeric][]**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1` and consume
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **Anything else**
-
-    > ❗️ Todo: retreat (we don’t know if there was punctuation)
-
-    Unset `sizeLabel` and reconsume in the s:text
-
-### Autolink email at sign or dot state
-
-*   ↪ **[ASCII alphanumeric][]**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:autolink-email-label
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **Anything else**
-
-    > ❗️ Todo: retreat if extensions are supported
-
-    Unset `sizeLabel` and reconsume in the s:after-punctuation
-
-### Autolink email dash state
-
-*   ↪ **c:-**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1` and consume
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **[ASCII alphanumeric][]**
-
-    If `sizeLabel` is not `63`, increment `sizeLabel` by `1`, consume, and
-    switch to the s:autolink-email-label
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **Anything else**
-
-    > ❗️ Todo: retreat if extensions are supported
-
-    Unset `sizeLabel` and reconsume in the s:after-punctuation
-
-### Image label exclamation mark after state
+### Link label start state
 
 *   ↪ **c:[**
 
-    Enqueue a t:marker, consume, enqueue a l:text-image-open, and switch to the
-    s:after-punctuation
+    Enqueue a l:link-label-start, enqueue a t:marker, consume, enqueue a
+    l:link-label-open, and switch to the s:text
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat if extensions are supported
+    Enqueue a l:nok
 
-    Reconsume in the s:after-punctuation
+### Character escape state
 
-### Resource text or label after state
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Enqueue a l:character-escape-start, enqueue a t:marker, consume, and switch
+    to the s:character-escape-after
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Character escape after state
+
+*   ↪ **[ASCII punctuation][]**
+
+    Enqueue a t:content, consume, enqueue a l:character-escape-end, and switch
+    to the s:text
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Break escape state
+
+*   ↪ **U+005C BACKSLASH (`\`)**
+
+    Enqueue a l:break-escape-start, enqueue a l:hard-break, enqueue a t:marker,
+    consume, and switch to the s:break-escape-after
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Break escape after state
+
+*   ↪ **[c:EOL][]**
+
+    If the break represented by the character does not start with a [c:VS][],
+    c:HT, or c:SP, enqueue an t:end-of-line, consume, enqueue a
+    l:break-escape-end, and switch to the s:text-initial
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Label resource close state
+
+*   ↪ **c:]**
+
+    Enqueue a l:label-close, enqueue a t:marker, consume, enqueue a l:label-end,
+    and switch to the s:label-resource-end-after
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Label resource end after state
 
 *   ↪ **c:(**
 
-    Enqueue a t:marker, consume, enqueue a l:text-resource-information-open, and
-    switch to the s:resource-information-open
-*   ↪ **c:[**
-
-    Enqueue a t:marker, consume, enqueue a l:text-reference-label-open, and
-    switch to the s:reference-label-open-after
+    Enqueue a l:resource-information-start, enqueue a t:marker, consume, enqueue
+    a l:resource-information-open, and switch to the s:resource-information-open
 *   ↪ **Anything else**
 
-    > ❗️ Todo: shortcut reference
+    Enqueue a l:nok
 
 ### Resource information open state
 
 *   ↪ **[c:EOF][]**
 
-    > ❗️ Todo: retreat
-
-    Reconsume in the s:after-punctuation
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
-*   ↪ **c:HT**\
+    Enqueue a l:soft-break, enqueue an t:end-of-line, and consume
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Enqueue a t:whitespace, consume, and switch to the
-    s:resource-information-open-after
+    Ensure a t:whitespace and consume
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, enqueue a l:text-resource-information-close,
-    and switch to the s:after-punctuation
+    Enqueue a l:resource-information-close, enqueue a t:marker, consume, enqueue
+    a l:resource-information-end, and switch to the s:text
 *   ↪ **c:<**
 
-    Enqueue a l:text-resource-destination-quoted-open, enqueue a t:marker,
-    consume, and switch to the s:resource-destination-quoted-open-after
+    Enqueue a l:resource-information-destination-quoted-start, enqueue a
+    t:marker, consume, enqueue a l:resource-information-destination-quoted-open,
+    and switch to the s:resource-information-destination-quoted-inside
 *   ↪ **[ASCII control][]**
 
-    > ❗️ Todo: retreat
-
-    Reconsume in the s:after-punctuation
+    Enqueue a l:nok
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, enqueue a l:text-resource-destination-unquoted-open,
-    enqueue a t:content and reconsume in the
-    s:resource-destination-unquoted-inside
+    Enqueue a l:resource-information-destination-unquoted-start, enqueue a
+    t:content, consume, enqueue a
+    l:resource-information-destination-unquoted-open, and switch to the
+    s:resource-information-destination-unquoted-inside
 
-### Resource information open after state
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat
-
-    Reconsume in the s:after-whitespace
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
-    t:content, and switch to the s:resource-information-open
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Consume
-*   ↪ **c:)**
-
-    Enqueue a t:marker, consume, enqueue a l:text-resource-information-close,
-    and switch to the s:after-punctuation
-*   ↪ **c:<**
-
-    Enqueue a l:text-resource-destination-quoted-open, enqueue a t:marker,
-    consume, and switch to the s:resource-destination-quoted-open-after
-*   ↪ **[ASCII control][]**
-
-    > ❗️ Todo: retreat
-
-    Reconsume in the s:after-whitespace
-*   ↪ **Anything else**
-
-    Let `balance` be `0`, enqueue a l:text-resource-destination-unquoted-open,
-    enqueue a t:content and reconsume in the
-    s:resource-destination-unquoted-inside
-
-### Resource destination quoted open after state
+### Resource information destination quoted inside state
 
 *   ↪ **[c:EOF][]**\
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    > ❗️ Todo: retreat
-
-    Reconsume in the s:after-whitespace
+    Enqueue a l:nok
 *   ↪ **c:>**
 
-    Enqueue a t:marker, consume, enqueue a
-    l:text-resource-destination-quoted-close, and switch to the
-    s:resource-destination-quoted-close-after
+    Enqueue a l:resource-information-destination-quoted-close, enqueue a
+    t:marker, consume, enqueue a l:resource-information-destination-quoted-end,
+    and switch to the s:resource-information-destination-quoted-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Enqueue a t:content, consume, and switch to the
-    s:resource-destination-quoted-escape
+    Ensure a t:content, consume, and switch to the
+    s:resource-information-destination-quoted-escape
 *   ↪ **Anything else**
 
-    Enqueue a t:content, consume, and switch to the
-    s:resource-destination-quoted-inside
+    Ensure a t:content and consume
 
-### Resource destination quoted inside state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**\
-    ↪ **c:<**
-
-    > ❗️ Todo: retreat (we don’t know if we’re at punctuation or whitespace)
-
-    Reconsume in the s:text
-*   ↪ **c:>**
-
-    Enqueue a t:marker, consume, enqueue a
-    l:text-resource-destination-quoted-close, and switch to the
-    s:resource-destination-quoted-close-after
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the s:resource-destination-quoted-escape
-*   ↪ **Anything else**
-
-    Consume
-
-### Resource destination quoted escape state
+### Resource information destination quoted escape state
 
 *   ↪ **c:<**\
     ↪ **c:>**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the s:resource-destination-quoted-inside
+    Consume and switch to the s:resource-information-destination-quoted-inside
 *   ↪ **Anything else**
 
-    Reconsume in the s:resource-destination-quoted-inside
+    Reconsume in the s:resource-information-destination-quoted-inside
 
-### Resource destination quoted close after state
+### Resource information destination quoted after state
 
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat
-
-    Reconsume in the s:after-punctuation
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
-    t:content, and switch to the s:resource-information-between
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Enqueue a t:whitespace, consume, and switch to the
-    s:resource-information-between-after
-*   ↪ **c:)**
-
-    Enqueue a t:marker, consume, enqueue a l:text-resource-information-close,
-    and switch to the s:after-punctuation
-*   ↪ **Anything else**
-
-    > ❗️ Todo: retreat
-
-    Reconsume in the s:after-punctuation
-
-### Resource information between state
-
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Enqueue a t:whitespace, consume, and switch to the
-    s:resource-information-between-after
-*   ↪ **Anything else**
-
-    Reconsume in the s:resource-information-between-after
-
-### Resource information between after state
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat
-
-    Reconsume in the s:after-whitespace
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
-    t:content, and switch to the s:resource-information-between
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Consume
-*   ↪ **c:"**
-
-    Enqueue a l:text-resource-title-open, enqueue a t:marker, consume, and
-    switch to the s:resource-title-double-quoted-open-after
-*   ↪ **c:'**
-
-    Enqueue a l:text-resource-title-open, enqueue a t:marker, consume, and
-    switch to the s:resource-title-single-quoted-open-after
-*   ↪ **c:(**
-
-    Enqueue a l:text-resource-title-open, enqueue a t:marker, consume, and
-    switch to the s:resource-title-paren-quoted-open-after
-*   ↪ **c:)**
-
-    Enqueue a t:marker, consume, enqueue a l:text-resource-information-close,
-    and switch to the s:after-punctuation
-*   ↪ **Anything else**
-
-    > ❗️ Todo: retreat
-
-    Reconsume in the s:initial-whitespace
-
-### Resource destination unquoted inside state
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
-
-    Unset `balance` and reconsume in the s:text
 *   ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
     ↪ **c:HT**\
-    ↪ **c:SP**
+    ↪ **c:SP**\
+    ↪ **c:>**
 
-    Unset `balance`, enqueue a l:text-resource-destination-unquoted-close, and
-    reconsume in the s:resource-information-between
+    Reconsume in the s:resource-information-between
+*   ↪ **c:)**
+
+    Enqueue a l:resource-information-close, enqueue a t:marker, consume, enqueue
+    a l:resource-information-end, and switch to the s:text
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Resource information destination unquoted inside state
+
+*   ↪ **[c:EOF][]**
+
+    Unset `balance` and enqueue a l:nok
+*   ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**\
+    ↪ **c:>**
+
+    Enqueue a l:resource-information-destination-unquoted-close, enqueue a
+    l:resource-information-destination-unquoted-end, and reconsume in the
+    s:resource-information-between
 *   ↪ **c:(**
 
     Increment `balance` by `1` and consume
 *   ↪ **c:)**
 
     If `balance` is `0`, unset `balance`, enqueue a
-    l:text-resource-destination-unquoted-close, enqueue a t:marker, consume,
-    enqueue a l:text-resource-information-close, and switch to the
-    s:after-punctuation
+    l:resource-information-destination-unquoted-close, enqueue a
+    l:resource-information-destination-unquoted-end, and reconsume in the
+    s:resource-information-between
 
     Otherwise, decrement `balance` by `1`, and consume
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the s:resource-destination-unquoted-escape
+    Consume and switch to the s:resource-information-destination-unquoted-escape
 *   ↪ **[ASCII control][]**
 
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
-
-    Unset `balance` and reconsume in the s:text
+    Unset `balance` and enqueue a l:nok
 *   ↪ **Anything else**
 
     Consume
 
-### Resource destination unquoted escape state
+### Resource information destination unquoted escape state
 
 *   ↪ **c:(**\
     ↪ **c:)**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the s:resource-destination-unquoted-inside
+    Consume and switch to the s:resource-information-destination-unquoted-inside
 *   ↪ **Anything else**
 
-    Reconsume in the s:resource-destination-unquoted-inside
+    Reconsume in the s:resource-information-destination-unquoted-inside
 
-### Resource title double quoted open after state
+### Resource information between state
+
+*   ↪ **[c:EOL][]**
+
+    Enqueue a l:soft-break, enqueue an t:end-of-line, and consume
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Ensure a t:whitespace and consume
+*   ↪ **c:"**
+
+    Enqueue a l:resource-information-title-start, enqueue a t:marker, consume,
+    enqueue a l:resource-information-title-open, and switch to the
+    s:resource-information-title-double-quoted-inside
+*   ↪ **c:'**
+
+    Enqueue a l:resource-information-title-start, enqueue a t:marker, consume,
+    enqueue a l:resource-information-title-open, and switch to the
+    s:resource-information-title-single-quoted-inside
+*   ↪ **c:(**
+
+    Enqueue a l:resource-information-title-start, enqueue a t:marker, consume,
+    enqueue a l:resource-information-title-open, and switch to the
+    s:resource-information-title-paren-quoted-inside
+*   ↪ **c:)**
+
+    Enqueue a l:resource-information-close, enqueue a t:marker, consume, enqueue
+    a l:resource-information-end, and switch to the s:text
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Resource information title double quoted inside state
 
 *   ↪ **[c:EOF][]**
 
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
+    Enqueue a l:soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:"**
 
-    Enqueue a t:marker, consume, enqueue a l:text-resource-title-close, and
-    switch to the s:resource-title-close-after
+    Enqueue a l:resource-information-title-close, enqueue a t:marker, consume,
+    enqueue a l:resource-information-title-end, and switch to the
+    s:resource-information-title-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Enqueue a t:content, consume, and switch to the
-    s:resource-title-double-quoted-escape
+    Ensure a t:content, consume, and switch to the
+    s:resource-information-title-double-quoted-escape
 *   ↪ **Anything else**
 
-    Enqueue a t:content, consume, and switch to the
-    s:resource-title-double-quoted-inside
+    Ensure a t:content and consume
 
-### Resource title double quoted inside state
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
-    t:content, and switch to the s:resource-title-double-quoted-open-after
-*   ↪ **c:"**
-
-    Enqueue a t:marker, consume, enqueue a l:text-resource-title-close, and
-    switch to the s:resource-title-close-after
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the s:resource-title-double-quoted-escape
-*   ↪ **Anything else**
-
-    Consume
-
-### Resource title double quoted escape state
+### Resource information title double quoted escape state
 
 *   ↪ **c:"**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the s:resource-title-double-quoted-open-after
+    Consume and switch to the s:resource-information-title-double-quoted-inside
 *   ↪ **Anything else**
 
-    Reconsume in the s:resource-title-double-quoted-open-after
+    Reconsume in the s:resource-information-title-double-quoted-inside
 
-### Resource title single quoted open after state
+### Resource information title single quoted inside state
 
 *   ↪ **[c:EOF][]**
 
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
+    Enqueue a l:soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:'**
 
-    Enqueue a t:marker, consume, enqueue a l:text-resource-title-close, and
-    switch to the s:resource-title-close-after
+    Enqueue a l:resource-information-title-close, enqueue a t:marker, consume,
+    enqueue a l:resource-information-title-end, and switch to the
+    s:resource-information-title-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Enqueue a t:content, consume, and switch to the
-    s:resource-title-single-quoted-escape
+    Ensure a t:content, consume, and switch to the
+    s:resource-information-title-single-quoted-escape
 *   ↪ **Anything else**
 
-    Enqueue a t:content, consume, and switch to the
-    s:resource-title-single-quoted-inside
+    Ensure a t:content and consume
 
-### Resource title single quoted inside state
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
-    t:content, and switch to the s:resource-title-single-quoted-open-after
-*   ↪ **c:'**
-
-    Enqueue a t:marker, consume, enqueue a l:text-resource-title-close, and
-    switch to the s:resource-title-close-after
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the s:resource-title-single-quoted-escape
-*   ↪ **Anything else**
-
-    Consume
-
-### Resource title single quoted escape state
+### Resource information title single quoted escape state
 
 *   ↪ **c:'**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the s:resource-title-single-quoted-open-after
+    Consume and switch to the s:resource-information-title-single-quoted-inside
 *   ↪ **Anything else**
 
-    Reconsume in the s:resource-title-single-quoted-open-after
+    Reconsume in the s:resource-information-title-single-quoted-inside
 
-### Resource title paren quoted open after state
+### Resource information title paren quoted inside state
 
 *   ↪ **[c:EOF][]**
 
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
+    Enqueue a l:soft-break, enqueue an t:end-of-line, and consume
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, enqueue a l:text-resource-title-close, and
-    switch to the s:resource-title-close-after
+    Enqueue a l:resource-information-title-close, enqueue a t:marker, consume,
+    enqueue a l:resource-information-title-end, and switch to the
+    s:resource-information-title-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Enqueue a t:content, consume, and switch to the
-    s:resource-title-paren-quoted-escape
+    Ensure a t:content, consume, and switch to the
+    s:resource-information-title-paren-quoted-escape
 *   ↪ **Anything else**
 
-    Enqueue a t:content, consume, and switch to the
-    s:resource-title-paren-quoted-inside
+    Ensure a t:content and consume
 
-### Resource title paren quoted inside state
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
-    t:content, and switch to the s:resource-title-paren-quoted-open-after
-*   ↪ **c:)**
-
-    Enqueue a t:marker, consume, enqueue a l:text-resource-title-close, and
-    switch to the s:resource-title-close-after
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the s:resource-title-paren-quoted-escape
-*   ↪ **Anything else**
-
-    Consume
-
-### Resource title paren quoted escape state
+### Resource information title paren quoted escape state
 
 *   ↪ **c:)**\
     ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the s:resource-title-paren-quoted-open-after
+    Consume and switch to the s:resource-information-title-paren-quoted-inside
 *   ↪ **Anything else**
 
-    Reconsume in the s:resource-title-paren-quoted-open-after
+    Reconsume in the s:resource-information-title-paren-quoted-inside
 
-### Resource title close after state
+### Resource information title after state
 
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
-*   ↪ **c:HT**\
+    Enqueue a l:soft-break, enqueue an t:end-of-line, and consume
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Enqueue a t:whitespace, consume, and switch to the
-    s:resource-information-close-before
+    Ensure a t:whitespace and consume
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, enqueue a l:text-resource-information-close,
-    and switch to the s:after-punctuation
+    Enqueue a l:resource-information-close, enqueue a t:marker, consume, enqueue
+    a l:resource-information-end, and switch to the s:text
 *   ↪ **Anything else**
 
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+    Enqueue a l:nok
 
-    Reconsume in the s:text
+### Label reference close state
 
-### Resource information close before state
-
-*   ↪ **[c:EOL][]**
-
-    Reconsume in the s:resource-title-close-after
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Consume
-*   ↪ **c:)**
-
-    Enqueue a t:marker, consume, enqueue a l:text-resource-information-close,
-    and switch to the s:after-punctuation
-*   ↪ **Anything else**
-
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:after-whitespace
-
-### Reference label open after state
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
-
-    Reconsume in the s:text
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Enqueue a t:whitespace, consume, and switch to the s:reference-label-before
 *   ↪ **c:]**
 
-    Enqueue a t:marker, consume, enqueue a l:text-reference-label-close, and
-    switch to the s:after-punctuation
+    Enqueue a l:label-close, enqueue a t:marker, consume, enqueue a l:label-end,
+    and switch to the s:label-reference-end-after
 *   ↪ **Anything else**
 
-    Enqueue a t:content, consume, and switch to the s:reference-label-inside
+    Enqueue a l:nok
 
-### Reference label before state
+### Label reference end after state
 
-> **Note**: EOL is not possible.
+*   ↪ **c:[**
 
-*   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**\
-    ↪ **c:]**
+    Enqueue a l:reference-label-start, enqueue a t:marker, consume, enqueue a
+    l:reference-label-open, and switch to the s:reference-label-open
+*   ↪ **Anything else**
 
-    > ❗️ Todo: retreat (we don’t know if there was punctuation or whitespace)
+    Enqueue a l:nok
 
-    Reconsume in the s:text
-*   ↪ **c:HT**\
+### Reference label open state
+
+*   ↪ **[c:EOF][]**
+
+    Enqueue a l:nok
+*   ↪ **[c:EOL][]**
+
+    Enqueue a l:soft-break, enqueue an t:end-of-line, and consume
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Consume
+    Ensure a t:whitespace and consume
+*   ↪ **c:]**
+
+    Enqueue a l:reference-label-collapsed-close, enqueue a t:marker, consume,
+    enqueue a l:reference-label-end, and switch to the s:text
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:reference-label-inside
 
 ### Reference label inside state
 
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat
-
-    Reconsume in the s:text
-*   ↪ **[c:EOL][]**
-
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
-    t:content, and switch to the s:reference-label-inside-start-after
-*   ↪ **c:HT**\
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Enqueue a t:whitespace, consume, and switch to the s:reference-label-between
+    Reconsume in the s:reference-label-between
 *   ↪ **U+005C BACKSLASH (`\`)**
 
-    Consume and switch to the s:reference-label-escape
+    Ensure a t:content, consume, and switch to the s:reference-label-escape
 *   ↪ **c:]**
 
-    Enqueue a t:marker, consume, enqueue a l:text-reference-label-close, and
-    switch to the s:after-punctuation
+    Enqueue a l:reference-label-full-close, enqueue a t:marker, consume, enqueue
+    a l:reference-label-end, and switch to the s:text
 *   ↪ **Anything else**
 
-    Consume
-
-### Reference label inside start after state
-
-> **Note**: EOL is not possible.
-
-*   ↪ **[c:EOF][]**
-
-    > ❗️ Todo: retreat
-
-    Reconsume in the s:after-whitespace
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Enqueue a t:whitespace, consume, and switch to the s:reference-label-between
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Consume and switch to the s:reference-label-escape
-*   ↪ **c:]**
-
-    Enqueue a t:marker, consume, enqueue a l:text-reference-label-close, and
-    switch to the s:after-punctuation
-*   ↪ **Anything else**
-
-    Enqueue a t:content, consume, and switch to the s:reference-label-inside
+    Ensure a t:content and consume
 
 ### Reference label between state
 
 *   ↪ **[c:EOF][]**
 
-    > ❗️ Todo: retreat
-
-    Reconsume in the s:after-whitespace
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:text-soft-break, enqueue an t:end-of-line, consume, enqueue a
-    t:content, and switch to the s:reference-label-inside-start-after
-*   ↪ **c:HT**\
+    Enqueue a l:soft-break, enqueue an t:end-of-line, and consume
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Consume
-*   ↪ **U+005C BACKSLASH (`\`)**
-
-    Enqueue a t:content, consume, and switch to the s:reference-label-escape
-*   ↪ **c:]**
-
-    Enqueue a t:marker, consume, enqueue a l:text-reference-label-close, and
-    switch to the s:after-punctuation
+    Ensure a t:whitespace and consume
 *   ↪ **Anything else**
 
-    Enqueue a t:content, consume, and switch to the s:reference-label-inside
+    Reconsume in the s:reference-label-inside
 
 ### Reference label escape state
 
@@ -3781,27 +3006,136 @@ Otherwise:
 
     Reconsume in the s:reference-label-inside
 
+### Label reference shortcut close state
+
+*   ↪ **c:]**
+
+    Enqueue a l:label-close, enqueue a t:marker, consume, enqueue a l:label-end,
+    and switch to the s:text
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Delimiter run underscore start state
+
+*   ↪ **c:_**
+
+    Let `delimiterRunAfter` be `null` and let `delimiterRunBefore` be
+    `'whitespace'` if `prev` is [c:EOF][], [c:EOL][], or [Unicode whitespace][],
+    `'punctuation'` if it is [Unicode punctuation][], or `null` otherwise
+
+    Enqueue a l:delimiter-run-start, enqueue a t:sequence, consume, and switch
+    to the s:delimiter-run-underscore
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Delimiter run underscore state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[Unicode whitespace][]**
+
+    Let `delimiterRunAfter` be `'whitespace'` and treat it as per the “anything
+    else” entry below
+*   ↪ **c:_**
+
+    Consume
+*   ↪ **[Unicode punctuation][]**
+
+    Let `delimiterRunAfter` be `'punctuation'` and treat it as per the “anything
+    else” entry below
+*   ↪ **Anything else**
+
+    Let `leftFlanking` be whether both `delimiterRunAfter` is not
+    `'whitespace'`, and that either `delimiterRunAfter` is not `'punctuation'`
+    or that `delimiterRunBefore` is not `null`
+
+    Let `rightFlanking` be whether both `delimiterRunBefore` is not
+    `'whitespace'`, and that either `delimiterRunBefore` is not `'punctuation'`
+    or that `delimiterRunAfter` is not `null`
+
+    Unset `delimiterRunBefore`, unset `delimiterRunAfter`, enqueue a
+    l:delimiter-run-end, and reconsume in the s:text
+
+### Code start state
+
+*   ↪ **c:`**
+
+    Let `sizeOpen` be `1`, enqueue a l:code-start, enqueue a l:code-fence-start,
+    enqueue a t:marker, consume, and switch to the s:code-open-fence-inside
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Code open fence inside state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Enqueue a l:code-fence-end and reconsume in the s:code-between
+*   ↪ **c:`**
+
+    Increment `sizeOpen` by `1` and consume
+*   ↪ **Anything else**
+
+    Enqueue a l:code-fence-end, enqueue a t:content, consume, and switch to the
+    s:code-inside
+
+### Code between state
+
+*   ↪ **[c:EOF][]**
+
+    Unset `sizeOpen` and enqueue a l:nok
+*   ↪ **[c:EOL][]**
+
+    Enqueue a l:soft-break, enqueue an t:end-of-line, and consume
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Ensure a t:whitespace and consume
+*   ↪ **Anything else**
+
+    Reconsume in the s:code-inside
+
+### Code inside state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Reconsume in the s:code-between
+*   ↪ **c:`**
+
+    Let `sizeClose` be `1`, enqueue a l:code-fence-start, enqueue a t:marker,
+    consume, and switch to the s:code-close-fence-inside
+*   ↪ **Anything else**
+
+    Ensure a t:content and consume
+
+### Code close fence inside state
+
+*   ↪ **c:`**
+
+    Increment `sizeClose` by `1` and consume
+*   ↪ **Anything else**
+
+    If `sizeOpen` is `sizeClose`, unset `sizeOpen`, unset `sizeClose`, enqueue a
+    l:code-fence-end, enqueue a l:code-end, and reconsume in the s:text
+
+    Otherwise, unset `sizeClose` and reconsume in the s:code-inside
+
 ## Labels
 
 ### NOK label
 
-### Content phrasing label
-
-When a l:content-phrasing is received, the queue up to that point does not
-construct a definition.
-
-### Content definition label
-
-When a l:content-definition is received, the queue up to that point constructs a
-definition.
-
 ### Content definition partial label
-
-When a l:content-definition-partial is received, the queue up to that point
-constructs a definition without a title.
-It is later followed by a l:content-definition if further queued tokens
-construct a title, or l:content-phrasing if further queued tokens do not
-construct a title.
 
 ### Content definition start label
 
@@ -3809,11 +3143,7 @@ construct a title.
 
 ### Content definition label open label
 
-When a l:content-definition-label-open is received, …
-
 ### Content definition label close label
-
-When a l:content-definition-label-close is received, …
 
 ### Content definition label end label
 
@@ -3821,19 +3151,11 @@ When a l:content-definition-label-close is received, …
 
 ### Content definition destination quoted open label
 
-When a l:content-definition-destination-quoted-open is received, …
-
 ### Content definition destination quoted close label
-
-When a l:content-definition-destination-quoted-close is received, …
 
 ### Content definition destination unquoted open label
 
-When a l:content-definition-destination-unquoted-open is received, …
-
 ### Content definition destination unquoted close label
-
-When a l:content-definition-destination-unquoted-close is received, …
 
 ### Content definition destination end label
 
@@ -3841,107 +3163,109 @@ When a l:content-definition-destination-unquoted-close is received, …
 
 ### Content definition title open label
 
-When a l:content-definition-title-open is received, …
-
 ### Content definition title close label
-
-When a l:content-definition-title-close is received, …
 
 ### Content definition title end label
 
 ### Content definition end label
 
-### Text hard break label
+### Hard break label
 
-When a l:text-hard-break is received, …
+### Soft break label
 
-### Text soft break label
+### Image label start label
 
-When a l:text-hard-break is received, …
+### Image label open label
 
-### Text link open label
+### Character reference start label
 
-When a l:text-link-open is received, …
+### Character reference end label
 
-### Text image label open label
+### Delimiter run start label
 
-l:text-image-label-open
+### Delimiter run end label
 
-### Text image open label
+### Autolink start label
 
-When a l:text-image-open is received, …
+### Autolink open label
 
-### Text resource close label
+### Autolink email close label
 
-When a l:text-resource-close is received, …
+### Autolink email end label
 
-### Text reference label open label
+### Autolink uri close label
 
-When a l:text-reference-label-open is received, …
+### Autolink uri end label
 
-### Text reference label close label
+### HTML start label
 
-When a l:text-reference-label-close is received, …
+### HTML end label
 
-### Text resource information open label
+### Link label start label
 
-When a l:text-resource-information-open is received, …
+### Link label open label
 
-### Text resource destination quoted open label
+### Character escape start label
 
-When a l:text-resource-destination-quoted-open is received, …
+### Character escape end label
 
-### Text resource destination quoted close label
+### Break escape start label
 
-When a l:text-resource-destination-quoted-close is received, …
+### Break escape end label
 
-### Text resource destination unquoted open label
+### Label close label
 
-When a l:text-resource-destination-unquoted-open is received, …
+### Label end label
 
-### Text resource destination unquoted close label
+### Resource information start label
 
-When a l:text-resource-destination-unquoted-close is received, …
+### Resource information open label
 
-### Text resource title open label
+### Resource information destination quoted start label
 
-When a l:text-resource-title-open is received, …
+### Resource information destination quoted open label
 
-### Text resource title close label
+### Resource information destination quoted close label
 
-When a l:text-resource-title-close is received, …
+### Resource information destination quoted end label
 
-### Text resource information close label
+### Resource information destination unquoted start label
 
-When a l:text-resource-information-close is received, …
+### Resource information destination unquoted open label
 
-### Text emphasis label
+### Resource information destination unquoted close label
 
-When a l:text-emphasis is received, …
+### Resource information destination unquoted end label
 
-### Text character reference label
+### Resource information title start label
 
-When a l:text-character-reference is received, …
+### Resource information title open label
 
-### Text escape label
+### Resource information title close label
 
-When a l:text-escape is received, …
+### Resource information title end label
 
-### Text code label
+### Resource information close label
 
-When a l:text-code is received, …
+### Resource information end label
 
-### Text autolink email label
+### Reference label start label
 
-When a l:text-autolink-email is received, …
+### Reference label open label
 
-### Text autolink URI label
+### Reference label collapsed close label
 
-When a l:text-autolink-uri is received, …
+### Reference label full close label
 
-### Text HTML label
+### Reference label end label
 
-When a l:text-html is received, …
+### Code start label
+
+### Code fence start label
+
+### Code fence end label
+
+### Code end label
 
 ## Processing
 
