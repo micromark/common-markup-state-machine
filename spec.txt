@@ -253,7 +253,8 @@ discarded.
 The [shared space][] is accessed and mutated by both the tree adapter and the
 states of the state machine.
 
-[Construct][]s are registered on one or more characters or character groups.
+[Construct][]s are registered by hooking a case (one or more characters or
+character groups) into certain states.
 Upon registration, they define the states used to parse a construct, and the
 adapter used to handle the construct.
 
@@ -261,10 +262,12 @@ adapter used to handle the construct.
 
 Implementations must act as if they use several state machines to tokenize
 common markup.
-The [flow state machine][] is used to tokenize the main structure of the
-document.
-The [content state machine][] is used to tokenize a block of text.
-The [text state machine][] is used to tokenize runs of rich or plain text.
+The [flow state machine][] is used to tokenize the line constructs that make up
+the structure of the document.
+The [content state machine][] is used to tokenize the inline constructs part of
+content blocks.
+The [text state machine][] is used to tokenize the inline constructs part of
+rich or plain text.
 
 Most states [consume][] the [input character][], and either remain in the state
 to consume the next character, [reconsume][] the input character in a different
@@ -305,8 +308,8 @@ To [reconsume](#) is to [switch][] to the given state, and [consume][] the
 
 #### Enqueue
 
-To enqueue a label is to mark a point between two tokens with a semantic name,
-at which point there is no [current token][].
+To [enqueue](#) a label is to mark a point between two tokens with a semantic
+name, at which point there is no [current token][].
 
 To enqueue a token is to add a new token of the given type to the [queue][],
 making it the new [current token][].
@@ -318,8 +321,9 @@ the given type, and otherwise do nothing.
 
 ## Flow state machine
 
-The [flow state machine](#) is used to tokenize the main structure of a
-document and must start in the s:initial.
+The [flow state machine](#) is used to tokenize the line constructs that make up
+the structure of the document (such as headings or thematic breaks) and must
+start in the s:initial.
 
 ### Initial state
 
@@ -1339,24 +1343,44 @@ If the next few characters are:
 
 ## Content state machine
 
-The [content state machine](#) is used to tokenize the content blocks of a
-document and must start in the s:initial-content.
+The [content state machine](#) is used to tokenize the inline constructs part of
+content blocks in a document (such as regular definitions and phrasing) and must
+start in the s:content-start.
 
-### Initial content state
+### Content start state
 
-*   ↪ **c:[**
+> **Hookable**, the regular hooks are:
+>
+> *   **c:[**: s:definition-label-start
 
-    Enqueue a t:marker, consume, enqueue a l:content-definition-label-open, and
-    switch to the s:definition-label-before
 *   ↪ **Anything else**
 
     Reconsume in the s:phrasing-content
+
+### Content initial state
+
+> **Hookable**, there are no regular hooks.
+
+*   ↪ **Anything else**
+
+    Reconsume in the s:phrasing-content
+
+### Definition label start state
+
+*   ↪ **c:[**
+
+    Enqueue a l:content-definition-start, enqueue a
+    l:content-definition-label-start, enqueue a t:marker, consume, enqueue a
+    l:content-definition-label-open, and switch to the s:definition-label-before
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
 
 ### Definition label before state
 
 *   ↪ **[c:EOF][]**
 
-    Treat it as per the “c:]” entry below
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1367,7 +1391,7 @@ document and must start in the s:initial-content.
     Ensure a t:whitespace and consume
 *   ↪ **c:]**
 
-    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
+    Enqueue a l:nok
 *   ↪ **Anything else**
 
     Enqueue a t:content, consume, and switch to the s:definition-label-inside
@@ -1386,8 +1410,9 @@ document and must start in the s:initial-content.
     Ensure a t:content, consume, and switch to the s:definition-label-escape
 *   ↪ **c:]**
 
-    Enqueue a l:content-definition-label-close, enqueue a t:marker, consume, and
-    switch to the s:definition-label-after
+    Enqueue a l:content-definition-label-close, enqueue a t:marker, consume,
+    enqueue a l:content-definition-label-end, and switch to the
+    s:definition-label-after
 *   ↪ **Anything else**
 
     Ensure a t:content and consume
@@ -1396,7 +1421,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1427,13 +1452,13 @@ document and must start in the s:initial-content.
     s:definition-destination-before
 *   ↪ **Anything else**
 
-    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
+    Enqueue a l:nok
 
 ### Definition destination before state
 
 *   ↪ **[c:EOF][]**
 
-    Treat it as per the “ASCII control” entry below
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1444,16 +1469,17 @@ document and must start in the s:initial-content.
     Ensure a t:whitespace and consume
 *   ↪ **c:<**
 
-    Enqueue a l:content-definition-destination-quoted-open, enqueue a t:marker,
-    consume, and switch to the s:definition-destination-quoted-inside
+    Enqueue a l:content-definition-destination-start, enqueue a t:marker,
+    enqueue a l:content-definition-destination-quoted-open, consume, and switch
+    to the s:definition-destination-quoted-inside
 *   ↪ **[ASCII control][]**
 
-    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
+    Enqueue a l:nok
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, enqueue a
-    l:content-definition-destination-unquoted-open, enqueue a t:content, and
-    reconsume in the s:definition-destination-unquoted-inside
+    Let `balance` be `0`, enqueue a l:content-definition-destination-start,
+    enqueue a l:content-definition-destination-unquoted-open, enqueue a
+    t:content, and reconsume in the s:definition-destination-unquoted-inside
 
 ### Definition destination quoted inside state
 
@@ -1461,11 +1487,11 @@ document and must start in the s:initial-content.
     ↪ **[c:EOL][]**\
     ↪ **c:<**
 
-    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
+    Enqueue a l:nok
 *   ↪ **c:>**
 
-    Enqueue a t:marker, consume, enqueue a
-    l:content-definition-destination-quoted-close, and switch to the
+    Enqueue a l:content-definition-destination-quoted-close, enqueue a t:marker,
+    consume, enqueue a l:content-definition-destination-end, and switch to the
     s:definition-destination-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1494,7 +1520,9 @@ document and must start in the s:initial-content.
     ↪ **c:HT**\
     ↪ **c:SP**
 
-    Unset `balance` and reconsume in the s:definition-title-before
+    Unset `balance`, enqueue a l:content-definition-destination-unquoted-close,
+    enqueue a l:content-definition-destination-end, and reconsume in the
+    s:definition-title-before
 *   ↪ **c:(**
 
     Increment `balance` by `1`, ensure a t:content, and consume
@@ -1509,8 +1537,7 @@ document and must start in the s:initial-content.
     s:definition-destination-unquoted-escape
 *   ↪ **[ASCII control][]**
 
-    Unset `balance`, enqueue a l:content-phrasing, and reconsume in the
-    s:phrasing-content
+    Unset `balance` and enqueue a l:nok
 *   ↪ **Anything else**
 
     Ensure a t:content and consume
@@ -1537,7 +1564,7 @@ document and must start in the s:initial-content.
     Reconsume in the s:definition-title-before
 *   ↪ **Anything else**
 
-    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
+    Enqueue a l:nok
 
 ### Definition title before state
 
@@ -1552,7 +1579,7 @@ document and must start in the s:initial-content.
     Ensure a t:whitespace and consume
 *   ↪ **c:[**
 
-    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
+    Enqueue a l:nok
 *   ↪ **Anything else**
 
     Reconsume in the s:definition-title-or-label-before
@@ -1561,7 +1588,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a l:content-definition
+    Enqueue a l:content-definition-end and enqueue an t:end-of-file
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1570,25 +1597,24 @@ document and must start in the s:initial-content.
     ↪ **c:SP**
 
     Ensure a t:whitespace and consume
-*   ↪ **c:[**
-
-    Enqueue a t:marker, consume, enqueue a l:content-definition-label-open, and
-    switch to the s:definition-label-before
 *   ↪ **c:"**
 
-    Enqueue a l:content-definition-title-open, enqueue a t:marker, consume, and
-    switch to the s:definition-title-double-quoted
+    Enqueue a l:content-definition-title-start, enqueue a t:marker, consume,
+    enqueue a l:content-definition-title-open, and switch to the
+    s:definition-title-double-quoted
 *   ↪ **c:'**
 
-    Enqueue a l:content-definition-title-open, enqueue a t:marker, consume, and
-    switch to the s:definition-title-single-quoted
+    Enqueue a l:content-definition-title-start, enqueue a t:marker, consume,
+    enqueue a l:content-definition-title-open, and switch to the
+    s:definition-title-single-quoted
 *   ↪ **c:(**
 
-    Enqueue a l:content-definition-title-open, enqueue a t:marker, consume, and
-    switch to the s:definition-title-paren-quoted
+    Enqueue a l:content-definition-title-start, enqueue a t:marker, consume,
+    enqueue a l:content-definition-title-open, and switch to the
+    s:definition-title-paren-quoted
 *   ↪ **Anything else**
 
-    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
+    Reconsume in the s:content-start
 
 ### Definition title double quoted state
 
@@ -1601,8 +1627,9 @@ document and must start in the s:initial-content.
     Reconsume in the s:definition-title-double-quoted-between
 *   ↪ **c:"**
 
-    Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
-    switch to the s:definition-title-after
+    Enqueue a l:content-definition-title-close, enqueue a t:marker, consume,
+    enqueue a l:content-definition-title-end, and switch to the
+    s:definition-title-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Ensure a t:content, consume, and switch to the
@@ -1615,7 +1642,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1649,8 +1676,9 @@ document and must start in the s:initial-content.
     Reconsume in the s:definition-title-single-quoted-between
 *   ↪ **c:'**
 
-    Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
-    switch to the s:definition-title-after
+    Enqueue a l:content-definition-title-close, enqueue a t:marker, consume,
+    enqueue a l:content-definition-title-end, and switch to the
+    s:definition-title-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Ensure a t:content, consume, and switch to the
@@ -1663,7 +1691,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1697,8 +1725,9 @@ document and must start in the s:initial-content.
     Reconsume in the s:definition-title-paren-quoted-between
 *   ↪ **c:)**
 
-    Enqueue a t:marker, consume, enqueue a l:content-definition-title-close, and
-    switch to the s:definition-title-after
+    Enqueue a l:content-definition-title-close, enqueue a t:marker, consume,
+    enqueue a l:content-definition-title-end, and switch to the
+    s:definition-title-after
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Ensure a t:content, consume, and switch to the
@@ -1711,7 +1740,7 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
+    Enqueue a l:nok
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line and consume
@@ -1738,11 +1767,11 @@ document and must start in the s:initial-content.
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a l:content-definition
+    Enqueue a l:content-definition-end and enqueue an t:end-of-file
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:content-definition, enqueue an t:end-of-line, consume, and
-    switch to the s:initial-content
+    Enqueue a l:content-definition-end, enqueue an t:end-of-line, consume, and
+    switch to the s:content-start
 *   ↪ **[c:VS][]**\
     ↪ **c:HT**\
     ↪ **c:SP**
@@ -1750,20 +1779,27 @@ document and must start in the s:initial-content.
     Ensure a t:whitespace and consume
 *   ↪ **Anything else**
 
-    Enqueue a l:content-phrasing and reconsume in the s:phrasing-content
+    Enqueue a l:nok
 
 ### Phrasing content state
 
-> ❗️ Todo: define.
+*   ↪ **[c:EOF][]**
+
+    Enqueue an t:end-of-file
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and switch to the s:content-initial
 
 ## Text state machine
 
-The [text state machine](#) is used to tokenize inline values (plain text or
-rich text) of a document and must start in the s:after-whitespace.
+The [text state machine](#) is used to tokenize the inline constructs part of
+rich text (such as resources and emphasis) or plain text (as in character
+escapes or character references) in a document and must start in the
+s:after-whitespace.
 
 ### After whitespace state
 
-If text is parsed as plain text, this state should forward to the s:plain-text.
+If text is parsed as plain text, this state should act as per the s:plain-text.
 Otherwise:
 
 *   ↪ **c:***
@@ -1781,7 +1817,7 @@ Otherwise:
 
 ### After punctuation state
 
-If text is parsed as plain text, this state should forward to the s:plain-text.
+If text is parsed as plain text, this state should act as per the s:plain-text.
 Otherwise:
 
 *   ↪ **c:***
@@ -1799,7 +1835,7 @@ Otherwise:
 
 ### Text state
 
-If text is parsed as plain text, this state should forward to the s:plain-text.
+If text is parsed as plain text, this state should act as per the s:plain-text.
 Otherwise:
 
 *   ↪ **[c:EOF][]**
@@ -1808,15 +1844,16 @@ Otherwise:
 *   ↪ **[c:EOL][]**
 
     If the break represented by the character starts with a t:whitespace that
-    consists of two or more c:SP, enqueue a l:text-hard-break, enqueue an
-    t:end-of-line, consume, and switch to the s:after-whitespace
+    consists of two or more of [c:VS][], [c:HT][], or [c:SP][], enqueue a
+    l:text-hard-break, enqueue an t:end-of-line, consume, and switch to the
+    s:after-whitespace
 
     Otherwise, enqueue a l:text-soft-break, enqueue an t:end-of-line, consume,
     and switch to the s:after-whitespace
 *   ↪ **c:!**
 
-    Enqueue a t:marker, consume, and switch to the
-    s:image-exclamation-mark-after
+    Enqueue a l:text-image-label-open, enqueue a t:marker, consume, and switch
+    to the s:image-label-exclamation-mark-after
 *   ↪ **c:&**
 
     Enqueue a t:marker, consume, and switch to the s:character-reference
@@ -1861,6 +1898,7 @@ Otherwise:
 *   ↪ **[c:EOF][]**
 
     Enqueue an t:end-of-file
+    Enqueue a l:content-phrasing
 *   ↪ **[c:EOL][]**
 
     Enqueue a l:text-soft-break, enqueue an t:end-of-line, and consume
@@ -3134,7 +3172,7 @@ Otherwise:
 
     Unset `sizeLabel` and reconsume in the s:after-punctuation
 
-### Image exclamation mark after state
+### Image label exclamation mark after state
 
 *   ↪ **c:[**
 
@@ -3745,6 +3783,8 @@ Otherwise:
 
 ## Labels
 
+### NOK label
+
 ### Content phrasing label
 
 When a l:content-phrasing is received, the queue up to that point does not
@@ -3763,6 +3803,10 @@ It is later followed by a l:content-definition if further queued tokens
 construct a title, or l:content-phrasing if further queued tokens do not
 construct a title.
 
+### Content definition start label
+
+### Content definition label start label
+
 ### Content definition label open label
 
 When a l:content-definition-label-open is received, …
@@ -3770,6 +3814,10 @@ When a l:content-definition-label-open is received, …
 ### Content definition label close label
 
 When a l:content-definition-label-close is received, …
+
+### Content definition label end label
+
+### Content definition destination start label
 
 ### Content definition destination quoted open label
 
@@ -3787,6 +3835,10 @@ When a l:content-definition-destination-unquoted-open is received, …
 
 When a l:content-definition-destination-unquoted-close is received, …
 
+### Content definition destination end label
+
+### Content definition title start label
+
 ### Content definition title open label
 
 When a l:content-definition-title-open is received, …
@@ -3794,6 +3846,10 @@ When a l:content-definition-title-open is received, …
 ### Content definition title close label
 
 When a l:content-definition-title-close is received, …
+
+### Content definition title end label
+
+### Content definition end label
 
 ### Text hard break label
 
@@ -3806,6 +3862,10 @@ When a l:text-hard-break is received, …
 ### Text link open label
 
 When a l:text-link-open is received, …
+
+### Text image label open label
+
+l:text-image-label-open
 
 ### Text image open label
 

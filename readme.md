@@ -86,31 +86,33 @@ Common Markup parser.
     *   [7.47 Indented code line state](#747-indented-code-line-state)
     *   [7.48 Content continuation state](#748-content-continuation-state)
 *   [8 Content state machine](#8-content-state-machine)
-    *   [8.1 Initial content state](#81-initial-content-state)
-    *   [8.2 Definition label before state](#82-definition-label-before-state)
-    *   [8.3 Definition label inside state](#83-definition-label-inside-state)
-    *   [8.4 Definition label between state](#84-definition-label-between-state)
-    *   [8.5 Definition label escape state](#85-definition-label-escape-state)
-    *   [8.6 Definition label after state](#86-definition-label-after-state)
-    *   [8.7 Definition destination before state](#87-definition-destination-before-state)
-    *   [8.8 Definition destination quoted inside state](#88-definition-destination-quoted-inside-state)
-    *   [8.9 Definition destination quoted escape state](#89-definition-destination-quoted-escape-state)
-    *   [8.10 Definition destination unquoted inside state](#810-definition-destination-unquoted-inside-state)
-    *   [8.11 Definition destination unquoted escape state](#811-definition-destination-unquoted-escape-state)
-    *   [8.12 Definition destination after state](#812-definition-destination-after-state)
-    *   [8.13 Definition title before state](#813-definition-title-before-state)
-    *   [8.14 Definition title or label before state](#814-definition-title-or-label-before-state)
-    *   [8.15 Definition title double quoted state](#815-definition-title-double-quoted-state)
-    *   [8.16 Definition title double quoted between state](#816-definition-title-double-quoted-between-state)
-    *   [8.17 Definition title double quoted escape state](#817-definition-title-double-quoted-escape-state)
-    *   [8.18 Definition title single quoted state](#818-definition-title-single-quoted-state)
-    *   [8.19 Definition title single quoted between state](#819-definition-title-single-quoted-between-state)
-    *   [8.20 Definition title single quoted escape state](#820-definition-title-single-quoted-escape-state)
-    *   [8.21 Definition title paren quoted state](#821-definition-title-paren-quoted-state)
-    *   [8.22 Definition title paren quoted between state](#822-definition-title-paren-quoted-between-state)
-    *   [8.23 Definition title paren quoted escape state](#823-definition-title-paren-quoted-escape-state)
-    *   [8.24 Definition title after state](#824-definition-title-after-state)
-    *   [8.25 Phrasing content state](#825-phrasing-content-state)
+    *   [8.1 Content start state](#81-content-start-state)
+    *   [8.2 Content initial state](#82-content-initial-state)
+    *   [8.3 Definition label start state](#83-definition-label-start-state)
+    *   [8.4 Definition label before state](#84-definition-label-before-state)
+    *   [8.5 Definition label inside state](#85-definition-label-inside-state)
+    *   [8.6 Definition label between state](#86-definition-label-between-state)
+    *   [8.7 Definition label escape state](#87-definition-label-escape-state)
+    *   [8.8 Definition label after state](#88-definition-label-after-state)
+    *   [8.9 Definition destination before state](#89-definition-destination-before-state)
+    *   [8.10 Definition destination quoted inside state](#810-definition-destination-quoted-inside-state)
+    *   [8.11 Definition destination quoted escape state](#811-definition-destination-quoted-escape-state)
+    *   [8.12 Definition destination unquoted inside state](#812-definition-destination-unquoted-inside-state)
+    *   [8.13 Definition destination unquoted escape state](#813-definition-destination-unquoted-escape-state)
+    *   [8.14 Definition destination after state](#814-definition-destination-after-state)
+    *   [8.15 Definition title before state](#815-definition-title-before-state)
+    *   [8.16 Definition title or label before state](#816-definition-title-or-label-before-state)
+    *   [8.17 Definition title double quoted state](#817-definition-title-double-quoted-state)
+    *   [8.18 Definition title double quoted between state](#818-definition-title-double-quoted-between-state)
+    *   [8.19 Definition title double quoted escape state](#819-definition-title-double-quoted-escape-state)
+    *   [8.20 Definition title single quoted state](#820-definition-title-single-quoted-state)
+    *   [8.21 Definition title single quoted between state](#821-definition-title-single-quoted-between-state)
+    *   [8.22 Definition title single quoted escape state](#822-definition-title-single-quoted-escape-state)
+    *   [8.23 Definition title paren quoted state](#823-definition-title-paren-quoted-state)
+    *   [8.24 Definition title paren quoted between state](#824-definition-title-paren-quoted-between-state)
+    *   [8.25 Definition title paren quoted escape state](#825-definition-title-paren-quoted-escape-state)
+    *   [8.26 Definition title after state](#826-definition-title-after-state)
+    *   [8.27 Phrasing content state](#827-phrasing-content-state)
 *   [9 Text state machine](#9-text-state-machine)
     *   [9.1 After whitespace state](#91-after-whitespace-state)
     *   [9.2 After punctuation state](#92-after-punctuation-state)
@@ -174,7 +176,7 @@ Common Markup parser.
     *   [9.60 Autolink email label state](#960-autolink-email-label-state)
     *   [9.61 Autolink email at sign or dot state](#961-autolink-email-at-sign-or-dot-state)
     *   [9.62 Autolink email dash state](#962-autolink-email-dash-state)
-    *   [9.63 Image exclamation mark after state](#963-image-exclamation-mark-after-state)
+    *   [9.63 Image label exclamation mark after state](#963-image-label-exclamation-mark-after-state)
     *   [9.64 Resource text or label after state](#964-resource-text-or-label-after-state)
     *   [9.65 Resource information open state](#965-resource-information-open-state)
     *   [9.66 Resource information open after state](#966-resource-information-open-after-state)
@@ -204,39 +206,49 @@ Common Markup parser.
     *   [9.90 Reference label between state](#990-reference-label-between-state)
     *   [9.91 Reference label escape state](#991-reference-label-escape-state)
 *   [10 Labels](#10-labels)
-    *   [10.1 Content phrasing label](#101-content-phrasing-label)
-    *   [10.2 Content definition label](#102-content-definition-label)
-    *   [10.3 Content definition partial label](#103-content-definition-partial-label)
-    *   [10.4 Content definition label open label](#104-content-definition-label-open-label)
-    *   [10.5 Content definition label close label](#105-content-definition-label-close-label)
-    *   [10.6 Content definition destination quoted open label](#106-content-definition-destination-quoted-open-label)
-    *   [10.7 Content definition destination quoted close label](#107-content-definition-destination-quoted-close-label)
-    *   [10.8 Content definition destination unquoted open label](#108-content-definition-destination-unquoted-open-label)
-    *   [10.9 Content definition destination unquoted close label](#109-content-definition-destination-unquoted-close-label)
-    *   [10.10 Content definition title open label](#1010-content-definition-title-open-label)
-    *   [10.11 Content definition title close label](#1011-content-definition-title-close-label)
-    *   [10.12 Text hard break label](#1012-text-hard-break-label)
-    *   [10.13 Text soft break label](#1013-text-soft-break-label)
-    *   [10.14 Text link open label](#1014-text-link-open-label)
-    *   [10.15 Text image open label](#1015-text-image-open-label)
-    *   [10.16 Text resource close label](#1016-text-resource-close-label)
-    *   [10.17 Text reference label open label](#1017-text-reference-label-open-label)
-    *   [10.18 Text reference label close label](#1018-text-reference-label-close-label)
-    *   [10.19 Text resource information open label](#1019-text-resource-information-open-label)
-    *   [10.20 Text resource destination quoted open label](#1020-text-resource-destination-quoted-open-label)
-    *   [10.21 Text resource destination quoted close label](#1021-text-resource-destination-quoted-close-label)
-    *   [10.22 Text resource destination unquoted open label](#1022-text-resource-destination-unquoted-open-label)
-    *   [10.23 Text resource destination unquoted close label](#1023-text-resource-destination-unquoted-close-label)
-    *   [10.24 Text resource title open label](#1024-text-resource-title-open-label)
-    *   [10.25 Text resource title close label](#1025-text-resource-title-close-label)
-    *   [10.26 Text resource information close label](#1026-text-resource-information-close-label)
-    *   [10.27 Text emphasis label](#1027-text-emphasis-label)
-    *   [10.28 Text character reference label](#1028-text-character-reference-label)
-    *   [10.29 Text escape label](#1029-text-escape-label)
-    *   [10.30 Text code label](#1030-text-code-label)
-    *   [10.31 Text autolink email label](#1031-text-autolink-email-label)
-    *   [10.32 Text autolink URI label](#1032-text-autolink-uri-label)
-    *   [10.33 Text HTML label](#1033-text-html-label)
+    *   [10.1 NOK label](#101-nok-label)
+    *   [10.2 Content phrasing label](#102-content-phrasing-label)
+    *   [10.3 Content definition label](#103-content-definition-label)
+    *   [10.4 Content definition partial label](#104-content-definition-partial-label)
+    *   [10.5 Content definition start label](#105-content-definition-start-label)
+    *   [10.6 Content definition label start label](#106-content-definition-label-start-label)
+    *   [10.7 Content definition label open label](#107-content-definition-label-open-label)
+    *   [10.8 Content definition label close label](#108-content-definition-label-close-label)
+    *   [10.9 Content definition label end label](#109-content-definition-label-end-label)
+    *   [10.10 Content definition destination start label](#1010-content-definition-destination-start-label)
+    *   [10.11 Content definition destination quoted open label](#1011-content-definition-destination-quoted-open-label)
+    *   [10.12 Content definition destination quoted close label](#1012-content-definition-destination-quoted-close-label)
+    *   [10.13 Content definition destination unquoted open label](#1013-content-definition-destination-unquoted-open-label)
+    *   [10.14 Content definition destination unquoted close label](#1014-content-definition-destination-unquoted-close-label)
+    *   [10.15 Content definition destination end label](#1015-content-definition-destination-end-label)
+    *   [10.16 Content definition title start label](#1016-content-definition-title-start-label)
+    *   [10.17 Content definition title open label](#1017-content-definition-title-open-label)
+    *   [10.18 Content definition title close label](#1018-content-definition-title-close-label)
+    *   [10.19 Content definition title end label](#1019-content-definition-title-end-label)
+    *   [10.20 Content definition end label](#1020-content-definition-end-label)
+    *   [10.21 Text hard break label](#1021-text-hard-break-label)
+    *   [10.22 Text soft break label](#1022-text-soft-break-label)
+    *   [10.23 Text link open label](#1023-text-link-open-label)
+    *   [10.24 Text image label open label](#1024-text-image-label-open-label)
+    *   [10.25 Text image open label](#1025-text-image-open-label)
+    *   [10.26 Text resource close label](#1026-text-resource-close-label)
+    *   [10.27 Text reference label open label](#1027-text-reference-label-open-label)
+    *   [10.28 Text reference label close label](#1028-text-reference-label-close-label)
+    *   [10.29 Text resource information open label](#1029-text-resource-information-open-label)
+    *   [10.30 Text resource destination quoted open label](#1030-text-resource-destination-quoted-open-label)
+    *   [10.31 Text resource destination quoted close label](#1031-text-resource-destination-quoted-close-label)
+    *   [10.32 Text resource destination unquoted open label](#1032-text-resource-destination-unquoted-open-label)
+    *   [10.33 Text resource destination unquoted close label](#1033-text-resource-destination-unquoted-close-label)
+    *   [10.34 Text resource title open label](#1034-text-resource-title-open-label)
+    *   [10.35 Text resource title close label](#1035-text-resource-title-close-label)
+    *   [10.36 Text resource information close label](#1036-text-resource-information-close-label)
+    *   [10.37 Text emphasis label](#1037-text-emphasis-label)
+    *   [10.38 Text character reference label](#1038-text-character-reference-label)
+    *   [10.39 Text escape label](#1039-text-escape-label)
+    *   [10.40 Text code label](#1040-text-code-label)
+    *   [10.41 Text autolink email label](#1041-text-autolink-email-label)
+    *   [10.42 Text autolink URI label](#1042-text-autolink-uri-label)
+    *   [10.43 Text HTML label](#1043-text-html-label)
 *   [11 Processing](#11-processing)
     *   [11.1 Process as an ATX heading](#111-process-as-an-atx-heading)
     *   [11.2 Process as a Setext primary heading](#112-process-as-a-setext-primary-heading)
@@ -524,7 +536,8 @@ discarded.
 The [shared space][shared-space] is accessed and mutated by both the tree adapter and the
 states of the state machine.
 
-[Construct][construct]s are registered on one or more characters or character groups.
+[Construct][construct]s are registered by hooking a case (one or more characters or
+character groups) into certain states.
 Upon registration, they define the states used to parse a construct, and the
 adapter used to handle the construct.
 
@@ -532,10 +545,12 @@ adapter used to handle the construct.
 
 Implementations must act as if they use several state machines to tokenize
 common markup.
-The [flow state machine][flow-state-machine] is used to tokenize the main structure of the
-document.
-The [content state machine][content-state-machine] is used to tokenize a block of text.
-The [text state machine][text-state-machine] is used to tokenize runs of rich or plain text.
+The [flow state machine][flow-state-machine] is used to tokenize the line constructs that make up
+the structure of the document.
+The [content state machine][content-state-machine] is used to tokenize the inline constructs part of
+content blocks.
+The [text state machine][text-state-machine] is used to tokenize the inline constructs part of
+rich or plain text.
 
 Most states [consume][consume] the [input character][input-character], and either remain in the state
 to consume the next character, [reconsume][reconsume] the input character in a different
@@ -576,8 +591,8 @@ To <a id="reconsume" href="#reconsume">**reconsume**</a> is to [switch][switch] 
 
 #### 6.4.4 Enqueue
 
-To enqueue a label is to mark a point between two tokens with a semantic name,
-at which point there is no [current token][current-token].
+To <a id="enqueue" href="#enqueue">**enqueue**</a> a label is to mark a point between two tokens with a semantic
+name, at which point there is no [current token][current-token].
 
 To enqueue a token is to add a new token of the given type to the [queue][queue],
 making it the new [current token][current-token].
@@ -589,8 +604,9 @@ the given type, and otherwise do nothing.
 
 ## 7 Flow state machine
 
-The <a id="flow-state-machine" href="#flow-state-machine">**flow state machine**</a> is used to tokenize the main structure of a
-document and must start in the [*Initial state*][s-initial].
+The <a id="flow-state-machine" href="#flow-state-machine">**flow state machine**</a> is used to tokenize the line constructs that make up
+the structure of the document (such as headings or thematic breaks) and must
+start in the [*Initial state*][s-initial].
 
 ### 7.1 Initial state
 
@@ -1609,24 +1625,44 @@ If the next few characters are:
 
 ## 8 Content state machine
 
-The <a id="content-state-machine" href="#content-state-machine">**content state machine**</a> is used to tokenize the content blocks of a
-document and must start in the [*Initial content state*][s-initial-content].
+The <a id="content-state-machine" href="#content-state-machine">**content state machine**</a> is used to tokenize the inline constructs part of
+content blocks in a document (such as regular definitions and phrasing) and must
+start in the [*Content start state*][s-content-start].
 
-### 8.1 Initial content state
+### 8.1 Content start state
 
-*   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
+> **Hookable**, the regular hooks are:
+>
+> *   **U+005B LEFT SQUARE BRACKET (`[`)**: [*Definition label start state*][s-definition-label-start]
 
-    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition label open label*][l-content-definition-label-open], and
-    switch to the [*Definition label before state*][s-definition-label-before]
 *   ↪ **Anything else**
 
     Reconsume in the [*Phrasing content state*][s-phrasing-content]
 
-### 8.2 Definition label before state
+### 8.2 Content initial state
+
+> **Hookable**, there are no regular hooks.
+
+*   ↪ **Anything else**
+
+    Reconsume in the [*Phrasing content state*][s-phrasing-content]
+
+### 8.3 Definition label start state
+
+*   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
+
+    Enqueue a [*Content definition start label*][l-content-definition-start], enqueue a
+    [*Content definition label start label*][l-content-definition-label-start], enqueue a [*Marker token*][t-marker], consume, enqueue a
+    [*Content definition label open label*][l-content-definition-label-open], and switch to the [*Definition label before state*][s-definition-label-before]
+*   ↪ **Anything else**
+
+    Enqueue a [*NOK label*][l-nok]
+
+### 8.4 Definition label before state
 
 *   ↪ **[EOF][ceof]**
 
-    Treat it as per the “U+005D RIGHT SQUARE BRACKET (`]`)” entry below
+    Enqueue a [*NOK label*][l-nok]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -1637,12 +1673,12 @@ document and must start in the [*Initial content state*][s-initial-content].
     Ensure a [*Whitespace token*][t-whitespace] and consume
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
+    Enqueue a [*NOK label*][l-nok]
 *   ↪ **Anything else**
 
     Enqueue a [*Content token*][t-content], consume, and switch to the [*Definition label inside state*][s-definition-label-inside]
 
-### 8.3 Definition label inside state
+### 8.5 Definition label inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -1656,17 +1692,18 @@ document and must start in the [*Initial content state*][s-initial-content].
     Ensure a [*Content token*][t-content], consume, and switch to the [*Definition label escape state*][s-definition-label-escape]
 *   ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
 
-    Enqueue a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume, and
-    switch to the [*Definition label after state*][s-definition-label-after]
+    Enqueue a [*Content definition label close label*][l-content-definition-label-close], enqueue a [*Marker token*][t-marker], consume,
+    enqueue a [*Content definition label end label*][l-content-definition-label-end], and switch to the
+    [*Definition label after state*][s-definition-label-after]
 *   ↪ **Anything else**
 
     Ensure a [*Content token*][t-content] and consume
 
-### 8.4 Definition label between state
+### 8.6 Definition label between state
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
+    Enqueue a [*NOK label*][l-nok]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -1679,7 +1716,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition label inside state*][s-definition-label-inside]
 
-### 8.5 Definition label escape state
+### 8.7 Definition label escape state
 
 *   ↪ **U+005C BACKSLASH (`\`)**\
     ↪ **U+005D RIGHT SQUARE BRACKET (`]`)**
@@ -1689,7 +1726,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition label inside state*][s-definition-label-inside]
 
-### 8.6 Definition label after state
+### 8.8 Definition label after state
 
 *   ↪ **U+003A COLON (`:`)**
 
@@ -1697,13 +1734,13 @@ document and must start in the [*Initial content state*][s-initial-content].
     [*Definition destination before state*][s-definition-destination-before]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
+    Enqueue a [*NOK label*][l-nok]
 
-### 8.7 Definition destination before state
+### 8.9 Definition destination before state
 
 *   ↪ **[EOF][ceof]**
 
-    Treat it as per the “ASCII control” entry below
+    Enqueue a [*NOK label*][l-nok]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -1714,28 +1751,29 @@ document and must start in the [*Initial content state*][s-initial-content].
     Ensure a [*Whitespace token*][t-whitespace] and consume
 *   ↪ **U+003C LESS THAN (`<`)**
 
-    Enqueue a [*Content definition destination quoted open label*][l-content-definition-destination-quoted-open], enqueue a [*Marker token*][t-marker],
-    consume, and switch to the [*Definition destination quoted inside state*][s-definition-destination-quoted-inside]
+    Enqueue a [*Content definition destination start label*][l-content-definition-destination-start], enqueue a [*Marker token*][t-marker],
+    enqueue a [*Content definition destination quoted open label*][l-content-definition-destination-quoted-open], consume, and switch
+    to the [*Definition destination quoted inside state*][s-definition-destination-quoted-inside]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
+    Enqueue a [*NOK label*][l-nok]
 *   ↪ **Anything else**
 
-    Let `balance` be `0`, enqueue a
-    [*Content definition destination unquoted open label*][l-content-definition-destination-unquoted-open], enqueue a [*Content token*][t-content], and
-    reconsume in the [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
+    Let `balance` be `0`, enqueue a [*Content definition destination start label*][l-content-definition-destination-start],
+    enqueue a [*Content definition destination unquoted open label*][l-content-definition-destination-unquoted-open], enqueue a
+    [*Content token*][t-content], and reconsume in the [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
-### 8.8 Definition destination quoted inside state
+### 8.10 Definition destination quoted inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
     ↪ **U+003C LESS THAN (`<`)**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
+    Enqueue a [*NOK label*][l-nok]
 *   ↪ **U+003E GREATER THAN (`>`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, enqueue a
-    [*Content definition destination quoted close label*][l-content-definition-destination-quoted-close], and switch to the
+    Enqueue a [*Content definition destination quoted close label*][l-content-definition-destination-quoted-close], enqueue a [*Marker token*][t-marker],
+    consume, enqueue a [*Content definition destination end label*][l-content-definition-destination-end], and switch to the
     [*Definition destination after state*][s-definition-destination-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
@@ -1745,7 +1783,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Ensure a [*Content token*][t-content] and consume
 
-### 8.9 Definition destination quoted escape state
+### 8.11 Definition destination quoted escape state
 
 *   ↪ **U+003C LESS THAN (`<`)**\
     ↪ **U+003E GREATER THAN (`>`)**\
@@ -1756,7 +1794,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition destination quoted inside state*][s-definition-destination-quoted-inside]
 
-### 8.10 Definition destination unquoted inside state
+### 8.12 Definition destination unquoted inside state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -1764,7 +1802,9 @@ document and must start in the [*Initial content state*][s-initial-content].
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
 
-    Unset `balance` and reconsume in the [*Definition title before state*][s-definition-title-before]
+    Unset `balance`, enqueue a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close],
+    enqueue a [*Content definition destination end label*][l-content-definition-destination-end], and reconsume in the
+    [*Definition title before state*][s-definition-title-before]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
     Increment `balance` by `1`, ensure a [*Content token*][t-content], and consume
@@ -1779,13 +1819,12 @@ document and must start in the [*Initial content state*][s-initial-content].
     [*Definition destination unquoted escape state*][s-definition-destination-unquoted-escape]
 *   ↪ **[ASCII control][ascii-control]**
 
-    Unset `balance`, enqueue a [*Content phrasing label*][l-content-phrasing], and reconsume in the
-    [*Phrasing content state*][s-phrasing-content]
+    Unset `balance` and enqueue a [*NOK label*][l-nok]
 *   ↪ **Anything else**
 
     Ensure a [*Content token*][t-content] and consume
 
-### 8.11 Definition destination unquoted escape state
+### 8.13 Definition destination unquoted escape state
 
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**\
     ↪ **U+0029 RIGHT PARENTHESIS (`)`)**\
@@ -1796,7 +1835,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition destination unquoted inside state*][s-definition-destination-unquoted-inside]
 
-### 8.12 Definition destination after state
+### 8.14 Definition destination after state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -1807,9 +1846,9 @@ document and must start in the [*Initial content state*][s-initial-content].
     Reconsume in the [*Definition title before state*][s-definition-title-before]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
+    Enqueue a [*NOK label*][l-nok]
 
-### 8.13 Definition title before state
+### 8.15 Definition title before state
 
 *   ↪ **[EOL][ceol]**
 
@@ -1822,16 +1861,16 @@ document and must start in the [*Initial content state*][s-initial-content].
     Ensure a [*Whitespace token*][t-whitespace] and consume
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
+    Enqueue a [*NOK label*][l-nok]
 *   ↪ **Anything else**
 
     Reconsume in the [*Definition title or label before state*][s-definition-title-or-label-before]
 
-### 8.14 Definition title or label before state
+### 8.16 Definition title or label before state
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Content definition label*][l-content-definition]
+    Enqueue a [*Content definition end label*][l-content-definition-end] and enqueue an [*End-of-file token*][t-end-of-file]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -1840,27 +1879,26 @@ document and must start in the [*Initial content state*][s-initial-content].
     ↪ **U+0020 SPACE (SP)**
 
     Ensure a [*Whitespace token*][t-whitespace] and consume
-*   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
-
-    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition label open label*][l-content-definition-label-open], and
-    switch to the [*Definition label before state*][s-definition-label-before]
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Enqueue a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
-    switch to the [*Definition title double quoted state*][s-definition-title-double-quoted]
+    Enqueue a [*Content definition title start label*][l-content-definition-title-start], enqueue a [*Marker token*][t-marker], consume,
+    enqueue a [*Content definition title open label*][l-content-definition-title-open], and switch to the
+    [*Definition title double quoted state*][s-definition-title-double-quoted]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Enqueue a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
-    switch to the [*Definition title single quoted state*][s-definition-title-single-quoted]
+    Enqueue a [*Content definition title start label*][l-content-definition-title-start], enqueue a [*Marker token*][t-marker], consume,
+    enqueue a [*Content definition title open label*][l-content-definition-title-open], and switch to the
+    [*Definition title single quoted state*][s-definition-title-single-quoted]
 *   ↪ **U+0028 LEFT PARENTHESIS (`(`)**
 
-    Enqueue a [*Content definition title open label*][l-content-definition-title-open], enqueue a [*Marker token*][t-marker], consume, and
-    switch to the [*Definition title paren quoted state*][s-definition-title-paren-quoted]
+    Enqueue a [*Content definition title start label*][l-content-definition-title-start], enqueue a [*Marker token*][t-marker], consume,
+    enqueue a [*Content definition title open label*][l-content-definition-title-open], and switch to the
+    [*Definition title paren quoted state*][s-definition-title-paren-quoted]
 *   ↪ **Anything else**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
+    Reconsume in the [*Content start state*][s-content-start]
 
-### 8.15 Definition title double quoted state
+### 8.17 Definition title double quoted state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -1871,8 +1909,9 @@ document and must start in the [*Initial content state*][s-initial-content].
     Reconsume in the [*Definition title double quoted between state*][s-definition-title-double-quoted-between]
 *   ↪ **U+0022 QUOTATION MARK (`"`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
-    switch to the [*Definition title after state*][s-definition-title-after]
+    Enqueue a [*Content definition title close label*][l-content-definition-title-close], enqueue a [*Marker token*][t-marker], consume,
+    enqueue a [*Content definition title end label*][l-content-definition-title-end], and switch to the
+    [*Definition title after state*][s-definition-title-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Ensure a [*Content token*][t-content], consume, and switch to the
@@ -1881,11 +1920,11 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Ensure a [*Content token*][t-content] and consume
 
-### 8.16 Definition title double quoted between state
+### 8.18 Definition title double quoted between state
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
+    Enqueue a [*NOK label*][l-nok]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -1898,7 +1937,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition title double quoted state*][s-definition-title-double-quoted]
 
-### 8.17 Definition title double quoted escape state
+### 8.19 Definition title double quoted escape state
 
 *   ↪ **U+0022 QUOTATION MARK (`"`)**\
     ↪ **U+005C BACKSLASH (`\`)**
@@ -1908,7 +1947,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition title double quoted state*][s-definition-title-double-quoted]
 
-### 8.18 Definition title single quoted state
+### 8.20 Definition title single quoted state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -1919,8 +1958,9 @@ document and must start in the [*Initial content state*][s-initial-content].
     Reconsume in the [*Definition title single quoted between state*][s-definition-title-single-quoted-between]
 *   ↪ **U+0027 APOSTROPHE (`'`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
-    switch to the [*Definition title after state*][s-definition-title-after]
+    Enqueue a [*Content definition title close label*][l-content-definition-title-close], enqueue a [*Marker token*][t-marker], consume,
+    enqueue a [*Content definition title end label*][l-content-definition-title-end], and switch to the
+    [*Definition title after state*][s-definition-title-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Ensure a [*Content token*][t-content], consume, and switch to the
@@ -1929,11 +1969,11 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Ensure a [*Content token*][t-content] and consume
 
-### 8.19 Definition title single quoted between state
+### 8.21 Definition title single quoted between state
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
+    Enqueue a [*NOK label*][l-nok]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -1946,7 +1986,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition title single quoted state*][s-definition-title-single-quoted]
 
-### 8.20 Definition title single quoted escape state
+### 8.22 Definition title single quoted escape state
 
 *   ↪ **U+0027 APOSTROPHE (`'`)**\
     ↪ **U+005C BACKSLASH (`\`)**
@@ -1956,7 +1996,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition title single quoted state*][s-definition-title-single-quoted]
 
-### 8.21 Definition title paren quoted state
+### 8.23 Definition title paren quoted state
 
 *   ↪ **[EOF][ceof]**\
     ↪ **[EOL][ceol]**\
@@ -1967,8 +2007,9 @@ document and must start in the [*Initial content state*][s-initial-content].
     Reconsume in the [*Definition title paren quoted between state*][s-definition-title-paren-quoted-between]
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, enqueue a [*Content definition title close label*][l-content-definition-title-close], and
-    switch to the [*Definition title after state*][s-definition-title-after]
+    Enqueue a [*Content definition title close label*][l-content-definition-title-close], enqueue a [*Marker token*][t-marker], consume,
+    enqueue a [*Content definition title end label*][l-content-definition-title-end], and switch to the
+    [*Definition title after state*][s-definition-title-after]
 *   ↪ **U+005C BACKSLASH (`\`)**
 
     Ensure a [*Content token*][t-content], consume, and switch to the
@@ -1977,11 +2018,11 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Ensure a [*Content token*][t-content] and consume
 
-### 8.22 Definition title paren quoted between state
+### 8.24 Definition title paren quoted between state
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
+    Enqueue a [*NOK label*][l-nok]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line] and consume
@@ -1994,7 +2035,7 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition title paren quoted state*][s-definition-title-paren-quoted]
 
-### 8.23 Definition title paren quoted escape state
+### 8.25 Definition title paren quoted escape state
 
 *   ↪ **U+0029 RIGHT PARENTHESIS (`)`)**\
     ↪ **U+005C BACKSLASH (`\`)**
@@ -2004,15 +2045,15 @@ document and must start in the [*Initial content state*][s-initial-content].
 
     Reconsume in the [*Definition title paren quoted state*][s-definition-title-paren-quoted]
 
-### 8.24 Definition title after state
+### 8.26 Definition title after state
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Content definition label*][l-content-definition]
+    Enqueue a [*Content definition end label*][l-content-definition-end] and enqueue an [*End-of-file token*][t-end-of-file]
 *   ↪ **[EOL][ceol]**
 
-    Enqueue a [*Content definition label*][l-content-definition], enqueue an [*End-of-line token*][t-end-of-line], consume, and
-    switch to the [*Initial content state*][s-initial-content]
+    Enqueue a [*Content definition end label*][l-content-definition-end], enqueue an [*End-of-line token*][t-end-of-line], consume, and
+    switch to the [*Content start state*][s-content-start]
 *   ↪ **[VIRTUAL SPACE][cvs]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -2020,20 +2061,27 @@ document and must start in the [*Initial content state*][s-initial-content].
     Ensure a [*Whitespace token*][t-whitespace] and consume
 *   ↪ **Anything else**
 
-    Enqueue a [*Content phrasing label*][l-content-phrasing] and reconsume in the [*Phrasing content state*][s-phrasing-content]
+    Enqueue a [*NOK label*][l-nok]
 
-### 8.25 Phrasing content state
+### 8.27 Phrasing content state
 
-> ❗️ Todo: define.
+*   ↪ **[EOF][ceof]**
+
+    Enqueue an [*End-of-file token*][t-end-of-file]
+*   ↪ **[EOL][ceol]**
+
+    Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the [*Content initial state*][s-content-initial]
 
 ## 9 Text state machine
 
-The <a id="text-state-machine" href="#text-state-machine">**text state machine**</a> is used to tokenize inline values (plain text or
-rich text) of a document and must start in the [*After whitespace state*][s-after-whitespace].
+The <a id="text-state-machine" href="#text-state-machine">**text state machine**</a> is used to tokenize the inline constructs part of
+rich text (such as resources and emphasis) or plain text (as in character
+escapes or character references) in a document and must start in the
+[*After whitespace state*][s-after-whitespace].
 
 ### 9.1 After whitespace state
 
-If text is parsed as plain text, this state should forward to the [*Plain text state*][s-plain-text].
+If text is parsed as plain text, this state should act as per the [*Plain text state*][s-plain-text].
 Otherwise:
 
 *   ↪ **U+002A ASTERISK (`*`)**
@@ -2051,7 +2099,7 @@ Otherwise:
 
 ### 9.2 After punctuation state
 
-If text is parsed as plain text, this state should forward to the [*Plain text state*][s-plain-text].
+If text is parsed as plain text, this state should act as per the [*Plain text state*][s-plain-text].
 Otherwise:
 
 *   ↪ **U+002A ASTERISK (`*`)**
@@ -2069,7 +2117,7 @@ Otherwise:
 
 ### 9.3 Text state
 
-If text is parsed as plain text, this state should forward to the [*Plain text state*][s-plain-text].
+If text is parsed as plain text, this state should act as per the [*Plain text state*][s-plain-text].
 Otherwise:
 
 *   ↪ **[EOF][ceof]**
@@ -2078,15 +2126,16 @@ Otherwise:
 *   ↪ **[EOL][ceol]**
 
     If the break represented by the character starts with a [*Whitespace token*][t-whitespace] that
-    consists of two or more U+0020 SPACE (SP), enqueue a [*Text hard break label*][l-text-hard-break], enqueue an
-    [*End-of-line token*][t-end-of-line], consume, and switch to the [*After whitespace state*][s-after-whitespace]
+    consists of two or more of [VIRTUAL SPACE][cvs], [U+0009 CHARACTER TABULATION (HT)][cht], or [U+0020 SPACE (SP)][csp], enqueue a
+    [*Text hard break label*][l-text-hard-break], enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the
+    [*After whitespace state*][s-after-whitespace]
 
     Otherwise, enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], consume,
     and switch to the [*After whitespace state*][s-after-whitespace]
 *   ↪ **U+0021 EXCLAMATION MARK (`!`)**
 
-    Enqueue a [*Marker token*][t-marker], consume, and switch to the
-    [*Image exclamation mark after state*][s-image-exclamation-mark-after]
+    Enqueue a [*Text image label open label*][l-text-image-label-open], enqueue a [*Marker token*][t-marker], consume, and switch
+    to the [*Image label exclamation mark after state*][s-image-label-exclamation-mark-after]
 *   ↪ **U+0026 AMPERSAND (`&`)**
 
     Enqueue a [*Marker token*][t-marker], consume, and switch to the [*Character reference state*][s-character-reference]
@@ -2131,6 +2180,7 @@ Otherwise:
 *   ↪ **[EOF][ceof]**
 
     Enqueue an [*End-of-file token*][t-end-of-file]
+    Enqueue a [*Content phrasing label*][l-content-phrasing]
 *   ↪ **[EOL][ceol]**
 
     Enqueue a [*Text soft break label*][l-text-soft-break], enqueue an [*End-of-line token*][t-end-of-line], and consume
@@ -3404,7 +3454,7 @@ Otherwise:
 
     Unset `sizeLabel` and reconsume in the [*After punctuation state*][s-after-punctuation]
 
-### 9.63 Image exclamation mark after state
+### 9.63 Image label exclamation mark after state
 
 *   ↪ **U+005B LEFT SQUARE BRACKET (`[`)**
 
@@ -4015,17 +4065,19 @@ Otherwise:
 
 ## 10 Labels
 
-### 10.1 Content phrasing label
+### 10.1 NOK label
+
+### 10.2 Content phrasing label
 
 When a [*Content phrasing label*][l-content-phrasing] is received, the queue up to that point does not
 construct a definition.
 
-### 10.2 Content definition label
+### 10.3 Content definition label
 
 When a [*Content definition label*][l-content-definition] is received, the queue up to that point constructs a
 definition.
 
-### 10.3 Content definition partial label
+### 10.4 Content definition partial label
 
 When a [*Content definition partial label*][l-content-definition-partial] is received, the queue up to that point
 constructs a definition without a title.
@@ -4033,123 +4085,143 @@ It is later followed by a [*Content definition label*][l-content-definition] if 
 construct a title, or [*Content phrasing label*][l-content-phrasing] if further queued tokens do not
 construct a title.
 
-### 10.4 Content definition label open label
+### 10.5 Content definition start label
+
+### 10.6 Content definition label start label
+
+### 10.7 Content definition label open label
 
 When a [*Content definition label open label*][l-content-definition-label-open] is received, …
 
-### 10.5 Content definition label close label
+### 10.8 Content definition label close label
 
 When a [*Content definition label close label*][l-content-definition-label-close] is received, …
 
-### 10.6 Content definition destination quoted open label
+### 10.9 Content definition label end label
+
+### 10.10 Content definition destination start label
+
+### 10.11 Content definition destination quoted open label
 
 When a [*Content definition destination quoted open label*][l-content-definition-destination-quoted-open] is received, …
 
-### 10.7 Content definition destination quoted close label
+### 10.12 Content definition destination quoted close label
 
 When a [*Content definition destination quoted close label*][l-content-definition-destination-quoted-close] is received, …
 
-### 10.8 Content definition destination unquoted open label
+### 10.13 Content definition destination unquoted open label
 
 When a [*Content definition destination unquoted open label*][l-content-definition-destination-unquoted-open] is received, …
 
-### 10.9 Content definition destination unquoted close label
+### 10.14 Content definition destination unquoted close label
 
 When a [*Content definition destination unquoted close label*][l-content-definition-destination-unquoted-close] is received, …
 
-### 10.10 Content definition title open label
+### 10.15 Content definition destination end label
+
+### 10.16 Content definition title start label
+
+### 10.17 Content definition title open label
 
 When a [*Content definition title open label*][l-content-definition-title-open] is received, …
 
-### 10.11 Content definition title close label
+### 10.18 Content definition title close label
 
 When a [*Content definition title close label*][l-content-definition-title-close] is received, …
 
-### 10.12 Text hard break label
+### 10.19 Content definition title end label
+
+### 10.20 Content definition end label
+
+### 10.21 Text hard break label
 
 When a [*Text hard break label*][l-text-hard-break] is received, …
 
-### 10.13 Text soft break label
+### 10.22 Text soft break label
 
 When a [*Text hard break label*][l-text-hard-break] is received, …
 
-### 10.14 Text link open label
+### 10.23 Text link open label
 
 When a [*Text link open label*][l-text-link-open] is received, …
 
-### 10.15 Text image open label
+### 10.24 Text image label open label
+
+[*Text image label open label*][l-text-image-label-open]
+
+### 10.25 Text image open label
 
 When a [*Text image open label*][l-text-image-open] is received, …
 
-### 10.16 Text resource close label
+### 10.26 Text resource close label
 
 When a [*Text resource close label*][l-text-resource-close] is received, …
 
-### 10.17 Text reference label open label
+### 10.27 Text reference label open label
 
 When a [*Text reference label open label*][l-text-reference-label-open] is received, …
 
-### 10.18 Text reference label close label
+### 10.28 Text reference label close label
 
 When a [*Text reference label close label*][l-text-reference-label-close] is received, …
 
-### 10.19 Text resource information open label
+### 10.29 Text resource information open label
 
 When a [*Text resource information open label*][l-text-resource-information-open] is received, …
 
-### 10.20 Text resource destination quoted open label
+### 10.30 Text resource destination quoted open label
 
 When a [*Text resource destination quoted open label*][l-text-resource-destination-quoted-open] is received, …
 
-### 10.21 Text resource destination quoted close label
+### 10.31 Text resource destination quoted close label
 
 When a [*Text resource destination quoted close label*][l-text-resource-destination-quoted-close] is received, …
 
-### 10.22 Text resource destination unquoted open label
+### 10.32 Text resource destination unquoted open label
 
 When a [*Text resource destination unquoted open label*][l-text-resource-destination-unquoted-open] is received, …
 
-### 10.23 Text resource destination unquoted close label
+### 10.33 Text resource destination unquoted close label
 
 When a [*Text resource destination unquoted close label*][l-text-resource-destination-unquoted-close] is received, …
 
-### 10.24 Text resource title open label
+### 10.34 Text resource title open label
 
 When a [*Text resource title open label*][l-text-resource-title-open] is received, …
 
-### 10.25 Text resource title close label
+### 10.35 Text resource title close label
 
 When a [*Text resource title close label*][l-text-resource-title-close] is received, …
 
-### 10.26 Text resource information close label
+### 10.36 Text resource information close label
 
 When a [*Text resource information close label*][l-text-resource-information-close] is received, …
 
-### 10.27 Text emphasis label
+### 10.37 Text emphasis label
 
 When a [*Text emphasis label*][l-text-emphasis] is received, …
 
-### 10.28 Text character reference label
+### 10.38 Text character reference label
 
 When a [*Text character reference label*][l-text-character-reference] is received, …
 
-### 10.29 Text escape label
+### 10.39 Text escape label
 
 When a [*Text escape label*][l-text-escape] is received, …
 
-### 10.30 Text code label
+### 10.40 Text code label
 
 When a [*Text code label*][l-text-code] is received, …
 
-### 10.31 Text autolink email label
+### 10.41 Text autolink email label
 
 When a [*Text autolink email label*][l-text-autolink-email] is received, …
 
-### 10.32 Text autolink URI label
+### 10.42 Text autolink URI label
 
 When a [*Text autolink URI label*][l-text-autolink-uri] is received, …
 
-### 10.33 Text HTML label
+### 10.43 Text HTML label
 
 When a [*Text HTML label*][l-text-html] is received, …
 
@@ -5092,6 +5164,8 @@ This work is licensed under a
 
 [reconsume]: #reconsume
 
+[enqueue]: #enqueue
+
 [flow-state-machine]: #flow-state-machine
 
 [content-state-machine]: #content-state-machine
@@ -5214,55 +5288,59 @@ This work is licensed under a
 
 [s-content-continuation]: #748-content-continuation-state
 
-[s-initial-content]: #81-initial-content-state
+[s-content-start]: #81-content-start-state
 
-[s-definition-label-before]: #82-definition-label-before-state
+[s-content-initial]: #82-content-initial-state
 
-[s-definition-label-inside]: #83-definition-label-inside-state
+[s-definition-label-start]: #83-definition-label-start-state
 
-[s-definition-label-between]: #84-definition-label-between-state
+[s-definition-label-before]: #84-definition-label-before-state
 
-[s-definition-label-escape]: #85-definition-label-escape-state
+[s-definition-label-inside]: #85-definition-label-inside-state
 
-[s-definition-label-after]: #86-definition-label-after-state
+[s-definition-label-between]: #86-definition-label-between-state
 
-[s-definition-destination-before]: #87-definition-destination-before-state
+[s-definition-label-escape]: #87-definition-label-escape-state
 
-[s-definition-destination-quoted-inside]: #88-definition-destination-quoted-inside-state
+[s-definition-label-after]: #88-definition-label-after-state
 
-[s-definition-destination-quoted-escape]: #89-definition-destination-quoted-escape-state
+[s-definition-destination-before]: #89-definition-destination-before-state
 
-[s-definition-destination-unquoted-inside]: #810-definition-destination-unquoted-inside-state
+[s-definition-destination-quoted-inside]: #810-definition-destination-quoted-inside-state
 
-[s-definition-destination-unquoted-escape]: #811-definition-destination-unquoted-escape-state
+[s-definition-destination-quoted-escape]: #811-definition-destination-quoted-escape-state
 
-[s-definition-destination-after]: #812-definition-destination-after-state
+[s-definition-destination-unquoted-inside]: #812-definition-destination-unquoted-inside-state
 
-[s-definition-title-before]: #813-definition-title-before-state
+[s-definition-destination-unquoted-escape]: #813-definition-destination-unquoted-escape-state
 
-[s-definition-title-or-label-before]: #814-definition-title-or-label-before-state
+[s-definition-destination-after]: #814-definition-destination-after-state
 
-[s-definition-title-double-quoted]: #815-definition-title-double-quoted-state
+[s-definition-title-before]: #815-definition-title-before-state
 
-[s-definition-title-double-quoted-between]: #816-definition-title-double-quoted-between-state
+[s-definition-title-or-label-before]: #816-definition-title-or-label-before-state
 
-[s-definition-title-double-quoted-escape]: #817-definition-title-double-quoted-escape-state
+[s-definition-title-double-quoted]: #817-definition-title-double-quoted-state
 
-[s-definition-title-single-quoted]: #818-definition-title-single-quoted-state
+[s-definition-title-double-quoted-between]: #818-definition-title-double-quoted-between-state
 
-[s-definition-title-single-quoted-between]: #819-definition-title-single-quoted-between-state
+[s-definition-title-double-quoted-escape]: #819-definition-title-double-quoted-escape-state
 
-[s-definition-title-single-quoted-escape]: #820-definition-title-single-quoted-escape-state
+[s-definition-title-single-quoted]: #820-definition-title-single-quoted-state
 
-[s-definition-title-paren-quoted]: #821-definition-title-paren-quoted-state
+[s-definition-title-single-quoted-between]: #821-definition-title-single-quoted-between-state
 
-[s-definition-title-paren-quoted-between]: #822-definition-title-paren-quoted-between-state
+[s-definition-title-single-quoted-escape]: #822-definition-title-single-quoted-escape-state
 
-[s-definition-title-paren-quoted-escape]: #823-definition-title-paren-quoted-escape-state
+[s-definition-title-paren-quoted]: #823-definition-title-paren-quoted-state
 
-[s-definition-title-after]: #824-definition-title-after-state
+[s-definition-title-paren-quoted-between]: #824-definition-title-paren-quoted-between-state
 
-[s-phrasing-content]: #825-phrasing-content-state
+[s-definition-title-paren-quoted-escape]: #825-definition-title-paren-quoted-escape-state
+
+[s-definition-title-after]: #826-definition-title-after-state
+
+[s-phrasing-content]: #827-phrasing-content-state
 
 [s-after-whitespace]: #91-after-whitespace-state
 
@@ -5388,7 +5466,7 @@ This work is licensed under a
 
 [s-autolink-email-dash]: #962-autolink-email-dash-state
 
-[s-image-exclamation-mark-after]: #963-image-exclamation-mark-after-state
+[s-image-label-exclamation-mark-after]: #963-image-label-exclamation-mark-after-state
 
 [s-resource-text-or-label-after]: #964-resource-text-or-label-after-state
 
@@ -5446,71 +5524,91 @@ This work is licensed under a
 
 [s-reference-label-escape]: #991-reference-label-escape-state
 
-[l-content-phrasing]: #101-content-phrasing-label
+[l-nok]: #101-nok-label
 
-[l-content-definition]: #102-content-definition-label
+[l-content-phrasing]: #102-content-phrasing-label
 
-[l-content-definition-partial]: #103-content-definition-partial-label
+[l-content-definition]: #103-content-definition-label
 
-[l-content-definition-label-open]: #104-content-definition-label-open-label
+[l-content-definition-partial]: #104-content-definition-partial-label
 
-[l-content-definition-label-close]: #105-content-definition-label-close-label
+[l-content-definition-start]: #105-content-definition-start-label
 
-[l-content-definition-destination-quoted-open]: #106-content-definition-destination-quoted-open-label
+[l-content-definition-label-start]: #106-content-definition-label-start-label
 
-[l-content-definition-destination-quoted-close]: #107-content-definition-destination-quoted-close-label
+[l-content-definition-label-open]: #107-content-definition-label-open-label
 
-[l-content-definition-destination-unquoted-open]: #108-content-definition-destination-unquoted-open-label
+[l-content-definition-label-close]: #108-content-definition-label-close-label
 
-[l-content-definition-destination-unquoted-close]: #109-content-definition-destination-unquoted-close-label
+[l-content-definition-label-end]: #109-content-definition-label-end-label
 
-[l-content-definition-title-open]: #1010-content-definition-title-open-label
+[l-content-definition-destination-start]: #1010-content-definition-destination-start-label
 
-[l-content-definition-title-close]: #1011-content-definition-title-close-label
+[l-content-definition-destination-quoted-open]: #1011-content-definition-destination-quoted-open-label
 
-[l-text-hard-break]: #1012-text-hard-break-label
+[l-content-definition-destination-quoted-close]: #1012-content-definition-destination-quoted-close-label
 
-[l-text-soft-break]: #1013-text-soft-break-label
+[l-content-definition-destination-unquoted-open]: #1013-content-definition-destination-unquoted-open-label
 
-[l-text-link-open]: #1014-text-link-open-label
+[l-content-definition-destination-unquoted-close]: #1014-content-definition-destination-unquoted-close-label
 
-[l-text-image-open]: #1015-text-image-open-label
+[l-content-definition-destination-end]: #1015-content-definition-destination-end-label
 
-[l-text-resource-close]: #1016-text-resource-close-label
+[l-content-definition-title-start]: #1016-content-definition-title-start-label
 
-[l-text-reference-label-open]: #1017-text-reference-label-open-label
+[l-content-definition-title-open]: #1017-content-definition-title-open-label
 
-[l-text-reference-label-close]: #1018-text-reference-label-close-label
+[l-content-definition-title-close]: #1018-content-definition-title-close-label
 
-[l-text-resource-information-open]: #1019-text-resource-information-open-label
+[l-content-definition-title-end]: #1019-content-definition-title-end-label
 
-[l-text-resource-destination-quoted-open]: #1020-text-resource-destination-quoted-open-label
+[l-content-definition-end]: #1020-content-definition-end-label
 
-[l-text-resource-destination-quoted-close]: #1021-text-resource-destination-quoted-close-label
+[l-text-hard-break]: #1021-text-hard-break-label
 
-[l-text-resource-destination-unquoted-open]: #1022-text-resource-destination-unquoted-open-label
+[l-text-soft-break]: #1022-text-soft-break-label
 
-[l-text-resource-destination-unquoted-close]: #1023-text-resource-destination-unquoted-close-label
+[l-text-link-open]: #1023-text-link-open-label
 
-[l-text-resource-title-open]: #1024-text-resource-title-open-label
+[l-text-image-label-open]: #1024-text-image-label-open-label
 
-[l-text-resource-title-close]: #1025-text-resource-title-close-label
+[l-text-image-open]: #1025-text-image-open-label
 
-[l-text-resource-information-close]: #1026-text-resource-information-close-label
+[l-text-resource-close]: #1026-text-resource-close-label
 
-[l-text-emphasis]: #1027-text-emphasis-label
+[l-text-reference-label-open]: #1027-text-reference-label-open-label
 
-[l-text-character-reference]: #1028-text-character-reference-label
+[l-text-reference-label-close]: #1028-text-reference-label-close-label
 
-[l-text-escape]: #1029-text-escape-label
+[l-text-resource-information-open]: #1029-text-resource-information-open-label
 
-[l-text-code]: #1030-text-code-label
+[l-text-resource-destination-quoted-open]: #1030-text-resource-destination-quoted-open-label
 
-[l-text-autolink-email]: #1031-text-autolink-email-label
+[l-text-resource-destination-quoted-close]: #1031-text-resource-destination-quoted-close-label
 
-[l-text-autolink-uri]: #1032-text-autolink-uri-label
+[l-text-resource-destination-unquoted-open]: #1032-text-resource-destination-unquoted-open-label
 
-[l-text-html]: #1033-text-html-label
+[l-text-resource-destination-unquoted-close]: #1033-text-resource-destination-unquoted-close-label
+
+[l-text-resource-title-open]: #1034-text-resource-title-open-label
+
+[l-text-resource-title-close]: #1035-text-resource-title-close-label
+
+[l-text-resource-information-close]: #1036-text-resource-information-close-label
+
+[l-text-emphasis]: #1037-text-emphasis-label
+
+[l-text-character-reference]: #1038-text-character-reference-label
+
+[l-text-escape]: #1039-text-escape-label
+
+[l-text-code]: #1040-text-code-label
+
+[l-text-autolink-email]: #1041-text-autolink-email-label
+
+[l-text-autolink-uri]: #1042-text-autolink-uri-label
+
+[l-text-html]: #1043-text-html-label
 
 [t-whitespace]: #121-whitespace-token
 
