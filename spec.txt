@@ -13,12 +13,12 @@ Common Markup parser.
 > Some parts that are still in progress:
 >
 > *   Adapters
-> *   Constructs and extensions
-> *   Rewrite flow state machine for updates
+> *   Define the regular constructs
 > *   Adapter for rich text to check whether emphasis, strong, resource, or
 >     reference sequences make up syntax or text
 > *   Tokenizing the input stream in reverse (GFM allows `asd@asd.com`, so it
 >     seems we need to somehow allow to match the `@` and parse backwards)
+> *   Add an appendix of extensions
 
 ## Table of contents
 
@@ -31,7 +31,7 @@ The first definition of this format gave several examples of how it worked,
 showing input Markdown and output HTML, and came with a reference implementation
 (known as Markdown.pl).
 When new implementations followed, they mostly followed the first definition,
-but deviated from the first implementation, thus making *Markdown* a family of
+but deviated from the first implementation, thus making the format a family of
 formats.
 
 Some years later, an attempt was made to standardize the differences between
@@ -51,7 +51,7 @@ This format is:
     be buffered as references can resolve to later definitions
 *   **complete**, as it defines different types of tokens and how they are
     grouped, which allows the format to be represented as a concrete syntax tree
-*   **extensible**, because Markdown is often used in combination with new
+*   **extensible**, because the format is often used in combination with new
     and custom constructs
 
 The origin story of Markdown is similar to that of HTML, which at a time was
@@ -81,7 +81,7 @@ with their own state machines ([flow state machine][], [content state machine][]
 > built.*
 
 A variable is declared in the shared state with `let`, cleared with `unset`, or
-changed with `set`, `increment`, or `decrement`.
+changed with `set`, `increment`, `decrement`, `append` or `prepend`.
 
 ## Characters
 
@@ -321,587 +321,507 @@ the given type, and otherwise do nothing.
 
 The [flow state machine](#) is used to tokenize the line constructs that make up
 the structure of the document (such as headings or thematic breaks) and must
-start in the s:initial.
+start in the s:flow-prefix-start.
 
-### Initial state
+### Flow prefix start state
 
-*   ↪ **[c:EOF][]**
-
-    Enqueue an t:end-of-file and emit
-*   ↪ **c:LF**\
-    ↪ **c:CR**
-
-    Open a g:blank-line, close, and reconsume in the s:line-ending
-*   ↪ **c:HT**\
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Enqueue a t:whitespace, consume, and switch to the s:initial-whitespace
+    Ensure a t:whitespace and consume
 *   ↪ **Anything else**
 
-    Reconsume in the s:in-line
+    Reconsume in the s:flow-start
 
-### Initial whitespace state
+### Flow start state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
+> **Hookable**, there are no regular hooks
 
-    Open a g:blank-line, emit, close, and reconsume in the s:line-ending
-*   ↪ **c:HT**\
-    ↪ **c:SP**\
-    ↪ **[c:VS][]**
-
-    Consume
 *   ↪ **Anything else**
 
-    Reconsume in the s:in-line
+    Reconsume in the s:flow-initial
 
-### Line ending state
+### Flow prefix initial state
 
-> **Note**: “Anything else” is not possible.
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Ensure a t:whitespace and consume
+*   ↪ **Anything else**
+
+    Reconsume in the s:flow-initial
+
+### Flow initial state
+
+> ❗️ Todo: Indented code v.s. content
+
+> **Hookable**, the regular hooks are:
+>
+> *   [x] **[c:EOL][]**: s:blank-line
+> *   [x] **c:#**: s:atx-heading-start
+> *   [x] **c:***: s:thematic-break-asterisk-start
+> *   [ ] **c:***: <!-- s:list-item-asterisk-start -->
+> *   [ ] **c:+**: <!-- s:list-item-plus-start -->
+> *   [x] **c:-**: s:setext-heading-underline-dash-start
+> *   [x] **c:-**: s:thematic-break-dash-start
+> *   [ ] **c:-**: <!-- s:list-item-dash-start -->
+> *   [x] **c:<**: s:flow-html-start
+> *   [x] **c:=**: s:setext-heading-underline-equals-to-start
+> *   [ ] **c:>**: <!-- s:blockquote-start -->
+> *   [x] **c:_**: s:thematic-break-underscore-start
+> *   [x] **c:`**: s:fenced-code-grave-accent-start
+> *   [x] **c:~**: s:fenced-code-tilde-start
+> *   [ ] **[ASCII digit][]**: <!-- s:list-item-digit-start -->
+
+> ❗️ Todo, continuation:
+> *   [ ] s:flow-html-continuation
+> *   [ ] s:fenced-code-grave-accent-continuation
+> *   [ ] s:fenced-code-tilde-continuation
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue an t:end-of-file and emit
-*   ↪ **c:LF**
-
-    Enqueue a t:line-terminator, consume, emit, and switch to the s:initial
-*   ↪ **c:CR**
-
-    Enqueue a t:line-terminator, consume, and switch to the s:carriage-return
-
-### Carriage return state
-
-*   ↪ **c:LF**
-
-    Consume, emit, and switch to the s:initial
+    Enqueue an t:end-of-file
 *   ↪ **Anything else**
 
-    Emit and reconsume in the s:initial
+    Reconsume in the s:flow-content
 
-### In line state
+### Blank line state
 
-If the [stack of continuation][] matches all open groups:
+*   ↪ **[c:EOL][]**
 
-*   And if the [current group][] is an g:html, enqueue a t:content with the
-    unused characters of the previous t:whitespace if there is one, and
-    reconsume in the s:html-flow-continuation-line
-*   And otherwise, if the [current group][] is a g:fenced-code, and either the
-    [current token][] is not a t:whitespace, or it is a t:whitespace and its
-    unused size is less than four (4), and the [input character][] is the
-    [current group][]’s marker, enqueue a t:sequence, consume, and switch to the
-    s:fenced-code-close-sequence
-*   And otherwise, if the [current group][] is a g:fenced-code, enqueue a
-    t:content with the unused characters of the previous t:whitespace if there
-    is one, consume, and switch to the s:fenced-code-continuation-line.
+    Enqueue a l:blank-line-end, enqueue an t:end-of-line, and consume
+*   ↪ **Anything else**
 
-Otherwise, if the [current group][] is not a g:content, the previous token is a
-t:whitespace, and its unused size is greater than or equal to four (4), add four
-to the previous token’s used size, enqueue a t:content with the unused
-characters of the previous t:whitespace, consume, and switch to the
-s:indented-code-line.
+    Enqueue a l:nok
 
-Otherwise, perform the following steps based on the [input character][]:
+### ATX heading start state
 
 *   ↪ **c:#**
 
-    Enqueue a t:sequence, consume, and switch to the
-    s:atx-heading-open-sequence
+    Let `sizeFence` be `1`, enqueue an l:atx-heading-start, enqueue an
+    l:atx-heading-fence-start, enqueue a t:sequence, consume, and switch to the
+    s:atx-heading-fence-open-inside
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### ATX heading fence open inside state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Unset `sizeFence`, enqueue an l:atx-heading-fence-end and reconsume in the
+    s:atx-heading-inside
+*   ↪ **c:#**
+
+    If `sizeFence` is not `6`, increment `sizeScheme` by `1` and consume
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **Anything else**
+
+    Unset `sizeFence` and enqueue a l:nok
+
+### ATX heading inside state
+
+*   ↪ **[c:EOF][]**
+
+    Enqueue an l:atx-heading-end and enqueue an t:end-of-file
+*   ↪ **[c:EOL][]**
+
+    Enqueue an l:atx-heading-end, enqueue an t:end-of-line, consume, and switch
+    to the s:flow-prefix-initial
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Ensure a t:whitespace and consume
+*   ↪ **c:#**
+
+    Ensure a t:sequence and consume
+*   ↪ **Anything else**
+
+    Ensure a t:content and consume
+
+### Thematic break asterisk start state
+
 *   ↪ **c:***
 
-    Enqueue a t:marker, consume, and switch to the
-    s:asterisk-line-asterisk-after
-*   ↪ **c:+**
+    Let `sizeTotalSequence` be `1`, enqueue a l:thematic-break-start, enqueue a
+    t:sequence, consume, and switch to the s:thematic-break-asterisk-inside
+*   ↪ **Anything else**
 
-    > ❗️ Todo: Could be a list item or content
+    Enqueue a l:nok
+
+### Thematic break asterisk inside state
+
+*   ↪ **[c:EOF][]**
+
+    If `sizeTotalSequence` is greater than or equal to `3`, unset
+    `sizeTotalSequence`, enqueue a l:thematic-break-end, and enqueue an
+    t:end-of-file
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **[c:EOL][]**
+
+    If `sizeTotalSequence` is greater than or equal to `3`, unset
+    `sizeTotalSequence`, enqueue a l:thematic-break-end, enqueue an
+    t:end-of-line, consume, and switch to the s:flow-prefix-initial
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Ensure a t:whitespace and consume
+*   ↪ **c:***
+
+    Increment `sizeTotalSequence` by `1`, ensure a t:sequence, and consume
+*   ↪ **Anything else**
+
+    Unset `sizeTotalSequence` and enqueue a l:nok
+
+### Setext heading underline dash start state
+
+> ❗️ Todo: exit if not preceded by content
+
 *   ↪ **c:-**
 
-    > ❗️ Todo: Could be a list item, thematic break, setext underline secondary,
-    > or content
-*   ↪ **[ASCII digit][]**
+    Enqueue a l:setext-heading-underline-start, enqueue a t:sequence, consume,
+    and switch to the s:setext-heading-underline-dash-inside
+*   ↪ **Anything else**
 
-    > ❗️ Todo: Could be a list item or content
+    Enqueue a l:nok
+
+### Setext heading underline dash inside state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Reconsume in the s:setext-heading-underline-dash-after
+*   ↪ **c:-**
+
+    Consume
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Setext heading underline dash after state
+
+> ❗️ Todo: Close content if ok, create a new content if nok
+
+*   ↪ **[c:EOF][]**
+
+    Enqueue a l:setext-heading-underline-end and enqueue an t:end-of-file
+*   ↪ **[c:EOL][]**
+
+    Enqueue a l:setext-heading-underline-end, enqueue an t:end-of-line, consume,
+    and switch to the s:flow-prefix-initial
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Ensure a t:whitespace and consume
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Thematic break dash start state
+
+*   ↪ **c:-**
+
+    Let `sizeTotalSequence` be `1`, enqueue a l:thematic-break-start, enqueue a
+    t:sequence, consume, and switch to the s:thematic-break-dash-inside
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Thematic break dash inside state
+
+*   ↪ **[c:EOF][]**
+
+    If `sizeTotalSequence` is greater than or equal to `3`, unset
+    `sizeTotalSequence`, enqueue a l:thematic-break-end, and enqueue an
+    t:end-of-file
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **[c:EOL][]**
+
+    If `sizeTotalSequence` is greater than or equal to `3`, unset
+    `sizeTotalSequence`, enqueue a l:thematic-break-end, enqueue an
+    t:end-of-line, consume, and switch to the s:flow-prefix-initial
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Ensure a t:whitespace and consume
+*   ↪ **c:-**
+
+    Increment `sizeTotalSequence` by `1`, ensure a t:sequence, and consume
+*   ↪ **Anything else**
+
+    Unset `sizeTotalSequence` and enqueue a l:nok
+
+### Flow HTML start state
+
 *   ↪ **c:<**
 
-    Enqueue a t:content with the unused characters of the previous t:whitespace
-    if there is one, consume, and switch to the s:html-flow-open
-*   ↪ **c:=**
-
-    If the [current group][] is a g:content, enqueue a t:sequence, consume, and
-    switch to the s:setext-heading-underline-equals-to-sequence.
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **c:>**
-
-    Open a g:blockquote, consume, emit, and switch to the s:initial
-*   ↪ **c:_**
-
-    > ❗️ Todo: Could be a thematic break or content
-*   ↪ **c:`**
-
-    Enqueue a t:sequence, consume, and switch to the
-    s:fenced-code-grave-accent-fence-open
-*   ↪ **c:~**
-
-    Enqueue a t:sequence, consume, and switch to the
-    s:fenced-code-tilde-fence-open
+    Let `kind` be `0`, let `endTag` be `null`, let `tagName` be the empty
+    string, enqueue a t:content, consume, and switch to the s:flow-html-tag-open
 *   ↪ **Anything else**
 
-    Otherwise, enqueue a t:content with the unused characters of the previous
-    t:whitespace if there is one, consume, and switch to the
-    s:content-continuation
+    Enqueue a l:nok
 
-### ATX heading open sequence state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
-
-    Open an g:atx-heading, open an g:atx-heading-fence, emit, close twice, and
-    reconsume in the s:line-ending
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Enqueue a t:whitespace, consume, and switch to the
-    s:atx-heading-open-sequence-after
-*   ↪ **c:#**
-
-    If the current token’s size is less than six (6), consume.
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **Anything else**
-
-    Change the [current token][] into a t:content, consume, and switch to the
-    s:content-continuation
-
-### ATX heading open sequence after state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
-
-    Open an g:atx-heading, open an g:atx-heading-fence, emit, close twice, and
-    reconsume in the s:line-ending
-*   ↪ **c:HT**\
-    ↪ **c:SP**\
-    ↪ **[c:VS][]**
-
-    Consume
-*   ↪ **c:#**
-
-    Open an g:atx-heading, open an g:atx-heading-fence, emit, close, enqueue a
-    t:sequence, consume, and switch to the s:atx-heading-number-sign-sequence
-*   ↪ **Anything else**
-
-    Open an g:atx-heading, open an g:atx-heading-fence, emit, close, enqueue a
-    t:content, consume, and switch to the s:atx-heading-content
-
-### ATX heading content state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
-
-
-    [Process as an ATX heading][] and reconsume in the s:line-ending
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Enqueue a t:whitespace, consume, and switch to the s:atx-heading-whitespace
-*   ↪ **Anything else**
-
-    Consume
-
-### ATX heading whitespace state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
-
-    [Process as an ATX heading][] and reconsume in the s:line-ending
-*   ↪ **c:HT**\
-    ↪ **c:SP**\
-    ↪ **[c:VS][]**
-
-    Consume
-*   ↪ **c:#**
-
-    Enqueue a t:sequence, consume, and switch to the
-    s:atx-heading-number-sign-sequence
-*   ↪ **Anything else**
-
-    Enqueue a t:content, consume, and switch to the s:atx-heading-content
-
-### ATX heading number sign sequence state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
-
-    [Process as an ATX heading][] and reconsume in the s:line-ending
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Enqueue a t:whitespace, consume, and switch to the s:atx-heading-whitespace
-*   ↪ **c:#**
-
-    Consume
-*   ↪ **Anything else**
-
-    Enqueue a t:content, consume, and switch to the s:atx-heading-content
-
-### Asterisk line asterisk after state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
-
-    [Process as an Asterisk line][] and reconsume in the s:line-ending
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Enqueue a t:whitespace, consume, and switch to the
-    s:asterisk-line-whitespace
-*   ↪ **c:***
-
-    Enqueue a t:marker and consume
-*   ↪ **Anything else**
-
-    > ❗️ Todo: handle the input character, reconsume somewhere.
-
-    [Process as an Asterisk line opening][].
-
-### Asterisk line whitespace state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
-
-    [Process as an Asterisk line][] and reconsume in the s:line-ending
-*   ↪ **c:HT**\
-    ↪ **c:SP**\
-    ↪ **[c:VS][]**
-
-    Consume
-*   ↪ **c:***
-
-    Enqueue a t:marker, consume, and switch to the
-    s:asterisk-line-asterisk-after
-*   ↪ **Anything else**
-
-    > ❗️ Todo: handle the input character, reconsume somewhere.
-
-    [Process as an Asterisk line opening][].
-
-### HTML flow open state
+### Flow HTML tag open state
 
 *   ↪ **c:!**
 
-    Consume and switch to the s:html-flow-open-markup-declaration
+    Consume and switch to the s:flow-html-markup-declaration-open
 *   ↪ **c:/**
 
-    > ❗️ Todo: Define shared space: `endTag`
-
-    Let `endTag` be `true`, consume, and switch to the
-    s:html-flow-open-close-tag-start
+    Set `endTag` to `true`, consume, and switch to the s:flow-html-end-tag-open
 *   ↪ **c:?**
 
-    > ❗️ Todo: Define shared space: `kind`
-
-    Let `kind` be `3`, open an g:html, consume, and switch to the
-    s:html-flow-continuation-declaration-before
+    Set `kind` to `3`, unset `endTag`, consume, and switch to the
+    s:flow-html-continuation-declaration-before
 *   ↪ **[ASCII alpha][]**
 
-    > ❗️ Todo: Define shared space: `tagName`
-
     Append the [ASCII-lowercase][]d character to `tagName`, consume, and switch
-    to the s:html-flow-open-tag-name-inside
+    to the s:flow-html-tag-name
 *   ↪ **Anything else**
 
-    This is not HTML.
-    Reconsume in the s:content-continuation
+    Unset `kind`, `endTag`, and `tagName`, and enqueue a l:nok
 
-### HTML flow open markup declaration state
+### Flow HTML markup declaration open state
 
-*   ↪ **c:-**
+*   ↪ **`--`** (two c:- characters)**
 
-    Consume and switch to the s:html-flow-open-comment-inside
-*   ↪ **[ASCII upper alpha][]**
+    Set `kind` to `2`, unset `endTag`, consume, and switch to the
+    s:flow-html-continuation-declaration-before
+*   ↪ **[ASCII alpha][]**
 
-    > ❗️ Todo: Define shared space: `kind`
-
-    Let `kind` be `4`, open an g:html, consume, and switch to the
-    s:html-flow-continuation-line
-*   ↪ **c:[**
-
-    Consume and switch to the s:html-flow-open-character-data-inside
-*   ↪ **Anything else**
-
-    This is not HTML.
-    Reconsume in the s:content-continuation
-
-### HTML flow open comment inside state
-
-*   ↪ **c:-**
-
-    > ❗️ Todo: Define shared space: `kind`
-
-    Let `kind` be `2`, open an g:html, consume, and switch to the
-    s:html-flow-continuation-declaration-before
-*   ↪ **Anything else**
-
-    This is not HTML.
-    Reconsume in the s:content-continuation
-
-### HTML flow open character data inside state
-
-If the next few characters are:
-
+    Set `kind` to `4`, unset `endTag`, consume, and switch to the
+    s:flow-html-continuation
 *   ↪ **`[CDATA[` (the five upper letters “CDATA” with a c:[ before and
     after)**
 
-    > ❗️ Todo: Define shared space: `kind`
-
-    Let `kind` be `5`, open an g:html, consume, and switch to the
-    s:html-flow-continuation-line
+    Set `kind` to `5`, unset `endTag`, consume, and switch to the
+    s:flow-html-continuation
 *   ↪ **Anything else**
 
-    This is not HTML.
-    Reconsume in the s:content-continuation
+    Unset `kind`, `endTag`, and `tagName`, and enqueue a l:nok
 
-### HTML flow open close tag start state
+### Flow HTML end tag open state
 
 *   ↪ **[ASCII alpha][]**
 
     Append the [ASCII-lowercase][]d character to `tagName`, consume, and switch
-    to the s:html-flow-open-tag-name-inside
+    to the s:flow-html-tag-name
 *   ↪ **Anything else**
 
-    This is not HTML.
-    Reconsume in the s:content-continuation
+    Unset `kind`, `endTag`, and `tagName`, and enqueue a l:nok
 
-### HTML flow open tag name inside state
+### Flow HTML tag name state
 
 *   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
+    ↪ **[c:EOL][]**
 
-    > ❗️ Todo: Define shared space: `tagName`, `endTag`, `kind`
+    If `tagName` is a [raw tag][] and `endTag` is not `true`, set `kind` to `1`,
+    unset `tagName`, unset `endTag`, and reconsume in the
+    s:flow-html-continuation
 
-    If `tagName` is a [raw tag][] and `endTag` is not `true`, let `kind` be `1`,
-    open an g:html, and reconsume in the s:html-flow-continuation-line.
+    Otherwise, if `tagName` is a [basic tag][], set `kind` to `6`, unset
+    `tagName`, unset `endTag`, and reconsume in the s:flow-html-continuation
 
-    Otherwise, if `tagName` is a [basic tag][], let `kind` be `6`, open an
-    g:html, and reconsume in the s:html-flow-continuation-line.
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    If `tagName` is a [raw tag][] and `endTag` is not `true`, set `kind` to `1`,
+    unset `tagName`, unset `endTag`, and switch to the s:flow-html-continuation
+
+    > ❗️ Todo: ignore this check if interrupting content.
+
+    Otherwise, if `tagName` is not a [raw tag][], unset `tagName`, consume, and
+    switch to the s:flow-html-complete-attribute-name-before
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:-**\
     ↪ **[ASCII alphanumeric][]**
 
-    > ❗️ Todo: Define shared space: `tagName`
-
     Append the [ASCII-lowercase][]d character to `tagName` and consume
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    > ❗️ Todo: Define shared space: `tagName`, `endTag`, `kind`
-
-    If `tagName` is a [raw tag][] and `endTag` is not `true`, let `kind` be `1`,
-    open an g:html, consume, and switch to the
-    s:html-flow-continuation-line.
-
-    Otherwise, if `tagName` is not a [raw tag][], and the [current group][] is
-    not a g:content, consume, and switch to the
-    s:html-flow-open-complete-attribute-before.
-
-    Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:/**
 
-    > ❗️ Todo: Define shared space: `tagName`, `endTag`
+    If `tagName` is a [basic tag][], unset `tagName`, consume, and switch to the
+    s:flow-html-basic-self-closing
 
-    If `tagName` is a [basic tag][], consume, and switch to the
-    s:html-flow-open-basic-self-closing.
+    > ❗️ Todo: ignore this check if interrupting content.
 
-    Otherwise, if `tagName` is not a [basic tag][], `endTag` is not `true`, and
-    the [current group][] is not a g:content, consume, and switch to the
-    s:html-flow-open-complete-self-closing.
+    Otherwise, if `tagName` is not a [raw tag][] and `endTag` is not `true`,
+    unset `tagName`, consume, and switch to the
+    s:flow-html-complete-self-closing
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
 
-    > ❗️ Todo: Define shared space: `tagName`, `endTag`, `kind`
+    If `tagName` is a [raw tag][] and `endTag` is not `true`, set `kind` to `1`,
+    unset `tagName`, unset `endTag`, consume, and switch to the
+    s:flow-html-continuation
 
-    If `tagName` is a [raw tag][] and `endTag` is not `true`, let `kind` be `1`,
-    open an g:html, consume, and switch to the
-    s:html-flow-continuation-line.
+    Otherwise, if `tagName` is a [basic tag][], set `kind` to `6`, unset
+    `tagName`, unset `endTag`, and reconsume in the s:flow-html-continuation
 
-    Otherwise, if `tagName` is a [basic tag][], let `kind` be `6`, open an
-    g:html, and reconsume in the s:html-flow-continuation-line.
+    > ❗️ Todo: ignore this check if interrupting content.
 
-    Otherwise, if `tagName` is not a [raw tag][], and the [current group][] is
-    not a g:content, consume, and switch to the
-    s:html-flow-open-complete-tag-after.
+    Otherwise, if `tagName` is not a [raw tag][], unset `tagName`, consume, and
+    switch to the s:flow-html-complete-tag-after
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    This is not HTML.
-    Reconsume in the s:content-continuation
+    Unset `kind`, `endTag`, and `tagName`, and enqueue a l:nok
 
-### HTML flow open basic self closing state
+### Flow HTML basic self closing state
 
 *   ↪ **c:>**
 
-    > ❗️ Todo: Define shared space: `kind`
-
-    Let `kind` be `6`, open an g:html, consume, and switch to the
-    s:html-flow-continuation-line
+    Set `kind` to `6`, unset `endTag`, consume, and switch to the
+    s:flow-html-continuation
 *   ↪ **Anything else**
 
-    This is not HTML.
-    Reconsume in the s:content-continuation
+    Unset `kind` and `endTag` and enqueue a l:nok
 
-### HTML flow open complete attribute before state
+### Flow HTML complete attribute name before state
 
-*   ↪ **c:HT**\
-    ↪ **c:SP**\
-    ↪ **[c:VS][]**
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
 
     Consume
 *   ↪ **c:/**
 
-    > ❗️ Todo: Define shared space: `endTag`
-
-    If `endTag` is not `true`, consume, and switch to the
-    s:html-flow-open-complete-self-closing.
+    If `endTag` is not `true`, consume and switch to the
+    s:flow-html-complete-self-closing
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c::**\
-    ↪ **[ASCII alpha][]**\
-    ↪ **c:_**
+    ↪ **c:_**\
+    ↪ **[ASCII alpha][]**
 
-    > ❗️ Todo: Define shared space: `endTag`
-
-    If `endTag` is not `true`, consume, and switch to the
-    s:html-flow-open-complete-attribute-name.
+    If `endTag` is not `true`, consume and switch to the
+    s:flow-html-complete-attribute-name
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
 
-    > ❗️ Todo: Define shared space: `kind`
-
-    Let `kind` be `7`, open an g:html, consume, and switch to the
-    s:html-flow-continuation-line
+    Consume and switch to the s:flow-html-complete-tag-after
 *   ↪ **Anything else**
 
-    This is not HTML.
-    Reconsume in the s:content-continuation
+    Unset `kind` and `endTag` and enqueue a l:nok
 
-### HTML flow open complete attribute name state
+### Flow HTML complete attribute name state
 
 *   ↪ **c:-**\
     ↪ **c:.**\
     ↪ **c::**\
-    ↪ **[ASCII alphanumeric][]**\
-    ↪ **c:_**
+    ↪ **c:_**\
+    ↪ **[ASCII alphanumeric][]**
 
     Consume
 *   ↪ **Anything else**
 
-    Reconsume in the s:html-flow-open-complete-attribute-name-after
+    Reconsume in the s:flow-html-complete-attribute-name-after
 
-### HTML flow open complete attribute name after state
+### Flow HTML complete attribute name after state
 
-*   ↪ **c:HT**\
-    ↪ **c:SP**\
-    ↪ **[c:VS][]**
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
 
     Consume
 *   ↪ **c:/**
 
-    > ❗️ Todo: Define shared space: `endTag`
-
-    If `endTag` is not `true`, consume, and switch to the
-    s:html-flow-open-complete-self-closing.
+    If `endTag` is not `true`, consume and switch to the
+    s:flow-html-complete-self-closing
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:=**
 
-    Consume and switch to the s:html-flow-open-complete-attribute-value-before
+    Consume and switch to the s:flow-html-complete-attribute-value-before
 *   ↪ **c:>**
 
-    Consume and switch to the s:html-flow-open-complete-tag-after
+    Consume and switch to the s:flow-html-complete-tag-after
 *   ↪ **Anything else**
 
-    This is not HTML.
-    Reconsume in the s:content-continuation
+    Unset `kind` and `endTag` and enqueue a l:nok
 
-### HTML flow open complete attribute value before state
+### Flow HTML complete attribute value before state
 
 *   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**\
+    ↪ **[c:EOL][]**
     ↪ **c:<**\
     ↪ **c:=**\
     ↪ **c:>**\
     ↪ **c:`**
 
-    This is not an HTML flow.
-    Reconsume in the s:content-continuation
-*   ↪ **c:HT**\
-    ↪ **c:SP**\
-    ↪ **[c:VS][]**
-
-    Consume
-*   ↪ **c:"**
-
-    Consume and switch to the
-    s:html-flow-open-complete-double-quoted-attribute-value
-*   ↪ **c:'**
-
-    Consume and switch to the
-    s:html-flow-open-complete-single-quoted-attribute-value
-*   ↪ **Anything else**
-
-    Consume and switch to the
-    s:html-flow-open-complete-unquoted-attribute-value
-
-### HTML flow open complete double quoted attribute value state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
-
-    This is not HTML.
-    Reconsume in the s:content-continuation
-*   ↪ **c:"**
-
-    Consume and switch to the s:html-flow-open-complete-attribute-before
-*   ↪ **Anything else**
-
-    Consume
-
-### HTML flow open complete single quoted attribute value state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
-
-    This is not HTML.
-    Reconsume in the s:content-continuation
-*   ↪ **c:'**
-
-    Consume and switch to the s:html-flow-open-complete-attribute-before
-*   ↪ **Anything else**
-
-    Consume
-
-### HTML flow open complete unquoted attribute value state
-
-*   ↪ **[c:EOF][]**\
+    Unset `kind` and `endTag` and enqueue a l:nok
+*   ↪ **[c:VS][]**\
     ↪ **c:HT**\
-    ↪ **c:LF**\
-    ↪ **c:CR**\
+    ↪ **c:SP**
+
+    Consume
+*   ↪ **c:"**
+
+    Consume and switch to the s:flow-html-complete-attribute-value-double-quoted
+*   ↪ **c:'**
+
+    Consume and switch to the s:flow-html-complete-attribute-value-single-quoted
+*   ↪ **Anything else**
+
+    Consume and switch to the s:flow-html-complete-attribute-value-unquoted
+
+### Flow HTML complete attribute value double quoted state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**
+
+    Unset `kind` and `endTag` and enqueue a l:nok
+*   ↪ **c:"**
+
+    Consume and switch to the s:flow-html-complete-attribute-name-before
+*   ↪ **Anything else**
+
+    Consume
+
+### Flow HTML complete attribute value single quoted state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**
+
+    Unset `kind` and `endTag` and enqueue a l:nok
+*   ↪ **c:'**
+
+    Consume and switch to the s:flow-html-complete-attribute-name-before
+*   ↪ **Anything else**
+
+    Consume
+
+### Flow HTML complete attribute value unquoted state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**\
     ↪ **c:"**\
     ↪ **c:'**\
@@ -910,431 +830,469 @@ If the next few characters are:
     ↪ **c:>**\
     ↪ **c:`**
 
-    Reconsume in the s:html-flow-open-complete-attribute-name-after
+    Reconsume in the s:flow-html-complete-attribute-name-after
 *   ↪ **Anything else**
 
     Consume
 
-### HTML flow open complete self closing state
+### Flow HTML complete self closing state
 
 *   ↪ **c:>**
 
-    Consume and switch to the s:html-flow-open-complete-tag-after
+    Consume and switch to the s:flow-html-complete-tag-after
 *   ↪ **Anything else**
 
-    This is not HTML.
-    Reconsume in the s:content-continuation
+    Unset `kind` and `endTag` and enqueue a l:nok
 
-### HTML flow open complete tag after state
+### Flow HTML complete tag after state
 
 *   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
     ↪ **c:HT**\
-    ↪ **c:LF**\
-    ↪ **c:CR**\
     ↪ **c:SP**
 
-    > ❗️ Todo: Define shared space: `kind`
-
-    Let `kind` be `7`, open an g:html, and reconsume in the
+    Set `kind` to `7`, unset `endTag`, and reconsume in the
+    s:flow-html-continuation
 *   ↪ **Anything else**
 
-    This is not HTML.
-    Reconsume in the s:content-continuation
+    Unset `kind` and `endTag` and enqueue a l:nok
 
-### HTML flow continuation line state
+### Flow HTML continuation state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
+*   ↪ **[c:EOF][]**
 
-    Open an g:html-line, emit, close, and reconsume in the s:line-ending
+    Unset `kind`, enqueue an l:html-end, and enqueue an t:end-of-file
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and switch to the s:flow-prefix-initial
 *   ↪ **c:-**
 
-    > ❗️ Todo: Define shared space: `kind`
-
-    If `kind` is `7`, consume, and switch to the
-    s:html-flow-continuation-comment-inside.
+    If `kind` is `7`, consume and switch to the
+    s:flow-html-continuation-comment-inside
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:<**
 
-    > ❗️ Todo: Define shared space: `kind`
-
-    If `kind` is `1`, consume, and switch to the
-    s:html-flow-continuation-tag-close.
+    If `kind` is `1`, consume and switch to the
+    s:flow-html-continuation-raw-tag-open
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
 
-    > ❗️ Todo: Define shared space: `kind`
-
-    If `kind` is `4`, consume, and switch to the
-    s:html-flow-close-line.
+    If `kind` is `4`, consume and switch to the s:flow-html-continuation-close
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:?**
 
-    > ❗️ Todo: Define shared space: `kind`
-
-    If `kind` is `3`, consume, and switch to the
-    s:html-flow-continuation-declaration-before.
+    If `kind` is `3`, consume and switch to the
+    s:flow-html-continuation-declaration-before
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:]**
 
-    > ❗️ Todo: Define shared space: `kind`
-
-    If `kind` is `5`, consume, and switch to the
-    s:html-flow-continuation-character-data-inside.
+    If `kind` is `5`, consume and switch to the
+    s:flow-html-continuation-character-data-inside.
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
     Consume
 
-### HTML flow continuation tag close state
+### Flow HTML continuation comment inside state
+
+*   ↪ **c:-**
+
+    Consume and switch to the s:flow-html-continuation-declaration-before
+*   ↪ **Anything else**
+
+    Reconsume in the s:flow-html-continuation
+
+### Flow HTML continuation raw tag open state
 
 *   ↪ **c:/**
 
-    Consume and switch to the s:html-flow-continuation-tag-close-name-inside
+    Let `tagName` be the empty string, consume, and switch to the
+    s:flow-html-continuation-raw-end-tag
 *   ↪ **Anything else**
 
-    Reconsume in the s:html-flow-continuation-line
+    Reconsume in the s:flow-html-continuation
 
-### HTML flow continuation tag close name inside state
+### Flow HTML continuation raw end tag state
 
-*   ↪ **[ASCII alpha][]**
+> **Note**: This state can be optimized by either imposing a maximum size (the
+> size of the longest possible raw tag name) or by using a trie of the possible
+> raw tag names.
 
-    > ❗️ Todo: Define shared space: `tagName`
+*   ↪ **[ASCII alphanumeric][]**
 
     Append the [ASCII-lowercase][]d character to `tagName` and consume
 *   ↪ **c:>**
 
-    > ❗️ Todo: Define shared space: `tagName`
-
-    If `tagName` is a [raw tag][], consume, and switch to the
-    s:html-flow-close-line.
+    If `tagName` is a [raw tag][], unset `tagName, consume, and switch to the
+    s:flow-html-continuation-close
 
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **Anything else**
 
-    Reconsume in the s:html-flow-continuation-line
+    Unset `tagName and reconsume in the s:flow-html-continuation
 
-### HTML flow continuation comment inside state
-
-*   ↪ **c:-**
-
-    Consume and switch to the s:html-flow-continuation-declaration-before
-*   ↪ **Anything else**
-
-    Reconsume in the s:html-flow-continuation-line
-
-### HTML flow continuation character data inside state
+### Flow HTML continuation character data inside state
 
 *   ↪ **c:]**
 
-    Consume and switch to the s:html-flow-continuation-declaration-before
+    Consume and switch to the s:flow-html-continuation-declaration-before
 *   ↪ **Anything else**
 
-    Reconsume in the s:html-flow-continuation-line
+    Reconsume in the s:flow-html-continuation
 
-### HTML flow continuation declaration before state
+### Flow HTML continuation declaration before state
 
 *   ↪ **c:>**
 
-    Consume and switch to the s:html-flow-close-line
+    Consume and switch to the s:flow-html-continuation-close
 *   ↪ **Anything else**
 
-    Reconsume in the s:html-flow-continuation-line
+    Reconsume in the s:flow-html-continuation
 
-### HTML flow close line state
+### Flow HTML continuation close state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
+*   ↪ **[c:EOF][]**
 
-    Open an g:html-line, emit, close twice, and reconsume in the s:line-ending
+    Unset `kind`, enqueue an l:html-end, and enqueue an t:end-of-file
+*   ↪ **[c:EOL][]**
+
+    Unset `kind`, enqueue an l:html-end, and enqueue an t:end-of-line, consume,
+    and switch to the s:flow-prefix-initial
 *   ↪ **Anything else**
 
     Consume
 
-### Setext heading underline equals to sequence state
+### Setext heading underline equals to start state
+
+> ❗️ Todo: exit if not preceded by content
+
+*   ↪ **c:=**
+
+    Enqueue a l:setext-heading-underline-start, enqueue a t:sequence, consume,
+    and switch to the s:setext-heading-underline-equals-to-inside
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Setext heading underline equals to inside state
 
 *   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
 
-    [Process as a Setext primary heading][] and reconsume in the s:line-ending
+    Reconsume in the s:setext-heading-underline-equals-to-after
 *   ↪ **c:=**
 
     Consume
-*   ↪ **c:HT**\
-    ↪ **c:SP**
-
-    Enqueue a t:whitespace, consume, and switch to the
-    s:setext-heading-underline-equals-to-after
 *   ↪ **Anything else**
 
-    Turn the [current token][] into a t:content, consume, and switch to the
-    s:content-continuation
+    Enqueue a l:nok
 
 ### Setext heading underline equals to after state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
+> ❗️ Todo: Close content if ok, create a new content if nok
 
-    [Process as a Setext primary heading][] and reconsume in the s:line-ending
-*   ↪ **c:HT**\
-    ↪ **c:SP**\
-    ↪ **[c:VS][]**
+*   ↪ **[c:EOF][]**
 
-    Consume
-*   ↪ **Anything else**
+    Enqueue a l:setext-heading-underline-end and enqueue an t:end-of-file
+*   ↪ **[c:EOL][]**
 
-    Turn the previous and  [current token][] into a t:content, consume, and
-    switch to the s:content-continuation
-
-### Fenced code grave accent fence open state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
-
-    If the [current token][]’s size is greater than or equal to three (3),
-    Open a g:fenced-code, [process as a Fenced code fence][] and reconsume in
-    the s:line-ending
-
-    Otherwise, this is not fenced code.
-    Turn the [current token][] into a t:content and reconsume in the
-    s:content-continuation
-*   ↪ **c:`**
-
-    Consume
-*   ↪ **c:HT**\
+    Enqueue a l:setext-heading-underline-end, enqueue an t:end-of-line, consume,
+    and switch to the s:flow-prefix-initial
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    If the [current token][]’s size is greater than or equal to three (3),
-    enqueue a t:whitespace, consume, and switch to the
-    s:fenced-code-grave-accent-fence-open-whitespace
-
-    Otherwise, this is not fenced code.
-    Turn the [current token][] into a t:content and reconsume in the
-    s:content-continuation
+    Ensure a t:whitespace and consume
 *   ↪ **Anything else**
 
-    If the [current token][]’s size is greater than or equal to three (3),
-    enqueue a t:content, consume, and switch to the
-    s:fenced-code-grave-accent-fence-open-metadata
+    Enqueue a l:nok
 
-    Otherwise, this is not fenced code.
-    Turn the enqueue, except for the first token if it is a t:whitespace, into a
-    t:content and reconsume in the s:content-continuation
+### Thematic break underscore start state
 
-### Fenced code grave accent fence open whitespace state
+*   ↪ **c:_**
 
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
-
-    Open a g:fenced-code, [process as a Fenced code fence][] and reconsume in
-    the s:line-ending
-*   ↪ **c:HT**\
-    ↪ **c:SP**\
-    ↪ **[c:VS]**
-
-    Consume
-*   ↪ **c:`**
-
-    This is not fenced code.
-    Turn the queue, except for the first token if it is a t:whitespace, into a
-    t:content and reconsume in the s:content-continuation
+    Let `sizeTotalSequence` be `1`, enqueue a l:thematic-break-start, enqueue a
+    t:sequence, consume, and switch to the s:thematic-break-underscore-inside
 *   ↪ **Anything else**
 
-    Enqueue a t:content, consume, and switch to the
-    s:fenced-code-grave-accent-fence-open-metadata
+    Enqueue a l:nok
 
-### Fenced code grave accent fence open metadata state
+### Thematic break underscore inside state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
+*   ↪ **[c:EOF][]**
 
-    Open a g:fenced-code, [process as a Fenced code fence][] and reconsume in
-    the s:line-ending
-*   ↪ **c:HT**\
+    If `sizeTotalSequence` is greater than or equal to `3`, unset
+    `sizeTotalSequence`, enqueue a l:thematic-break-end, and enqueue an
+    t:end-of-file
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **[c:EOL][]**
+
+    If `sizeTotalSequence` is greater than or equal to `3`, unset
+    `sizeTotalSequence`, enqueue a l:thematic-break-end, enqueue an
+    t:end-of-line, consume, and switch to the s:flow-prefix-initial
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Enqueue a t:whitespace, consume, and switch to the
-    s:fenced-code-grave-accent-fence-open-whitespace
-*   ↪ **c:`**
+    Ensure a t:whitespace and consume
+*   ↪ **c:_**
 
-    This is not fenced code.
-    Turn the queue, except for the first token if it is a t:whitespace, into a
-    t:content and reconsume in the s:content-continuation
+    Increment `sizeTotalSequence` by `1`, ensure a t:sequence, and consume
 *   ↪ **Anything else**
 
-    Consume
+    Unset `sizeTotalSequence` and enqueue a l:nok
 
-### Fenced code tilde fence open state
+### Fenced code grave accent start state
+
+*   ↪ **c:`**
+
+    Let `sizeOpen` be `1`, enqueue a l:fenced-code-start, enqueue a
+    l:fenced-code-fence-start, enqueue a l:fenced-code-fence-sequence-start,
+    enqueue a t:sequence, consume, and switch to the
+    s:fenced-code-grave-accent-open-fence-inside
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Fenced code grave accent open fence inside state
 
 *   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
 
-    If the [current token][]’s size is greater than or equal to three (3), open
-    a g:fenced-code, [process as a Fenced code fence][] and reconsume in the
-    s:line-ending
+    If `sizeOpen` is greater than or equal to `3`, enqueue a
+    l:fenced-code-fence-sequence-end, and reconsume in the
+    s:fenced-code-grave-accent-open-fence-after
 
-    Otherwise, this is not fenced code.
-    Turn the [current token][] into a t:content and reconsume in the
-    s:content-continuation
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:`**
+
+    Increment `sizeOpen` by `1` and consume
+*   ↪ **Anything else**
+
+    Unset `sizeOpen` and enqueue a l:nok
+
+### Fenced code grave accent open fence after state
+
+*   ↪ **[c:EOF][]**
+
+    Enqueue a l:fenced-code-fence-end and enqueue an t:end-of-file
+*   ↪ **[c:EOL][]**
+
+    Enqueue a l:fenced-code-fence-end, enqueue an t:end-of-line, consume, and
+    switch to the s:flow-prefix-initial
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Ensure a t:whitespace and consume
+*   ↪ **c:`**
+
+    Unset `sizeOpen` and enqueue a l:nok
+*   ↪ **Anything else**
+
+    Ensure a t:content and consume
+
+### Fenced code grave accent continuation state
+
+*   ↪ **c:`**
+
+    Let `sizeClose` be `1`, enqueue a l:fenced-code-fence-sequence-start,
+    enqueue a t:sequence, consume, and switch to the
+    s:fenced-code-grave-accent-close-fence-inside
+*   ↪ **Anything else**
+
+    Reconsume in the s:fenced-code-grave-accent-continuation-inside
+
+### Fenced code grave accent close fence inside state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    If `sizeClose` is greater than or equal to `sizeOpen`, enqueue a
+    l:fenced-code-fence-sequence-end, and reconsume in the
+    s:fenced-code-grave-accent-close-fence-after
+
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:`**
+
+    Increment `sizeClose` by `1` and consume
+*   ↪ **Anything else**
+
+    Unset `sizeClose` and reconsume in the
+    s:fenced-code-grave-accent-continuation-inside
+
+### Fenced code grave accent close fence after state
+
+*   ↪ **[c:EOF][]**
+
+    Enqueue a l:fenced-code-fence-end, enqueue a l:fenced-code-end, and enqueue
+    an t:end-of-file
+*   ↪ **[c:EOL][]**
+
+    Enqueue a l:fenced-code-fence-end, enqueue a l:fenced-code-end, enqueue an
+    t:end-of-line, consume, and switch to the s:flow-prefix-initial
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Ensure a t:whitespace and consume
+*   ↪ **Anything else**
+
+    Reconsume in the s:fenced-code-grave-accent-continuation-inside
+
+### Fenced code grave accent continuation inside state
+
+*   ↪ **[c:EOF][]**
+
+    Enqueue a l:fenced-code-fence-end, enqueue a l:fenced-code-end, and enqueue
+    an t:end-of-file
+*   ↪ **[c:EOL][]**
+
+    Enqueue an t:end-of-line, consume, and switch to the s:flow-prefix-initial
+*   ↪ **Anything else**
+
+    Ensure a t:content and consume
+
+### Fenced code tilde start state
+
 *   ↪ **c:~**
 
-    Consume
-*   ↪ **c:HT**\
+    Let `sizeOpen` be `1`, enqueue a l:fenced-code-start, enqueue a
+    l:fenced-code-fence-start, enqueue a l:fenced-code-fence-sequence-start,
+    enqueue a t:sequence, consume, and switch to the
+    s:fenced-code-tilde-open-fence-inside
+*   ↪ **Anything else**
+
+    Enqueue a l:nok
+
+### Fenced code tilde open fence inside state
+
+*   ↪ **[c:EOF][]**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    If the [current token][]’s size is greater than or equal to three (3),
-    enqueue a t:whitespace, consume, and switch to the
-    s:fenced-code-tilde-fence-open-whitespace
+    If `sizeOpen` is greater than or equal to `3`, enqueue a
+    l:fenced-code-fence-sequence-end, and reconsume in the
+    s:fenced-code-tilde-open-fence-after
 
-    Otherwise, this is not fenced code.
-    Turn the [current token][] into a t:content and reconsume in the
-    s:content-continuation
+    Otherwise, treat it as per the “anything else” entry below
+*   ↪ **c:~**
+
+    Increment `sizeOpen` by `1` and consume
 *   ↪ **Anything else**
 
-    If the [current token][]’s size is greater than or equal to three (3),
-    enqueue a t:content, consume, and switch to the
-    s:fenced-code-tilde-fence-open-metadata
+    Unset `sizeOpen` and enqueue a l:nok
 
-    Otherwise, this is not fenced code.
-    Turn the [current token][] into a t:content and reconsume in the
-    s:content-continuation
+### Fenced code tilde open fence after state
 
-### Fenced code tilde fence open whitespace state
+*   ↪ **[c:EOF][]**
 
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
+    Enqueue a l:fenced-code-fence-end and enqueue an t:end-of-file
+*   ↪ **[c:EOL][]**
 
-    Open a g:fenced-code, [process as a Fenced code fence][] and reconsume in
-    the s:line-ending
-*   ↪ **c:HT**\
-    ↪ **c:SP**\
-    ↪ **[c:VS]**
-
-    Consume
-*   ↪ **Anything else**
-
-    Enqueue a t:content, consume, and switch to the
-    s:fenced-code-tilde-fence-open-metadata
-
-### Fenced code tilde fence open metadata state
-
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
-
-    Open a g:fenced-code, [process as a Fenced code fence][] and reconsume in
-    the s:line-ending
-*   ↪ **c:HT**\
+    Enqueue a l:fenced-code-fence-end, enqueue an t:end-of-line, consume, and
+    switch to the s:flow-prefix-initial
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    Enqueue a t:whitespace, consume, and switch to the
-    s:fenced-code-tilde-fence-open-whitespace
+    Ensure a t:whitespace and consume
 *   ↪ **Anything else**
 
-    Consume
+    Ensure a t:content and consume
 
-### Fenced code continuation line state
+### Fenced code tilde continuation state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
+*   ↪ **c:~**
 
-    Open a g:fenced-code-line, emit, close, and reconsume in the
-    s:line-ending
+    Let `sizeClose` be `1`, enqueue a l:fenced-code-fence-sequence-start,
+    enqueue a t:sequence, consume, and switch to the
+    s:fenced-code-tilde-close-fence-inside
 *   ↪ **Anything else**
 
-    Consume
+    Reconsume in the s:fenced-code-tilde-continuation-inside
 
-### Fenced code close sequence state
+### Fenced code tilde close fence inside state
 
 *   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
-
-    > ❗️ Todo: Define shared space: `sizeOpen`
-
-    If the [current token][]’s size is greater than or equal to `sizeOpen`,
-    [process as a Fenced code fence][], close, and reconsume in the
-    s:line-ending
-
-    Otherwise, treat it as per the “anything else” entry below
-*   ↪ **c:HT**\
+    ↪ **[c:EOL][]**\
+    ↪ **[c:VS][]**\
+    ↪ **c:HT**\
     ↪ **c:SP**
 
-    > ❗️ Todo: Define shared space: `sizeOpen`
-
-    If the [current token][]’s size is greater than or equal to `sizeOpen`,
-    enqueue a t:whitespace, consume, and switch to the
-    s:fenced-code-close-whitespace.
+    If `sizeClose` is greater than or equal to `sizeOpen`, enqueue a
+    l:fenced-code-fence-sequence-end, and reconsume in the
+    s:fenced-code-tilde-close-fence-after
 
     Otherwise, treat it as per the “anything else” entry below
-*   ↪ **c:`**\
-    ↪ **c:~**
+*   ↪ **c:~**
 
-    If the [input character][] is the [current token][]’s marker, consume.
-
-    Otherwise, treat it as per the “anything else” entry below
+    Increment `sizeClose` by `1` and consume
 *   ↪ **Anything else**
 
-    Turn the [current token][] into a t:content and reconsume in the
-    s:fenced-code-continuation-line
+    Unset `sizeClose` and reconsume in the
+    s:fenced-code-tilde-continuation-inside
 
-### Fenced code close whitespace state
+### Fenced code tilde close fence after state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
+*   ↪ **[c:EOF][]**
 
-    [Process as a Fenced code fence][], close, and reconsume in the
-    s:line-ending
-*   ↪ **c:HT**\
-    ↪ **c:SP**\
-    ↪ **[c:VS][]**
+    Enqueue a l:fenced-code-fence-end, enqueue a l:fenced-code-end, and enqueue
+    an t:end-of-file
+*   ↪ **[c:EOL][]**
 
-    Consume
+    Enqueue a l:fenced-code-fence-end, enqueue a l:fenced-code-end, enqueue an
+    t:end-of-line, consume, and switch to the s:flow-prefix-initial
+*   ↪ **[c:VS][]**\
+    ↪ **c:HT**\
+    ↪ **c:SP**
+
+    Ensure a t:whitespace and consume
 *   ↪ **Anything else**
 
-    Turn the queue, except for the first token if it is a t:whitespace, into a
-    t:content and reconsume in the s:fenced-code-continuation-line
+    Reconsume in the s:fenced-code-tilde-continuation-inside
 
-### Indented code line state
+### Fenced code tilde continuation inside state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
+*   ↪ **[c:EOF][]**
 
-    If the current open block is not an g:indented-code, open an
-    g:indented-code.
+    Enqueue a l:fenced-code-fence-end, enqueue a l:fenced-code-end, and enqueue
+    an t:end-of-file
+*   ↪ **[c:EOL][]**
 
-    Open an g:indented-code-line, emit, close, and reconsume in the
-    s:line-ending
+    Enqueue an t:end-of-line, consume, and switch to the s:flow-prefix-initial
 *   ↪ **Anything else**
 
-    Consume
+    Ensure a t:content and consume
 
-### Content continuation state
+### Flow content state
 
-*   ↪ **[c:EOF][]**\
-    ↪ **c:LF**\
-    ↪ **c:CR**
+*   ↪ **[c:EOF][]**
 
-    If the current open block is not a g:content, open a g:content.
+    Enqueue an t:end-of-file
+*   ↪ **[c:EOL][]**
 
-    Open a g:content-line, emit, close, and reconsume in the s:line-ending
+    Enqueue an t:end-of-line, consume, and switch to the s:flow-prefix-initial
 *   ↪ **Anything else**
 
     Consume
@@ -1787,6 +1745,9 @@ start in the s:content-start.
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the s:content-initial
+*   ↪ **Anything else**
+
+    Consume
 
 ## Text state machine
 
@@ -1887,7 +1848,7 @@ a character is consumed.
 
 *   ↪ **c:!**
 
-    Enqueue a l:image-label-start, enqueue a t:marker, consume, and switch to
+    Enqueue an l:image-label-start, enqueue a t:marker, consume, and switch to
     the s:image-label-start-after
 *   ↪ **Anything else**
 
@@ -1897,8 +1858,8 @@ a character is consumed.
 
 *   ↪ **c:[**
 
-    Enqueue a t:marker, consume, enqueue a l:image-label-open, and switch to the
-    s:text
+    Enqueue a t:marker, consume, enqueue an l:image-label-open, and switch to
+    the s:text
 *   ↪ **Anything else**
 
     Enqueue a l:nok
@@ -2058,7 +2019,7 @@ a character is consumed.
 
 *   ↪ **c:<**
 
-    Enqueue a l:autolink-start, enqueue a t:marker, consume, enqueue a
+    Enqueue an l:autolink-start, enqueue a t:marker, consume, enqueue an
     l:autolink-open, and switch to the s:autolink-open
 *   ↪ **Anything else**
 
@@ -2108,8 +2069,8 @@ a character is consumed.
     Otherwise, treat it as per the “anything else” entry below
 *   ↪ **c:>**
 
-    Unset `sizeLabel`, enqueue a l:autolink-email-close, enqueue a t:marker,
-    consume, enqueue a l:autolink-email-end, and switch to the s:text
+    Unset `sizeLabel`, enqueue an l:autolink-email-close, enqueue a t:marker,
+    consume, enqueue an l:autolink-email-end, and switch to the s:text
 *   ↪ **[ASCII alphanumeric][]**
 
     If `sizeLabel` is not `63`, increment `sizeLabel` by `1` and consume
@@ -2200,7 +2161,7 @@ a character is consumed.
     Enqueue a l:nok
 *   ↪ **c:>**
 
-    Enqueue a l:autolink-uri-close, enqueue a t:marker, consume, enqueue a
+    Enqueue an l:autolink-uri-close, enqueue a t:marker, consume, enqueue an
     l:autolink-uri-end, and switch to the s:text
 *   ↪ **Anything else**
 
@@ -3135,6 +3096,37 @@ a character is consumed.
 
 ### NOK label
 
+### Blank line end label
+
+### ATX heading start label
+
+### ATX heading fence start label
+
+### ATX heading fence end label
+
+### ATX heading end label
+
+### Thematic break start label
+
+### Thematic break end label
+
+### Setext heading underline start label
+
+### Setext heading underline end label
+
+### Fenced code start label
+
+### Fenced code fence start label
+
+### Fenced code fence sequence start label
+
+### Fenced code fence sequence end label
+
+### Fenced code fence end label
+
+### Fenced code end label
+
+
 ### Content definition partial label
 
 ### Content definition start label
@@ -3267,123 +3259,6 @@ a character is consumed.
 
 ### Code end label
 
-## Processing
-
-### Process as an ATX heading
-
-To [process as an ATX heading](#) is to perform the following steps:
-
-*   Let `index` be the number of tokens in the queue
-*   If the token in the queue before `index` is a t:whitespace, subtract `1`
-    from `index`
-*   If the token in the queue before `index` is a t:sequence, subtract `1` from
-    `index`
-*   If the token in the queue before `index` is a t:whitespace, subtract `1`
-    from `index`
-*   If `index` is not `0`:
-
-    *   Let `last` be the token at `index` if there is one, or otherwise the
-        last token in the queue
-    *   Let `line` be a line without an ending where `start` is the start
-        position of the token at `0`, and `end` is the end position of `last`
-    *   Open an g:atx-heading-content
-    *   [Process as Phrasing][] with `lines` set to a list with a single entry
-        `line`
-    *   Close
-*   If there is a token at `index` in queue:
-
-    *   Open an g:atx-heading-fence
-    *   Emit the tokens in the queue from `index`
-    *   Close
-*   Close
-
-### Process as a Setext primary heading
-
-To [process as a Setext primary heading](#) is to perform the following steps:
-
-*   Let `used` be the result of [process as Content][] with the [current
-    group][] given hint *setext primary heading*
-*   If `used`:
-
-    *   Open a g:setext-heading-underline
-    *   Emit
-    *   Close twice
-*   Otherwise:
-
-    *   Let `index` be the position of the [current token][] in the queue
-    *   If the [current token][] is a t:whitespace, remove `1` from `index`
-    *   Open a g:content
-    *   Emit the tokens before `index`
-    *   Emit the tokens in the queue from `index` as a t:content
-
-### Process as an asterisk line
-
-To [process as an asterisk line](#) is to perform the following steps:
-
-> ❗️ Delay for reference parser: This may be list item markers, list items with
-> code, or content.
-> It’s easier to figure this out with a reference parser that is tested.
-
-### Process as an asterisk line opening
-
-To [process as an asterisk line opening](#) is to perform the following steps:
-
-> ❗️ Delay for reference parser: This may be list item markers, list items with
-> code, or content.
-> It’s easier to figure this out with a reference parser that is tested.
-
-### Process as a Fenced code fence
-
-To [process as a Fenced code fence](#) is to perform the following steps:
-
-*   Let `fenceEnd` be `1`
-*   Let `lineEnd` be the number of tokens in the queue
-*   If the token in the queue before `lineEnd` is a t:whitespace, subtract `1`
-    from `lineEnd`
-*   If the token in the queue before `fenceEnd` is a t:whitespace, add `1` to
-    `fenceEnd`
-*   If `fenceEnd` is not `lineEnd` and the token in the queue at `fenceEnd` is a
-    t:whitespace, add `1` to `fenceEnd`.
-*   If `fenceEnd` is not `lineEnd`, let `langEnd` be `fenceEnd` plus `1`.
-*   If `langEnd` points to a place and it is not `lineEnd`, let `metaStart` be
-    `langEnd` plus `1`
-*   Open a g:fenced-code-fence
-*   Emit the tokens before `fenceEnd`
-*   If `langEnd` points to a place:
-
-    *   Let `lang` be a line without an ending where `start` is the start
-        position of the token at `fenceEnd`, `end` is the end position of the
-        token at `langEnd`
-    *   Open a g:fenced-code-language
-    *   [Process as plain text][] with `lines` set to a list with a single entry
-        `lang`
-    *   Close
-*   If `metaStart` points to a place:
-
-    *   Emit the token at `langEnd`
-    *   Let `meta` be a line without an ending where `start` is the start
-        position of the token at `metaStart`, `end` is the end position of the
-        token at `lineEnd`
-    *   Open a g:fenced-code-metadata
-    *   [Process as plain text][] with `lines` set to a list with a single entry
-        `meta`
-    *   Close
-*   If there is a token at `lineEnd`, emit it.
-*   Close
-
-### Process as Content
-
-### Process as plain text
-
-To [process as plain text](#) is to [process as Text][] given `lines` and `kind`
-`plain`.
-
-### Process as Phrasing
-
-To [process as Phrasing](#) is to [process as Text][] given `lines`.
-
-### Process as Text
-
 ## Tokens
 
 ### Whitespace token
@@ -3457,12 +3332,10 @@ interface Marker <: Token {}
 {type: 'marker'}
 ```
 
-
 ### Sequence token
 
 A t:sequence represents one or more of the same punctuation characters that are
 part of syntax instead of content.
-
 
 ```idl
 interface Sequence <: Token {
@@ -3486,307 +3359,6 @@ interface Content <: Token {
 
 ```js
 {type: 'content', prefix: '  '}
-```
-
-## Groups
-
-Groups are named groups of tokens and other blocks.
-
-### Blank line group
-
-A g:blank-line represents an empty line.
-
-```idl
-interface BlankLine <: Group {
-  children: [Whitespace]
-}
-```
-
-### ATX heading group
-
-An g:atx-heading represents a heading for a section.
-
-```idl
-interface AtxHeading <: Group {
-  children: [ATXHeadingFenceGroup | ATXHeadingContentGroup]
-}
-```
-
-### ATX heading fence group
-
-An g:atx-heading-fence represents a fence of a heading.
-
-```idl
-interface AtxHeadingFence <: Group {
-  children: [Whitespace | Sequence]
-}
-```
-
-### ATX heading content group
-
-An g:atx-heading-content represents the phrasing of a heading.
-
-```idl
-interface AtxHeadingContent <: Group {
-  children: [Phrasing]
-}
-```
-
-### Thematic break group
-
-A g:thematic-break represents a thematic break in a section.
-
-```idl
-interface ThematicBreak <: Group {
-  children: [Sequence | Whitespace]
-}
-```
-
-### HTML group
-
-An g:html represents embedded HTML.
-
-```idl
-interface HTML <: Group {
-  children: [HTMLineGroup | BlankLineGroup | LineEnding]
-}
-```
-
-### HTML line group
-
-An g:html-line represents a line of HTML.
-
-```idl
-interface HTMLLine <: Group {
-  children: [Whitespace | Content]
-}
-```
-
-### Indented code group
-
-An g:indented-code represents preformatted text.
-
-```idl
-interface IndentedCode <: Group {
-  children: [IndentedCodeLineGroup | BlankLineGroup | LineEnding]
-}
-```
-
-### Indented code line group
-
-An g:indented-code-line represents a line of indented code.
-
-```idl
-interface IndentedCodeLine <: Group {
-  children: [Whitespace | Content]
-}
-```
-
-### Blockquote group
-
-A g:blockquote represents paraphrased text.
-
-```idl
-interface Blockquote <: Group {
-  children: [FencedCodeGroup | IndentedCodeGroup | ATXHeadingGroup | SetextHeadingGroup | ThematicBreakGroup | HTMLGroup | ContentGroup | LineEnding]
-}
-```
-
-### Fenced code group
-
-A g:fenced-code represents preformatted text.
-
-```idl
-interface FencedCode <: Group {
-  children: [FencedCodeFenceGroup | FencedCodeLineGroup | BlankLineGroup | LineEnding]
-}
-```
-
-### Fenced code fence group
-
-A g:fenced-code-fence represents a fence of fenced code.
-
-```idl
-interface FencedCodeFence <: Group {
-  children: [Whitespace | Sequence | FencedCodeLanguageGroup | FencedCodeMetadataGroup]
-}
-```
-
-### Fenced code language group
-
-A g:fenced-code-language represents the programming language of fenced code.
-
-```idl
-interface FencedCodeLanguage <: Group {
-  children: [EscapeGroup | CharacterReferenceGroup | Content]
-}
-```
-
-### Fenced code metadata group
-
-A g:fenced-code-metadata represents the metadata about fenced code.
-
-```idl
-interface FencedCodeMetadata <: Group {
-  children: [EscapeGroup | CharacterReferenceGroup | Content | Whitespace]
-}
-```
-
-### Fenced code line group
-
-A g:fenced-code-line represents a line of fenced code.
-
-```idl
-interface FencedCodeLine <: Group {
-  children: [Whitespace | Content]
-}
-```
-
-### Content group
-
-A g:content represents content: definitions, paragraphs, and sometimes heading
-content.
-
-```idl
-interface Content <: Group {
-  children: [ContentLineGroup | LineEnding]
-}
-```
-
-### Content line group
-
-A g:content-line represents a line of content.
-
-```idl
-interface ContentLine <: Group {
-  children: [Whitespace | Content]
-}
-```
-
-### Setext heading group
-
-A g:setext-heading represents a heading for a section.
-
-```idl
-interface SetextHeading <: Group {
-  children: [SetextHeadingContentGroup | SetextHeadingUnderlineGroup | LineEnding]
-}
-```
-
-### Setext heading underline group
-
-A g:setext-heading-underline represents a fence of a heading.
-
-```idl
-interface SetextHeadingUnderline <: Group {
-  children: [Whitespace | Sequence]
-}
-```
-
-### Definition group
-
-A g:definition represents a link reference definition.
-
-```idl
-interface Definition <: Group {
-  children: [DefinitionLabelGroup | DefinitionLabelQuotedGroup | DefinitionLabelUnquotedGroup | DefinitionTitleGroup | Whitespace | LineEnding]
-}
-```
-
-### Definition label group
-
-A g:definition-label represents the label of a definition.
-
-```idl
-interface DefinitionLabel <: Group {
-  children: [DefinitionLabelContentGroup | Marker | Whitespace | LineEnding]
-}
-```
-
-### Definition label content group
-
-A g:definition-label-content represents the content of the label of a
-definition.
-
-```idl
-interface DefinitionLabelContent <: Group {
-  children: [EscapeGroup | CharacterReferenceGroup | Content | Whitespace | LineEnding]
-}
-```
-
-### Definition destination quoted group
-
-A g:definition-destination-quoted represents an enclosed destination of a
-definition.
-
-```idl
-interface DefinitionDestinationQuoted <: Group {
-  children: [EscapeGroup | CharacterReferenceGroup | Content | Marker]
-}
-```
-
-### Definition destination unquoted group
-
-A g:definition-destination-unquoted represents an unclosed destination of a
-definition.
-
-```idl
-interface DefinitionDestinationUnquoted <: Group {
-  children: [EscapeGroup | CharacterReferenceGroup | Content]
-}
-```
-
-### Definition title group
-
-A g:definition-title represents advisory information, such as a description of
-the destination of the definition.
-
-```idl
-interface DefinitionTitle <: Group {
-  children: [EscapeGroup | CharacterReferenceGroup | Content | Whitespace | LineEnding]
-}
-```
-
-### Escape group
-
-An g:escape represents an escaped marker or an empty escape.
-
-```idl
-interface Escape <: Group {
-  children: [Marker | Content]
-}
-```
-
-### Character reference group
-
-A g:character-reference represents an escaped character.
-
-```idl
-interface CharacterReference <: Group {
-  kind: name | hexadecimal | decimal
-  children: [Marker | Content]
-}
-```
-
-### Automatic link group
-
-An g:automatic-link represents a literal URL or email address.
-
-```idl
-interface AutomaticLink <: Group {
-  kind: email | uri
-  children: [Marker | Content]
-}
-```
-
-### HTML inline group
-
-An g:html-inline represents XML-like structures.
-
-```idl
-interface HTMLInline <: Group {
-  children: [Marker | Content | LineEnding]
-}
 ```
 
 ## Appendix
