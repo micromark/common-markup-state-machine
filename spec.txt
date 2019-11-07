@@ -376,9 +376,9 @@ start in the s:flow-prefix-start.
 > *   [ ] **[ASCII digit][]**: <!-- s:list-item-digit-start -->
 
 > ❗️ Todo, continuation:
-> *   [ ] s:flow-html-continuation
-> *   [ ] s:fenced-code-grave-accent-continuation
-> *   [ ] s:fenced-code-tilde-continuation
+> *   [x] s:flow-html-continuation
+> *   [x] s:fenced-code-grave-accent-continuation
+> *   [x] s:fenced-code-tilde-continuation
 
 *   ↪ **[c:EOF][]**
 
@@ -603,18 +603,18 @@ start in the s:flow-prefix-start.
 
 ### Flow HTML markup declaration open state
 
-*   ↪ **`--`** (two c:- characters)**
+*   ↪ **`--` (two c:- characters)**
 
     Set `kind` to `2`, unset `endTag`, consume, and switch to the
     s:flow-html-continuation-declaration-before
-*   ↪ **[ASCII alpha][]**
-
-    Set `kind` to `4`, unset `endTag`, consume, and switch to the
-    s:flow-html-continuation
 *   ↪ **`[CDATA[` (the five upper letters “CDATA” with a c:[ before and
     after)**
 
     Set `kind` to `5`, unset `endTag`, consume, and switch to the
+    s:flow-html-continuation
+*   ↪ **[ASCII alpha][]**
+
+    Set `kind` to `4`, unset `endTag`, consume, and switch to the
     s:flow-html-continuation
 *   ↪ **Anything else**
 
@@ -656,10 +656,9 @@ start in the s:flow-prefix-start.
     switch to the s:flow-html-complete-attribute-name-before
 
     Otherwise, treat it as per the “anything else” entry below
-*   ↪ **c:-**\
-    ↪ **[ASCII alphanumeric][]**
+*   ↪ **c:-**
 
-    Append the [ASCII-lowercase][]d character to `tagName` and consume
+    Append the character to `tagName` and consume
 *   ↪ **c:/**
 
     If `tagName` is a [basic tag][], unset `tagName`, consume, and switch to the
@@ -687,6 +686,9 @@ start in the s:flow-prefix-start.
     switch to the s:flow-html-complete-tag-after
 
     Otherwise, treat it as per the “anything else” entry below
+*   ↪ **[ASCII alphanumeric][]**
+
+    Append the [ASCII-lowercase][]d character to `tagName` and consume
 *   ↪ **Anything else**
 
     Unset `kind`, `endTag`, and `tagName`, and enqueue a l:nok
@@ -768,7 +770,7 @@ start in the s:flow-prefix-start.
 ### Flow HTML complete attribute value before state
 
 *   ↪ **[c:EOF][]**\
-    ↪ **[c:EOL][]**
+    ↪ **[c:EOL][]**\
     ↪ **c:<**\
     ↪ **c:=**\
     ↪ **c:>**\
@@ -1127,7 +1129,7 @@ start in the s:flow-prefix-start.
     ↪ **c:SP**
 
     If `sizeClose` is greater than or equal to `sizeOpen`, enqueue a
-    l:fenced-code-fence-sequence-end, and reconsume in the
+    l:fenced-code-fence-sequence-end and reconsume in the
     s:fenced-code-grave-accent-close-fence-after
 
     Otherwise, treat it as per the “anything else” entry below
@@ -1143,12 +1145,13 @@ start in the s:flow-prefix-start.
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a l:fenced-code-fence-end, enqueue a l:fenced-code-end, and enqueue
-    an t:end-of-file
+    Unset `sizeOpen`, unset `sizeClose`, enqueue a l:fenced-code-fence-end,
+    enqueue a l:fenced-code-end, and enqueue an t:end-of-file
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:fenced-code-fence-end, enqueue a l:fenced-code-end, enqueue an
-    t:end-of-line, consume, and switch to the s:flow-prefix-initial
+    Unset `sizeOpen`, unset `sizeClose`, enqueue a l:fenced-code-fence-end,
+    enqueue a l:fenced-code-end, enqueue an t:end-of-line, consume, and switch
+    to the s:flow-prefix-initial
 *   ↪ **[c:VS][]**\
     ↪ **c:HT**\
     ↪ **c:SP**
@@ -1162,8 +1165,8 @@ start in the s:flow-prefix-start.
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a l:fenced-code-fence-end, enqueue a l:fenced-code-end, and enqueue
-    an t:end-of-file
+    Unset `sizeOpen`, unset `sizeClose`, enqueue a l:fenced-code-fence-end,
+    enqueue a l:fenced-code-end, and enqueue an t:end-of-file
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the s:flow-prefix-initial
@@ -1257,12 +1260,13 @@ start in the s:flow-prefix-start.
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a l:fenced-code-fence-end, enqueue a l:fenced-code-end, and enqueue
-    an t:end-of-file
+    Unset `sizeOpen`, unset `sizeClose`, enqueue a l:fenced-code-fence-end,
+    enqueue a l:fenced-code-end, and enqueue an t:end-of-file
 *   ↪ **[c:EOL][]**
 
-    Enqueue a l:fenced-code-fence-end, enqueue a l:fenced-code-end, enqueue an
-    t:end-of-line, consume, and switch to the s:flow-prefix-initial
+    Unset `sizeOpen`, unset `sizeClose`, enqueue a l:fenced-code-fence-end,
+    enqueue a l:fenced-code-end, enqueue an t:end-of-line, consume, and switch
+    to the s:flow-prefix-initial
 *   ↪ **[c:VS][]**\
     ↪ **c:HT**\
     ↪ **c:SP**
@@ -1276,8 +1280,8 @@ start in the s:flow-prefix-start.
 
 *   ↪ **[c:EOF][]**
 
-    Enqueue a l:fenced-code-fence-end, enqueue a l:fenced-code-end, and enqueue
-    an t:end-of-file
+    Unset `sizeOpen`, unset `sizeClose`, enqueue a l:fenced-code-fence-end,
+    enqueue a l:fenced-code-end, and enqueue an t:end-of-file
 *   ↪ **[c:EOL][]**
 
     Enqueue an t:end-of-line, consume, and switch to the s:flow-prefix-initial

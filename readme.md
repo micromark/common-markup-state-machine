@@ -661,9 +661,9 @@ start in the [*Flow prefix start state*][s-flow-prefix-start].
 >
 > ❗️ Todo, continuation:
 >
-> *   [ ] [*Flow HTML continuation state*][s-flow-html-continuation]
-> *   [ ] [*Fenced code grave accent continuation state*][s-fenced-code-grave-accent-continuation]
-> *   [ ] [*Fenced code tilde continuation state*][s-fenced-code-tilde-continuation]
+> *   [x] [*Flow HTML continuation state*][s-flow-html-continuation]
+> *   [x] [*Fenced code grave accent continuation state*][s-fenced-code-grave-accent-continuation]
+> *   [x] [*Fenced code tilde continuation state*][s-fenced-code-tilde-continuation]
 
 *   ↪ **[EOF][ceof]**
 
@@ -888,18 +888,18 @@ start in the [*Flow prefix start state*][s-flow-prefix-start].
 
 ### 7.18 Flow HTML markup declaration open state
 
-*   ↪ **`--`** (two U+002D DASH (`-`) characters)\*\*
+*   ↪ **`--` (two U+002D DASH (`-`) characters)**
 
     Set `kind` to `2`, unset `endTag`, consume, and switch to the
     [*Flow HTML continuation declaration before state*][s-flow-html-continuation-declaration-before]
-*   ↪ **[ASCII alpha][ascii-alpha]**
-
-    Set `kind` to `4`, unset `endTag`, consume, and switch to the
-    [*Flow HTML continuation state*][s-flow-html-continuation]
 *   ↪ **`[CDATA[` (the five upper letters “CDATA” with a U+005B LEFT SQUARE BRACKET (`[`) before and
     after)**
 
     Set `kind` to `5`, unset `endTag`, consume, and switch to the
+    [*Flow HTML continuation state*][s-flow-html-continuation]
+*   ↪ **[ASCII alpha][ascii-alpha]**
+
+    Set `kind` to `4`, unset `endTag`, consume, and switch to the
     [*Flow HTML continuation state*][s-flow-html-continuation]
 *   ↪ **Anything else**
 
@@ -941,10 +941,9 @@ start in the [*Flow prefix start state*][s-flow-prefix-start].
     switch to the [*Flow HTML complete attribute name before state*][s-flow-html-complete-attribute-name-before]
 
     Otherwise, treat it as per the “anything else” entry below
-*   ↪ **U+002D DASH (`-`)**\
-    ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+*   ↪ **U+002D DASH (`-`)**
 
-    Append the [ASCII-lowercase][ascii-lowercase]d character to `tagName` and consume
+    Append the character to `tagName` and consume
 *   ↪ **U+002F SLASH (`/`)**
 
     If `tagName` is a [basic tag][basic-tag], unset `tagName`, consume, and switch to the
@@ -972,6 +971,9 @@ start in the [*Flow prefix start state*][s-flow-prefix-start].
     switch to the [*Flow HTML complete tag after state*][s-flow-html-complete-tag-after]
 
     Otherwise, treat it as per the “anything else” entry below
+*   ↪ **[ASCII alphanumeric][ascii-alphanumeric]**
+
+    Append the [ASCII-lowercase][ascii-lowercase]d character to `tagName` and consume
 *   ↪ **Anything else**
 
     Unset `kind`, `endTag`, and `tagName`, and enqueue a [*NOK label*][l-nok]
@@ -1053,7 +1055,7 @@ start in the [*Flow prefix start state*][s-flow-prefix-start].
 ### 7.25 Flow HTML complete attribute value before state
 
 *   ↪ **[EOF][ceof]**\
-    ↪ **[EOL][ceol]**
+    ↪ **[EOL][ceol]**\
     ↪ **U+003C LESS THAN (`<`)**\
     ↪ **U+003D EQUALS TO (`=`)**\
     ↪ **U+003E GREATER THAN (`>`)**\
@@ -1412,7 +1414,7 @@ start in the [*Flow prefix start state*][s-flow-prefix-start].
     ↪ **U+0020 SPACE (SP)**
 
     If `sizeClose` is greater than or equal to `sizeOpen`, enqueue a
-    [*Fenced code fence sequence end label*][l-fenced-code-fence-sequence-end], and reconsume in the
+    [*Fenced code fence sequence end label*][l-fenced-code-fence-sequence-end] and reconsume in the
     [*Fenced code grave accent close fence after state*][s-fenced-code-grave-accent-close-fence-after]
 
     Otherwise, treat it as per the “anything else” entry below
@@ -1428,12 +1430,13 @@ start in the [*Flow prefix start state*][s-flow-prefix-start].
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Fenced code fence end label*][l-fenced-code-fence-end], enqueue a [*Fenced code end label*][l-fenced-code-end], and enqueue
-    an [*End-of-file token*][t-end-of-file]
+    Unset `sizeOpen`, unset `sizeClose`, enqueue a [*Fenced code fence end label*][l-fenced-code-fence-end],
+    enqueue a [*Fenced code end label*][l-fenced-code-end], and enqueue an [*End-of-file token*][t-end-of-file]
 *   ↪ **[EOL][ceol]**
 
-    Enqueue a [*Fenced code fence end label*][l-fenced-code-fence-end], enqueue a [*Fenced code end label*][l-fenced-code-end], enqueue an
-    [*End-of-line token*][t-end-of-line], consume, and switch to the [*Flow prefix initial state*][s-flow-prefix-initial]
+    Unset `sizeOpen`, unset `sizeClose`, enqueue a [*Fenced code fence end label*][l-fenced-code-fence-end],
+    enqueue a [*Fenced code end label*][l-fenced-code-end], enqueue an [*End-of-line token*][t-end-of-line], consume, and switch
+    to the [*Flow prefix initial state*][s-flow-prefix-initial]
 *   ↪ **[VIRTUAL SPACE][cvs]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -1447,8 +1450,8 @@ start in the [*Flow prefix start state*][s-flow-prefix-start].
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Fenced code fence end label*][l-fenced-code-fence-end], enqueue a [*Fenced code end label*][l-fenced-code-end], and enqueue
-    an [*End-of-file token*][t-end-of-file]
+    Unset `sizeOpen`, unset `sizeClose`, enqueue a [*Fenced code fence end label*][l-fenced-code-fence-end],
+    enqueue a [*Fenced code end label*][l-fenced-code-end], and enqueue an [*End-of-file token*][t-end-of-file]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the [*Flow prefix initial state*][s-flow-prefix-initial]
@@ -1542,12 +1545,13 @@ start in the [*Flow prefix start state*][s-flow-prefix-start].
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Fenced code fence end label*][l-fenced-code-fence-end], enqueue a [*Fenced code end label*][l-fenced-code-end], and enqueue
-    an [*End-of-file token*][t-end-of-file]
+    Unset `sizeOpen`, unset `sizeClose`, enqueue a [*Fenced code fence end label*][l-fenced-code-fence-end],
+    enqueue a [*Fenced code end label*][l-fenced-code-end], and enqueue an [*End-of-file token*][t-end-of-file]
 *   ↪ **[EOL][ceol]**
 
-    Enqueue a [*Fenced code fence end label*][l-fenced-code-fence-end], enqueue a [*Fenced code end label*][l-fenced-code-end], enqueue an
-    [*End-of-line token*][t-end-of-line], consume, and switch to the [*Flow prefix initial state*][s-flow-prefix-initial]
+    Unset `sizeOpen`, unset `sizeClose`, enqueue a [*Fenced code fence end label*][l-fenced-code-fence-end],
+    enqueue a [*Fenced code end label*][l-fenced-code-end], enqueue an [*End-of-line token*][t-end-of-line], consume, and switch
+    to the [*Flow prefix initial state*][s-flow-prefix-initial]
 *   ↪ **[VIRTUAL SPACE][cvs]**\
     ↪ **U+0009 CHARACTER TABULATION (HT)**\
     ↪ **U+0020 SPACE (SP)**
@@ -1561,8 +1565,8 @@ start in the [*Flow prefix start state*][s-flow-prefix-start].
 
 *   ↪ **[EOF][ceof]**
 
-    Enqueue a [*Fenced code fence end label*][l-fenced-code-fence-end], enqueue a [*Fenced code end label*][l-fenced-code-end], and enqueue
-    an [*End-of-file token*][t-end-of-file]
+    Unset `sizeOpen`, unset `sizeClose`, enqueue a [*Fenced code fence end label*][l-fenced-code-fence-end],
+    enqueue a [*Fenced code end label*][l-fenced-code-end], and enqueue an [*End-of-file token*][t-end-of-file]
 *   ↪ **[EOL][ceol]**
 
     Enqueue an [*End-of-line token*][t-end-of-line], consume, and switch to the [*Flow prefix initial state*][s-flow-prefix-initial]
