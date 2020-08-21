@@ -24,7 +24,7 @@ var specToMarkdown = unified()
   .use(slugReferences)
   .use(markdown, settings)
 
-specToMarkdown.process(file, function(err, file) {
+specToMarkdown.process(file, function (err, file) {
   if (err) {
     console.error(report(err))
   } else {

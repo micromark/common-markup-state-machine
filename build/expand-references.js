@@ -11,7 +11,7 @@ function expandStates() {
     var slugs = {}
     var types = ['state', 'label', 'token', 'group']
     var re = new RegExp(
-      '(' + types.map(d => d.charAt(0)).join('|') + '):([a-z-]+)',
+      '(' + types.map((d) => d.charAt(0)).join('|') + '):([a-z-]+)',
       'g'
     )
 
@@ -19,7 +19,7 @@ function expandStates() {
 
     find(tree, re, replace)
 
-    Object.keys(slugs).forEach(s => {
+    Object.keys(slugs).forEach((s) => {
       tree.children.push({
         type: 'definition',
         identifier: s,
@@ -34,7 +34,7 @@ function expandStates() {
         return
       }
 
-      types.forEach(d => {
+      types.forEach((d) => {
         var key
 
         if (new RegExp('^\\d+(?:-[a-z]+)+-' + d + '$').test(id)) {

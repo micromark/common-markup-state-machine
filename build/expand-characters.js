@@ -33,13 +33,7 @@ function expandCharacters() {
         throw new Error('Cannot expand character `' + all + '`')
       }
     } else {
-      message = [
-        'U+' +
-          pos
-            .toString(16)
-            .toUpperCase()
-            .padStart(4, '0')
-      ]
+      message = ['U+' + pos.toString(16).toUpperCase().padStart(4, '0')]
       value = characters[pos]
       name = names[value]
     }

@@ -6,18 +6,18 @@
   "devDependencies": {
     "github-slugger": "^1.0.0",
     "mdast-util-to-string": "^1.0.0",
-    "prettier": "^1.0.0",
-    "remark-cli": "^7.0.0",
-    "remark-parse": "^7.0.0",
-    "remark-preset-wooorm": "^6.0.0",
-    "remark-slug": "^5.0.0",
-    "remark-stringify": "^7.0.0",
-    "remark-toc": "^6.0.0",
+    "prettier": "^2.0.0",
+    "remark-cli": "^8.0.0",
+    "remark-parse": "^8.0.0",
+    "remark-preset-wooorm": "^7.0.0",
+    "remark-slug": "^6.0.0",
+    "remark-stringify": "^8.0.0",
+    "remark-toc": "^7.0.0",
     "to-vfile": "^6.0.0",
-    "unified": "^8.0.0",
+    "unified": "^9.0.0",
     "unist-util-visit-parents": "^3.0.0",
     "vfile-reporter": "^6.0.0",
-    "xo": "^0.25.0"
+    "xo": "^0.33.0"
   },
   "scripts": {
     "build": "node build",
