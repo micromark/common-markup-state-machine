@@ -21,7 +21,7 @@
   },
   "scripts": {
     "build": "node build",
-    "format": "remark . -qo && prettier --write \"**/*.js\" && xo --fix",
+    "format": "remark . -qo && prettier . --write && xo --fix",
     "test": "npm run build && npm run format"
   },
   "prettier": {
