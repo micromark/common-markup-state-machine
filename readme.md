@@ -1,5 +1,14 @@
 # CMSM
 
+> 🪦 **Archived**: this document is not maintained.
+> This document was made jointly with `micromark`,
+> which was later also turned into `markdown-rs`.
+> At present,
+> I don’t have the bandwidth to maintain 2 reference parsers
+> *and* a spec.
+
+***
+
 > Common markup state machine.
 
 Together, the parsing rules described below define what is referred to as a
